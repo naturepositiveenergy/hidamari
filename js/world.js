@@ -284,7 +284,9 @@
       if (!speciesActive(sp, state)) return;
       if (world.critters.filter(c => c.species === sp).length >= info.max) return;
       if (Math.random() < 0.35) return;   // not every half hour
-      let tiles = habitatTiles(info.habitat, state).filter(t => !world.critters.some(c => c.tx === t.x && c.ty === t.y));
+      // Not on a tile that already has an animal, and not right on top of you
+      let tiles = habitatTiles(info.habitat, state).filter(t => !world.critters.some(c => c.tx === t.x && c.ty === t.y) &&
+        (Math.abs(t.x - p.x) > 1 || Math.abs(t.y - p.y) > 1));
       const near = tiles.filter(t => Math.abs(t.x - p.x) <= 12 && Math.abs(t.y - p.y) <= 9);
       if (near.length) tiles = near;
       if (!tiles.length) return;

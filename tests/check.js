@@ -84,7 +84,8 @@ try {
   const out = build();
   ok(fs.existsSync(path.join(ROOT, 'img/sprites.png')) && Buffer.compare(out.png, fs.readFileSync(path.join(ROOT, 'img/sprites.png'))) === 0,
     'img/sprites.png is out of date: run  node tools/make-sprites.js');
-  ok(out.sheetJs === read('js/sprite-sheet.js'), 'js/sprite-sheet.js is out of date: run  node tools/make-sprites.js');
+  // (Windows may store the file with other line endings; they don't matter)
+  ok(out.sheetJs === read('js/sprite-sheet.js').replace(/\r\n/g, '\n'), 'js/sprite-sheet.js is out of date: run  node tools/make-sprites.js');
   // Every map tile and every species has a drawing
   const sheet = vm.runInContext(out.sheetJs + '; HM.SHEET', vm.createContext({}));
   Object.values(HM.MAP.legend).forEach(l => ok(sheet.frames['tile.' + l.tile], `the map uses tile "${l.tile}", which has no drawing`));
