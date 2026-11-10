@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- All texts on this page come from lang/en.js and lang/ja.js -->
+<title data-i18n="art.pageTitle"></title>
+<link rel="stylesheet" href="css/art-test.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <p class="kicker" data-i18n="art.kicker"></p>
+      <h1 data-i18n="art.title"></h1>
+    </div>
+    <!-- One button per language file, added by js/art-test.js -->
+    <nav class="lang-switch" id="langSwitch" data-i18n-aria-label="lang.switchLabel"></nav>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p data-i18n="art.intro"></p>
+      <h2 data-i18n="art.lookForTitle"></h2>
+      <ul>
+        <li data-i18n="art.lookFor1"></li>
+        <li data-i18n="art.lookFor2"></li>
+        <li data-i18n="art.lookFor3"></li>
+      </ul>
+      <button type="button" class="btn" id="animBtn" aria-pressed="true"></button>
+    </section>
+
+    <!-- The three style cards are added here by js/art-test.js -->
+    <div id="styles"></div>
+
+    <section class="choose">
+      <h2 data-i18n="art.chooseTitle"></h2>
+      <p data-i18n="art.chooseText"></p>
+    </section>
+  </main>
+
+  <footer>
+    <p data-i18n="art.footer"></p>
+  </footer>
+
+  <script src="js/i18n.js"></script>
+  <script src="lang/en.js"></script>
+  <script src="lang/ja.js"></script>
+  <script src="js/art-test.js"></script>
+</body>
+</html>

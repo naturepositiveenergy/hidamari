@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- All texts on this page come from lang/en.js and lang/ja.js -->
+<title data-i18n="app.pageTitle"></title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+  <!-- ===== Title screen ===== -->
+  <section id="titleScreen" class="screen title-screen">
+    <div class="title-card">
+      <p class="test-note" data-i18n="title.testNote"></p>
+      <h1 class="game-title" data-i18n="title.name"></h1>
+      <p class="subtitle" data-i18n="title.subtitle"></p>
+      <div class="title-buttons">
+        <button type="button" id="continueBtn" class="btn btn-primary" hidden></button>
+        <button type="button" id="newGameBtn" class="btn" data-i18n="title.newGame"></button>
+      </div>
+      <form id="nameForm" class="name-form" hidden>
+        <label for="nameInput" data-i18n="title.nameLabel"></label>
+        <input id="nameInput" maxlength="10" autocomplete="off" spellcheck="false">
+        <p id="overwriteNote" class="muted" data-i18n="title.overwrite" hidden></p>
+        <button type="submit" class="btn btn-primary" data-i18n="title.start"></button>
+      </form>
+      <!-- One button per language file, added by js/ui.js -->
+      <nav class="lang-switch" id="langSwitch" data-i18n-aria-label="lang.switchLabel"></nav>
+    </div>
+  </section>
+
+  <!-- ===== The game ===== -->
+  <section id="gameScreen" class="screen game-screen" hidden>
+    <div id="stage" class="stage">
+      <canvas id="world" data-i18n-aria-label="game.worldLabel" role="img"></canvas>
+    </div>
+
+    <header class="hud">
+      <div class="hud-box"><span id="hudDay"></span> <span id="hudTime" class="hud-time"></span> <span id="hudWeather"></span></div>
+      <div class="hud-box hud-right"><span id="hudMoney"></span>
+        <button type="button" id="menuBtn" class="btn btn-small" data-i18n="ui.menu"></button></div>
+    </header>
+
+    <p id="hint" class="hint" aria-live="polite" hidden></p>
+    <button type="button" id="actionBtn" class="action-btn" hidden></button>
+
+    <!-- Conversations -->
+    <div id="dialogue" class="dialogue" hidden tabindex="-1" aria-live="polite">
+      <div class="dialogue-head"><span id="dlgName" class="dlg-name"></span><span id="dlgHearts" class="hearts"></span></div>
+      <p id="dlgText" class="dlg-text"></p>
+      <div id="dlgChoices" class="choices"></div>
+      <span id="dlgNext" class="dlg-next" aria-hidden="true">▼</span>
+    </div>
+
+    <!-- Build mode -->
+    <div id="buildBar" class="build-bar" hidden role="region" data-i18n-aria-label="build.title">
+      <div class="build-head"><h2 data-i18n="build.title"></h2><p class="muted" data-i18n="build.help"></p></div>
+      <div id="buildTools" class="tools"></div>
+      <p id="buildInfo" class="build-info"></p>
+      <p id="buildProblem" class="build-problem"></p>
+      <div class="build-actions">
+        <button type="button" id="buildUndo" class="btn btn-small" data-i18n="build.undo"></button>
+        <button type="button" id="buildCancel" class="btn btn-small" data-i18n="build.cancel"></button>
+        <button type="button" id="buildGo" class="btn btn-small btn-primary" data-i18n="build.go"></button>
+      </div>
+    </div>
+
+    <!-- Windows: bag, diary, menu, settings, evening summary -->
+    <div id="panel" class="panel" hidden role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+      <div class="panel-box">
+        <h2 id="panelTitle"></h2>
+        <div id="panelBody" class="panel-body"></div>
+        <div id="panelActions" class="panel-actions"></div>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/i18n.js"></script>
+  <script src="lang/en.js"></script>
+  <script src="lang/ja.js"></script>
+  <script src="js/sprite-sheet.js"></script>
+  <script src="js/map-data.js"></script>
+  <script src="js/game-data.js"></script>
+  <script src="js/rules.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/dialogue.js"></script>
+  <script src="js/story.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/build.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
