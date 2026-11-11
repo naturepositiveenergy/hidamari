@@ -87,13 +87,20 @@ function render(grid, colours, soft, name) {
 
 // ----- Collect every frame: [name, grid, colours, soft] -----
 function collectFrames(data) {
-  const { PALETTE, ROLES, TILES, PEOPLE, LEGS, CRITTERS, SPECIES_ART, UI } = data;
+  const { PALETTE, ROLES, TILES, PEOPLE, LEGS, CRITTERS, SPECIES_ART, UI, SEASONS } = data;
   const frames = [];   // { name, grids: [frame0, frame1...], colours, soft }
   const tileColours = colourMap(ROLES.tile, PALETTE);
 
   for (const [name, grid] of Object.entries(TILES)) {
     const animated = grid.some(row => /[yz]/.test(row));
-    frames.push({ name: 'tile.' + name, grids: animated ? [shineFrame(grid, 0), shineFrame(grid, 1)] : [grid], colours: tileColours });
+    const grids = animated ? [shineFrame(grid, 0), shineFrame(grid, 1)] : [grid];
+    frames.push({ name: 'tile.' + name, grids, colours: tileColours });
+    // The same tile in summer, autumn and winter, if its colours change in that season
+    for (const [season, def] of Object.entries(SEASONS || {})) {
+      const colours = colourMap(Object.assign({}, ROLES.tile, def.roles, def.tiles[name] || {}), PALETTE);
+      const looks = c => JSON.stringify(grids.map(g => render(g, c, false, name)));
+      if (looks(colours) !== looks(tileColours)) frames.push({ name: `tile.${name}@${season}`, grids, colours });
+    }
   }
 
   for (const [who, person] of Object.entries(PEOPLE)) {

@@ -60,10 +60,16 @@
     camera.y = Math.round(camera.y);
   }
 
+  // The drawing of a tile in this season ("tile.tree@autumn"), or the spring drawing
+  function seasonal(name, season) {
+    const own = 'tile.' + name + '@' + season;
+    return HM.SHEET.frames[own] ? own : 'tile.' + name;
+  }
+
   // Which drawing a map tile uses right now
-  function tileSprite(ch, state) {
-    if (ch === 'L' && state.flags.leavesCleared) return 'tile.path';
-    return 'tile.' + HM.MAP.legend[ch].tile;
+  function tileSprite(ch, state, season) {
+    if (ch === 'L' && state.flags.leavesCleared) return seasonal('path', season);
+    return seasonal(HM.MAP.legend[ch].tile, season);
   }
 
   // The colour wash for the time of day: [red, green, blue, strength]
@@ -81,15 +87,20 @@
     return night;
   }
 
-  function drawRain(time, still) {
-    ctx.fillStyle = 'rgba(225, 240, 250, 0.55)';
-    const n = Math.floor(view.w * view.h / 700);
+  // Rain (heavier and windier in a typhoon) and snow. still: no movement (animations off)
+  function drawWeather(kind, time, still) {
+    const storm = kind === 'typhoon', snow = kind === 'snow';
+    if (storm) { ctx.fillStyle = 'rgba(70, 80, 95, 0.22)'; ctx.fillRect(0, 0, view.w, view.h); }
+    ctx.fillStyle = snow ? 'rgba(255, 255, 255, 0.85)' : 'rgba(225, 240, 250, 0.55)';
+    const n = Math.floor(view.w * view.h / (storm ? 320 : snow ? 900 : 700));
     for (let i = 0; i < n; i++) {
       const sx = (i * 97.13) % view.w;
-      const speed = 140 + (i % 7) * 12;
+      const speed = snow ? 18 + (i % 5) * 4 : (storm ? 220 : 140) + (i % 7) * 12;
+      const drift = snow ? Math.sin(time / 900 + i) * 6 : storm ? 90 : 18;
       const y = still ? (i * 53.7) % view.h : ((i * 53.7) + time / 1000 * speed) % (view.h + 8) - 4;
-      const x = still ? sx : (sx + time / 1000 * 18) % view.w;
-      ctx.fillRect(Math.round(x), Math.round(y), 1, 3);
+      const x = still ? sx : ((sx + (snow ? drift : time / 1000 * drift)) % view.w + view.w) % view.w;
+      if (snow) ctx.fillRect(Math.round(x), Math.round(y), 2, 2);
+      else ctx.fillRect(Math.round(x), Math.round(y), storm ? 2 : 1, storm ? 4 : 3);
     }
   }
 
@@ -100,6 +111,7 @@
     const box = canvas.parentElement;
     if ([box.clientWidth, box.clientHeight, root.devicePixelRatio || 1].join() !== fitted) resize();
     const map = HM.MAP;
+    const season = HM.rules.seasonOf(state.day);
     const anim = g.settings.motion ? Math.floor(time / 700) % 2 : 0;
     const focus = g.mode === 'build' ? HM.build.focusPoint() : { x: w.player.x + T / 2, y: w.player.y + T / 2 };
     centreOn(focus.x, focus.y + (g.mode === 'dialogue' ? T * 1.5 : 0));
@@ -113,7 +125,7 @@
     const y1 = Math.min(map.height - 1, Math.floor((camera.y + view.h) / T));
     for (let ty = y0; ty <= y1; ty++) {
       for (let tx = x0; tx <= x1; tx++) {
-        sprite(tileSprite(map.rows[ty][tx], state), anim, tx * T, ty * T);
+        sprite(tileSprite(map.rows[ty][tx], state, season), anim, tx * T, ty * T);
       }
     }
 
@@ -124,9 +136,9 @@
       const fx = (f.x + i % f.w) * T, fy = (f.y + Math.floor(i / f.w)) * T;
       const built = state.field[i];
       const planned = plan ? plan[i] : built;
-      if (built && planned === built) sprite('tile.' + built, anim, fx, fy);
+      if (built && planned === built) sprite(seasonal(built, season), anim, fx, fy);
       else if (planned) {
-        sprite('tile.' + planned, anim, fx, fy, 0.55);
+        sprite(seasonal(planned, season), anim, fx, fy, 0.55);
         ctx.strokeStyle = 'rgba(91, 70, 54, 0.8)';
         ctx.setLineDash([2, 2]);
         ctx.strokeRect(Math.round(fx - camera.x) + 0.5, Math.round(fy - camera.y) + 0.5, T - 1, T - 1);
@@ -156,7 +168,8 @@
       ctx.fillStyle = `rgba(${wash[0] | 0}, ${wash[1] | 0}, ${wash[2] | 0}, ${wash[3]})`;
       ctx.fillRect(0, 0, view.w, view.h);
     }
-    if (HM.rules.weatherOf(state.day) === 'rain') drawRain(time, !g.settings.motion);
+    const weather = HM.rules.weatherOf(state.day);
+    if (weather === 'rain' || weather === 'typhoon' || weather === 'snow') drawWeather(weather, time, !g.settings.motion);
   }
 
   // "Look closely": a ring around the animal that fills up while you stand still

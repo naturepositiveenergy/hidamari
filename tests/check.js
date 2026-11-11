@@ -58,8 +58,12 @@ Object.keys(D.residents).forEach(who => {
   used.add('who.' + who);
   ['loved', 'liked', 'neutral', 'disliked'].forEach(r => used.add(`${who}.gift.${r}`));
 });
-Object.values(D.days).forEach(d => { used.add('weather.' + d.weather); used.add('announce.weather.' + d.weather); });
-Object.keys(D.days).forEach(day => used.add('announce.news.' + day));
+D.days.forEach((weather, i) => { used.add('weather.' + weather); used.add('announce.weather.' + weather); used.add('announce.news.' + (i + 1)); });
+D.seasons.forEach((season, i) => { used.add('season.' + season); if (i) used.add('announce.season.' + season); });
+HM.MAP.objects.forEach(o => {
+  if (/Door$/.test(o.id) && o.id !== 'homeDoor' && o.id !== 'genDoor') used.add('obj.door.' + o.id.replace(/Door$/, ''));
+  if (['noticeBoard', 'postBox', 'busStop', 'bench', 'hidamariTree'].includes(o.id)) used.add('obj.' + o.id);
+});
 Object.keys(D.items).forEach(i => used.add('item.' + i));
 D.speciesOrder.forEach(sp => { used.add('species.' + sp); used.add('species.' + sp + '.fact'); used.add('hint.' + D.species[sp].habitat); });
 HM.MAP.areas.forEach(a => used.add('place.' + a.id));
@@ -90,6 +94,9 @@ try {
   const sheet = vm.runInContext(out.sheetJs + '; HM.SHEET', vm.createContext({}));
   Object.values(HM.MAP.legend).forEach(l => ok(sheet.frames['tile.' + l.tile], `the map uses tile "${l.tile}", which has no drawing`));
   D.speciesOrder.forEach(sp => ok(sheet.frames['critter.' + sp], `species "${sp}" has no drawing`));
+  // The seasons change the look of the ground and the trees
+  ['summer', 'autumn', 'winter'].forEach(season => ['grass', 'tree', 'paddy'].forEach(tl =>
+    ok(sheet.frames[`tile.${tl}@${season}`], `"${tl}" has no ${season} drawing`)));
   D.buildOrder.forEach(tl => ok(sheet.frames['tile.' + tl], `build tile "${tl}" has no drawing`));
   Object.keys(HM.SPRITE_DATA.PEOPLE).forEach(who => ['down', 'up', 'left', 'right'].forEach(dir => ['stand', 'stepA', 'stepB'].forEach(pose =>
     ok(sheet.frames[`${who}.${dir}.${pose}`], `${who} has no "${dir} ${pose}" drawing`))));
@@ -165,9 +172,14 @@ ok(!R.recordSpecies(s, 'tit', 'hedgerow'), 'a species should be recorded only on
 const copy = R.deserialize(R.serialize(s));
 ok(copy && JSON.stringify(copy) === JSON.stringify(s), 'saving and loading should give the same game');
 ok(R.deserialize('{broken') === null && R.deserialize(JSON.stringify({ version: 99 })) === null, 'a damaged save should be ignored');
-R.endDay(s);
-const last = R.endDay(s);
-ok(last.last && s.finished && s.day === D.time.lastDay, 'the test should end after day 3');
+// A whole year: the seasons, the allowance at the start of each season, and the end after day 28
+ok(R.seasonOf(1) === 'spring' && R.seasonOf(8) === 'summer' && R.seasonOf(16) === 'autumn' && R.seasonOf(28) === 'winter' &&
+  R.dayInSeason(9) === 2, 'days 1–7 should be spring, 8–14 summer, 15–21 autumn and 22–28 winter');
+ok(D.days.length === D.time.lastDay, 'every day of the year should have its weather');
+let last = null, allowances = 0;
+while (!s.finished) { last = R.endDay(s); if (last.allowance) allowances++; }
+ok(allowances === 3, `the allowance should arrive at the start of summer, autumn and winter (got ${allowances} times)`);
+ok(last.last && s.day === D.time.lastDay, 'the year should end after day 28');
 console.log('  friendship, gifts, building, money, days and saving checked');
 
 // ---------- 5. Font ----------

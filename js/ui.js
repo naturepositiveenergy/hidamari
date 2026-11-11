@@ -12,6 +12,8 @@
     const m = Math.floor(minutes) % (24 * 60);
     return Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0');
   };
+  // "Spring, day 3": the season and the day within it (day 1 to 28 of the year)
+  const when = day => ({ season: t('season.' + HM.rules.seasonOf(day)), day: HM.rules.dayInSeason(day) });
   const touch = () => root.matchMedia && root.matchMedia('(pointer: coarse)').matches;
 
   function node(tag, attrs, text) {
@@ -50,7 +52,7 @@
   function refreshTitle() {
     const saved = HM.save.read();
     el('continueBtn').hidden = !saved;
-    if (saved) el('continueBtn').textContent = t(saved.finished ? 'title.continueDone' : 'title.continue', { day: saved.day });
+    if (saved) el('continueBtn').textContent = t(saved.finished ? 'title.continueDone' : 'title.continue', when(saved.day));
     el('nameForm').hidden = true;
   }
 
@@ -71,7 +73,7 @@
   function updateHud() {
     const s = game.state;
     if (!s) return;
-    el('hudDay').textContent = t('ui.day', { day: s.day });
+    el('hudDay').textContent = t('ui.day', when(s.day));
     el('hudTime').textContent = clock(s.minutes);
     el('hudWeather').textContent = t('weather.' + HM.rules.weatherOf(s.day));
     el('hudMoney').textContent = t('ui.money', { money: fmt(s.money) });
@@ -177,7 +179,7 @@
       if (seen) {
         card.appendChild(spriteCanvas('critter.' + sp, t('species.' + sp)));
         card.appendChild(node('h3', {}, t('species.' + sp)));
-        card.appendChild(node('p', { class: 'muted' }, t('diary.seen', { day: seen.day, time: clock(seen.minutes), place: t('place.' + seen.area) })));
+        card.appendChild(node('p', { class: 'muted' }, t('diary.seen', Object.assign(when(seen.day), { time: clock(seen.minutes), place: t('place.' + seen.area) }))));
         card.appendChild(node('p', {}, t('species.' + sp + '.fact')));
       } else {
         card.appendChild(node('div', { class: 'sketch blank', 'aria-hidden': 'true' }, '?'));
@@ -243,6 +245,7 @@
     lines.push(sum.power > 0 || HM.rules.fieldStats(game.state.field).power > 0
       ? t('summary.power', { power: sum.power, income: fmt(sum.income) })
       : t('summary.noPanels'));
+    if (sum.allowance) lines.push(t('summary.allowance', { amount: fmt(sum.allowance), season: t('season.' + HM.rules.seasonOf(sum.day + 1)) }));
     lines.push(t('summary.money', { money: fmt(sum.money) }));
     sum.friends.forEach(f => lines.push(t('summary.friend', {
       who: t('who.' + f.who), hearts: '♥'.repeat(f.hearts) + '♡'.repeat(HM.DATA.hearts.max - f.hearts), gained: f.gained
@@ -253,7 +256,7 @@
     const body = node('div');
     body.appendChild(listOf(lines));
     body.appendChild(node('p', { class: 'muted' }, t(sum.saved ? 'summary.saved' : 'summary.notSaved')));
-    openPanel({ title: 'summary.title', titleVars: { day: sum.day }, body, actions: [{ key: 'summary.next', primary: true, onClick: onNext }] });
+    openPanel({ title: 'summary.title', titleVars: when(sum.day), body, actions: [{ key: 'summary.next', primary: true, onClick: onNext }] });
   }
 
   // ----- End of the test -----

@@ -1,4 +1,4 @@
-// Hidamari: the game's numbers and lists for the Phase 1 test.
+// Hidamari: the game's numbers and lists.
 //
 // The numbers are first guesses from docs/design.md and will be balanced in Phase 2.
 // All texts are in the language files; here are only text codes.
@@ -15,16 +15,21 @@
       dayEnd: 24 * 60,            // at midnight you fall asleep
       firstDayStart: 9 * 60,      // on day 1 you arrive at 9:00
       eveningChime: 17 * 60,
-      lastDay: 3                  // the Phase 1 test lasts 3 days
+      lastDay: 28                 // one year: 4 seasons of 7 days
     },
+    seasons: ['spring', 'summer', 'autumn', 'winter'],
+    daysPerSeason: 7,
 
-    // Weather of the 3 test days, and how much power the panels make in it
-    days: {
-      1: { weather: 'sunny' },
-      2: { weather: 'cloudy' },
-      3: { weather: 'rain' }
-    },
-    weatherPower: { sunny: 1, cloudy: 0.5, rain: 0.2 },
+    // The weather of every day of the year (design.md section 11): spring, summer with the
+    // rainy season, autumn with the typhoon, winter with snow
+    days: [
+      'sunny', 'sunny', 'cloudy', 'sunny', 'cloudy', 'sunny', 'rain',          // spring
+      'rain', 'rain', 'rain', 'cloudy', 'sunny', 'sunny', 'sunny',             // summer: rainy season, then hot days
+      'sunny', 'typhoon', 'sunny', 'cloudy', 'sunny', 'sunny', 'cloudy',       // autumn: typhoon on day 2
+      'cloudy', 'snow', 'snow', 'sunny', 'sunny', 'cloudy', 'sunny'            // winter
+    ],
+    // How much power the panels make in each kind of weather
+    weatherPower: { sunny: 1, cloudy: 0.5, rain: 0.2, typhoon: 0, snow: 0.1 },
 
     // ----- Money (design.md section 9) -----
     money: {
@@ -62,9 +67,10 @@
       seedling: { gift: false }
     },
     startBag: { onigiri: 2, tea: 2, persimmon: 1, seedling: 4 },
+    berrySeasons: ['spring', 'summer'],   // when the wild strawberries are ripe
 
     // ----- Residents -----
-    // Where they are: from this hour on, at this spot ("away" = gone to the village, "inside" = at home)
+    // Where they are: from this hour on, at this spot (js/map-data.js). "inside" = at home, unseen.
     residents: {
       gen: {
         legs: 'wide', speed: 30,
@@ -74,26 +80,27 @@
       },
       midori: {
         legs: 'normal', speed: 38,
-        schedule: [[6, 'pondShore'], [9, 'away'], [15, 'meadowEast'], [18, 'bridge'], [20, 'away']],
-        home: 'exitEast',
+        schedule: [[6, 'pondShore'], [9, 'post'], [15, 'streamside'], [18, 'terraces'], [20, 'inside']],
+        home: 'midoriHome',
         loved: [], liked: ['strawberry', 'onigiri', 'tea'], disliked: []
       }
     },
 
     // ----- Nature diary (design.md section 8) -----
-    // habitat: where it appears · hours: [from, to) · weather: only in this weather ·
+    // habitat: where it appears · seasons: when · hours: [from, to) · notIn: not in this weather ·
     // max: how many at once · shy: flies off when you run nearby
     species: {
-      cabbageWhite: { habitat: 'meadow', hours: [[9, 17]], notIn: ['rain'], max: 2 },
-      grassBlue: { habitat: 'gardenMeadow', minGarden: 2, hours: [[9, 17]], notIn: ['rain'], max: 1 },
-      tit: { habitat: 'hedge', hours: [[6, 11], [15, 18]], notIn: ['rain'], max: 1, shy: true },
-      treeFrog: { habitat: 'waterEdge', hours: [[18, 23]], rainHours: [[6, 23]], max: 2 },
-      swallow: { habitat: 'nest', hours: [[7, 18]], max: 1, shy: true }
+      cabbageWhite: { habitat: 'meadow', seasons: ['spring', 'summer', 'autumn'], hours: [[9, 17]], notIn: ['rain', 'typhoon', 'snow'], max: 3 },
+      grassBlue: { habitat: 'gardenMeadow', minGarden: 2, seasons: ['spring', 'summer', 'autumn'], hours: [[9, 17]], notIn: ['rain', 'typhoon', 'snow'], max: 1 },
+      tit: { habitat: 'hedge', seasons: ['spring', 'summer', 'autumn', 'winter'], hours: [[6, 11], [15, 18]], notIn: ['rain', 'typhoon'], max: 2, shy: true },
+      treeFrog: { habitat: 'waterEdge', seasons: ['spring', 'summer', 'autumn'], hours: [[18, 23]], rainHours: [[6, 23]], notIn: ['typhoon', 'snow'], max: 3 },
+      swallow: { habitat: 'nest', seasons: ['spring', 'summer'], hours: [[7, 18]], notIn: ['typhoon'], max: 2, shy: true }
     },
     speciesOrder: ['cabbageWhite', 'grassBlue', 'tit', 'treeFrog', 'swallow'],
     lookSeconds: 2,               // stand still this long to draw an animal into the diary
 
-    // ----- Midori's request: how many swallows' nests are there? -----
-    nestCount: 2
+    // ----- Midori's request: how many swallows' nests are there in the village? -----
+    nestCount: 5,
+    nestChoices: [3, 4, 5]
   };
 })(globalThis);

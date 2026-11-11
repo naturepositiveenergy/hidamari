@@ -17,14 +17,15 @@
   'use strict';
   const HM = root.HM = root.HM || {};
 
-  // ----- The palette: 27 colours -----
+  // ----- The palette: 28 colours -----
   const PALETTE = {
     outline: '#5B4636', white: '#FFFDF5', grey: '#D6CFC4', skin0: '#EBBB97', skin1: '#F9DCBF',
     earth0: '#5E4434', earth1: '#A57F5C', earth2: '#E4C99A', earth3: '#F6E8C6',
     green1: '#5E9A50', green2: '#78B25E', green3: '#9FD171', green4: '#CDEA92',
     teal0: '#4E9C93', teal1: '#7CC4B8', water0: '#62A6CA', water1: '#88C9E2', water2: '#DDF3F9',
     panel0: '#4A68A6', panel1: '#6E92CF', panel2: '#B5CFF1', metal0: '#737B88', metal1: '#ABB2BC',
-    pink: '#F4A6B8', yellow: '#F6D46A', orange: '#E5A743', lilac: '#C2B1EC'
+    pink: '#F4A6B8', yellow: '#F6D46A', orange: '#E5A743', lilac: '#C2B1EC',
+    red: '#D96A55'   // vermilion, for the shrine's torii gate
   };
 
   // ----- Which palette colour each letter uses -----
@@ -32,7 +33,8 @@
     // Tiles: a b c grass · p q r n earth (path, dark, light, darkest) · u v paddy water · s t seedlings
     //        w x water (base, dark) · P Q R g panel (face, lines, top edge, glint) · F T posts
     //        S shadow · h i j k hedge and trees · o pond edge · l L lily · 1 2 3 4 flowers
-    //        d e f roof (gaps, tiles, highlights) · O orange
+    //        d e f roof and stone (gaps, tiles, highlights) · O orange
+    //        C D E tree crowns (base, dark, light) · U V X cherry blossom · G gravel · Z vermilion
     tile: {
       a: 'green3', b: 'green2', c: 'green4',
       p: 'earth2', q: 'earth1', r: 'earth3', n: 'earth0',
@@ -42,7 +44,8 @@
       h: 'green2', i: 'green1', j: 'green4', k: 'pink',
       o: 'earth1', l: 'green2', L: 'pink',
       1: 'pink', 2: 'yellow', 3: 'lilac', 4: 'earth3',
-      d: 'outline', e: 'metal0', f: 'metal1', O: 'orange'
+      d: 'outline', e: 'metal0', f: 'metal1', O: 'orange',
+      C: 'green2', D: 'green1', E: 'green4', U: 'pink', V: 'lilac', X: 'white', G: 'grey', Z: 'red'
     },
     // People: K outline · e f skin · 9 eyes · W white · H I hair · C D clothes · E G accent
     //         L legs · M shoes · B binoculars
@@ -225,18 +228,18 @@
       'aaaaaaaaaaaaaaac'
     ],
     tree: [
-      'aaaaaiiiiiiaaaaa',
-      'aaaiijjhhhhiiaaa',
-      'aaijjjhhhhhhhiaa',
-      'aijjhhhhhhhhhhia',
-      'aijhhhhjhhhhhhia',
-      'ijhhhhhhhhhhhhhi',
-      'ihhhhhhhhhjhhhhi',
-      'ihhjhhhhhhhhhhii',
-      'ihhhhhhhhhhhhiii',
-      'aihhhhhhhhhhiiia',
-      'aaiihhhhhhhiiiaa',
-      'aaaaiiiqqiiiaaaa',
+      'aaaaaDDDDDDaaaaa',
+      'aaaDDEECCCCDDaaa',
+      'aaDEEECCCCCCCDaa',
+      'aDEECCCCCCCCCCDa',
+      'aDECCCCECCCCCCDa',
+      'DECCCCCCCCCCCCCD',
+      'DCCCCCCCCCECCCCD',
+      'DCCECCCCCCCCCCDD',
+      'DCCCCCCCCCCCCDDD',
+      'aDCCCCCCCCCCDDDa',
+      'aaDDCCCCCCCDDDaa',
+      'aaaaDDDqqDDDaaaa',
       'aaaaaaaqqaaaaaaa',
       'aaaaaaqqqqaaaaaa',
       'aaaaaSSSSSSaaaaa',
@@ -278,6 +281,272 @@
       'rppqrppqrppqrppq',
       'qqqqqqqqqqqqqqqq',
       'nnnnnnnnnnnnnnnn'
+    ],
+    // A cherry tree (blossoms in spring)
+    cherry: [
+      'aaaaaVVVVVVaaaaa',
+      'aaaVVXXUUUUVVaaa',
+      'aaVXXXUUUUUUUVaa',
+      'aVXXUUUUXUUUUUVa',
+      'aVXUUUUUUUUUUUVa',
+      'VXUUUXUUUUUUUUUV',
+      'VUUUUUUUUUXUUUUV',
+      'VUUXUUUUUUUUUUVV',
+      'VUUUUUUUUUUUUVVV',
+      'aVUUUUUXUUUUVVVa',
+      'aaVVUUUUUUUVVVaa',
+      'aaaaVVVnnVVVaaaa',
+      'aaaaaaanqaaaaaaa',
+      'aaaaaannqqaaaaaa',
+      'aaaaaSSSSSSaaaaa',
+      'aaaaaaaaaaaaaaaa'
+    ],
+    // The old zelkova in front of the community hall: the village's "hidamari", a sunny spot
+    bigTree: [
+      'aDDDDDDDDDDDDDDa',
+      'DCCEECCCCCCCCCCD',
+      'DCEECCCCCECCCCCD',
+      'DCECCCCCCCCCCCDD',
+      'DCCCCCECCCCCCCDD',
+      'DCCCCCCCCCCCCDDD',
+      'aDCCCCCCCCCCDDDa',
+      'aaDDDCCCCCDDDDaa',
+      'aaaaDDDnnDDDaaaa',
+      'aaaaaaannaaaaaaa',
+      'aaaaaannnnaaaaaa',
+      'aacaaannnnaaacaa',
+      'acaaaSnnnnSaaaca',
+      'aaccSSSSSSSSccaa',
+      'aaaacccccccccaaa',
+      'aaaaaaaaaaaaaaaa'
+    ],
+    // The stone walls of the rice terraces
+    stoneWall: [
+      'acaabacaacabaaca',
+      'bbbbbbbbbbbbbbbb',
+      'fffffeffffffefff',
+      'fgfffefffgffefff',
+      'eeeeeeeeeeeeeeee',
+      'ffeffffffeffffff',
+      'gfefffbffeffgfff',
+      'eeeeeeeeeeeeeeee',
+      'fffffffeffffffef',
+      'ffgffffeffbfffef',
+      'eeeeeeeeeeeeeeee',
+      'ffffeffffffffeff',
+      'fbffeffgffffbeff',
+      'eeeeeeeeeeeeeeee',
+      'dddddddddddddddd',
+      'SSSSSSSSSSSSSSSS'
+    ],
+    // Stone steps
+    steps: [
+      'ffffffffffffffff',
+      'ffffffffffffffff',
+      'fgffffgfffffgfff',
+      'eeeeeeeeeeeeeeee',
+      'ffffffffffffffff',
+      'fffbffffffffffff',
+      'fgffffgfffffgfff',
+      'eeeeeeeeeeeeeeee',
+      'ffffffffffffffff',
+      'ffffffffffffbfff',
+      'fgffffgfffffgfff',
+      'eeeeeeeeeeeeeeee',
+      'ffffffffffffffff',
+      'ffffffbfffffffff',
+      'fgffffgfffffgfff',
+      'eeeeeeeeeeeeeeee'
+    ],
+    // Shrine gravel
+    gravel: [
+      'GgGGfgGGgGGGGGGG',
+      'GGGGgGgGGGGGGfGG',
+      'ffGGGGGfGGGGGGGG',
+      'GGGGGGGGGGGGGGGG',
+      'GGGGGGfGfGGGGGGG',
+      'GGGGGgGGGfGGffGG',
+      'GGGGGGGGGGfGGGgG',
+      'GGGGGGGGGGGGGGGG',
+      'gGGGGGGGGfGGGGGG',
+      'GfGGfGGGGGGGfGGG',
+      'GGgGGGfGgGGfGGGG',
+      'fGGGGGGGGGGGfGfG',
+      'GGGfGGGGGGGGGGGG',
+      'GGGGgGGGGGGGGfGG',
+      'gGGGGGGfGgGGGgGG',
+      'fGGGGGGGGGGGGGGG'
+    ],
+    // The torii gate of the shrine (left half; the right half is its mirror image)
+    toriiL: [
+      'ddGGGGGGGGGGGGGG',
+      'dddddddddddddddd',
+      'Gddddddddddddddd',
+      'GGZZZZZZZZZZZZZZ',
+      'GGGGGZZnGGGGGGGG',
+      'GGZZZZZZZZZZZZZZ',
+      'GGGGGZZnGGGGGGGG',
+      'GfGGGZZnGGGGGGGG',
+      'GGGGGZZnGGGGGGGG',
+      'GGGGGZZnGGGGGGGf',
+      'GGGGGZZnGGGGGGGG',
+      'GGGGGZZnGGGGGGGf',
+      'GGGGGZZnGGGGGGGG',
+      'GGGGGZZnGGGGGGGf',
+      'GGfGGZZnGGfGGGGG',
+      'GGGGddddGGGGGGGG'
+    ],
+    toriiR: [
+      'GGGGGGGGGGGGGGdd',
+      'dddddddddddddddd',
+      'dddddddddddddddG',
+      'ZZZZZZZZZZZZZZGG',
+      'GGGGGGGGnZZGGGGG',
+      'ZZZZZZZZZZZZZZGG',
+      'GGGGGGGGnZZGGGGG',
+      'GGGGGGGGnZZGGGfG',
+      'GGGGGGGGnZZGGGGG',
+      'fGGGGGGGnZZGGGGG',
+      'GGGGGGGGnZZGGGGG',
+      'fGGGGGGGnZZGGGGG',
+      'GGGGGGGGnZZGGGGG',
+      'fGGGGGGGnZZGGGGG',
+      'GGGGGfGGnZZGGfGG',
+      'GGGGGGGGddddGGGG'
+    ],
+    // Abandoned farmland, overgrown with weeds
+    weeds: [
+      'qqqqqqqqqqqqqqqq',
+      'qqqqqqqqqcqqqqqq',
+      'qqcqqqpqbtbqqqqq',
+      'qbtbqqqqqqqqqqqq',
+      'qqqqqqnqqqqqqnqq',
+      'qqqqqpqqqqqqqqpq',
+      'qqqqqqqqpqqqcqqq',
+      'qqqqpcppqqqbtbqq',
+      'qpqqbtbqqqqpnqqq',
+      'qqqqpqnqqqqqpqqq',
+      'qqqqqqqqqqqqqqqn',
+      'qqcqqqqqqqqqqqqq',
+      'qbtbqqqqqcqpqqqq',
+      'qqqqqqqqbtbqqqcq',
+      'qpqpqqcqpqqpqbtb',
+      'qnqqpbtbqqqqqqnq'
+    ],
+    // Concrete of the old factory site
+    concrete: [
+      'FFFFFFFTFFFFFFFF',
+      'FFFFFFFTFFFFFFFF',
+      'FFdFFFFTFFFFFFFF',
+      'FFFddFFTFFFFFFFF',
+      'FFFFFdFTFFFFgFFF',
+      'FFFFFFFTFFFFFFFF',
+      'FFFFFFFTFFFFFFFF',
+      'TTTTTTTTTTTTTTTT',
+      'FFFFFFFTFFFFFFFF',
+      'FFFFFFFTFFFFFFFF',
+      'FFFFgFFTFFFdFFFF',
+      'FFFFFFFTFFFFdFFF',
+      'FFbFFFFTFFFFdFFF',
+      'FFFbFFFTFFFFFdFF',
+      'FFFFFFFTFFFFFFFF',
+      'TTTTTTTTTTTTTTTT'
+    ],
+    // Rubble on the old factory site
+    rubble: [
+      'FFFFFFFTFFFFFFFF',
+      'FFFFFFFTFFFFFFFF',
+      'FFdFeeeTFFFFFFFF',
+      'FFFeTTTeFFFFFFFF',
+      'FFeTgTTTeFFFgFFF',
+      'FFeTTTTTeFFeeFFF',
+      'FFFeeeeeFFeTTeFF',
+      'TTTTTTTTTTeTgTeT',
+      'FFFFFFFTFFFeeeFF',
+      'FFFFFFFTFFFFFFFF',
+      'FFFFeeFTFFFdFFFF',
+      'FFFeTTeTFFFFdFFF',
+      'FFeTgTTeFFFFeeeF',
+      'FFFeeeeTFFFeTTTe',
+      'FFFFFFFTFFFFeeeF',
+      'TTTTTTTTTTTTTTTT'
+    ],
+    // A wooden fence
+    fence: [
+      'acaaaaaaaaaaaaaa',
+      'aaaaaaaaaaaaaaaa',
+      'aaaaaaaaaaaaaaaa',
+      'anqaaaaaaaaaanqa',
+      'anqaaaaaaaaaanqa',
+      'qqqqqqqqqqqqqqqq',
+      'nnnnnnnnnnnnnnnn',
+      'anqbaaaaaaaaanqa',
+      'anqaaaaaaaaaanqa',
+      'anqaaaaaaaaaanqa',
+      'qqqqqqqqqqqqqqqq',
+      'nnnnnnnnnnnnnnnn',
+      'anqaaaaaaaaaanqa',
+      'anqaaaaaaaaaanqa',
+      'anqabaaaaaaaanqa',
+      'aSSSaaaaaaaaSSSa'
+    ],
+    // A wooden bench
+    bench: [
+      'aaaaaaaaaaaaaaaa',
+      'aaaaaaaaaaaaaaaa',
+      'aaaaaaaaaaaaaaaa',
+      'aaaacaaaaaaaaaaa',
+      'annnnnnnnnnnnnna',
+      'aqqqqqqqqqqqqqqa',
+      'aqqqqqqqqqqqqqqa',
+      'aanaaaaaaaaaanaa',
+      'nnnnnnnnnnnnnnnn',
+      'pppppppppppppppp',
+      'qqqqqqqqqqqqqqqq',
+      'aanaaaaaaaaaanac',
+      'aanaaaaaaaaaanaa',
+      'aanaaaaaaaaaanaa',
+      'aSSSSSSSSSSSSSSa',
+      'abaaaaaaaaaaaaaa'
+    ],
+    // The bus stop sign
+    busStop: [
+      'aaaaaddddddaaaaa',
+      'aaaadPPPPPPdaaaa',
+      'aabdPPggggPPdaaa',
+      'aaadPPPPPPPPdaaa',
+      'aaadPPggggPPdaaa',
+      'aaaadPPPPPPdaaaa',
+      'aaaaaddddddaaaaa',
+      'aaaacaaTFaaaaaaa',
+      'aaaaaaaTFaaaaaaa',
+      'aaaaaaaTFaaaaaaa',
+      'aaaaaaaTFaaaaaaa',
+      'aaaaaaaTFaaaaaaa',
+      'aaaacaaTFaaaaaaa',
+      'aaaaaaaTFbaaaaaa',
+      'aaaaaaaTFaaaaaaa',
+      'aaaaaSSSSSSaaaaa'
+    ],
+
+    // The shop's wall with its sign
+    shopSign: [
+      'nrrrrrrrrrrrrrrr',
+      'nrnnnnnnnnnnnnrr',
+      'nrnOOOOOOOOOOnrr',
+      'nrnOgOgggOggOnrr',
+      'nrnOOOOOOOOOOnrr',
+      'nrnOggOgOgggOnrr',
+      'nrnOOOOOOOOOOnrr',
+      'nrnnnnnnnnnnnnrr',
+      'nnnnnnnnnnnnnnnn',
+      'nqqqnqqqnqqqnqqq',
+      'nqqqnqqqnqqqnqqq',
+      'nqqqnqqqnqqqnqqq',
+      'nqqqnqqqnqqqnqqq',
+      'nqqqnqqqnqqqnqqq',
+      'nqqqnqqqnqqqnqqq',
+      'nqqqnqqqnqqqnqqq'
     ],
     // A wild strawberry bush (クサイチゴ) with ripe berries
     berries: [
@@ -773,5 +1042,34 @@
     ]
   };
 
-  HM.SPRITE_DATA = { PALETTE, ROLES, TILES, PEOPLE, LEGS, CRITTERS, SPECIES_ART, UI };
+  // ----- The four seasons -----
+  // Spring uses the colours above. The other seasons change some tile colours:
+  // roles = for all tiles, tiles = only for one tile. tools/make-sprites.js makes a
+  // separate drawing for each season where something changes (for example "tile.tree@autumn").
+  const SEASONS = {
+    summer: {
+      roles: {
+        a: 'green2', b: 'green1', c: 'green3', S: 'teal0', h: 'green1', i: 'teal0', j: 'green2',
+        C: 'green1', D: 'teal0', E: 'green2', U: 'green1', V: 'teal0', X: 'green2', s: 'green3', t: 'green1', l: 'green1'
+      },
+      tiles: {}
+    },
+    autumn: {
+      roles: {
+        b: 'green2', c: 'yellow', C: 'orange', D: 'earth1', E: 'yellow', U: 'red', V: 'earth1', X: 'orange',
+        u: 'yellow', v: 'orange', s: 'earth3', t: 'earth1', 1: 'pink', 2: 'white', 3: 'lilac'
+      },
+      tiles: { paddy: { y: 'earth3' } }    // golden rice, ready for harvest
+    },
+    winter: {
+      roles: {
+        a: 'white', b: 'grey', c: 'water2', S: 'water2', h: 'green1', i: 'teal0', j: 'white', k: 'pink',
+        C: 'white', D: 'grey', E: 'white', U: 'white', V: 'grey', X: 'white', G: 'white', f: 'white',
+        u: 'white', v: 'grey', s: 'earth2', t: 'earth1', l: 'grey', 1: 'white', 2: 'white', 3: 'grey', 4: 'white'
+      },
+      tiles: { paddy: { y: 'white' } }     // snow on the empty paddies
+    }
+  };
+
+  HM.SPRITE_DATA = { PALETTE, ROLES, TILES, PEOPLE, LEGS, CRITTERS, SPECIES_ART, UI, SEASONS };
 })(globalThis);

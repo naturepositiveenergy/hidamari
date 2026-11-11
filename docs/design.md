@@ -147,6 +147,8 @@ A small, walkable map: about 80 × 60 tiles of 16 × 16 pixels. You can walk fro
 | [5] | The old factory site (a brownfield) | 10 × 8 | The town (Ms. Sato) |
 | [6] | The forest slope | 8 × 8 | A landowner in Tokyo, leased by Quick Solar Co. |
 
+**The detailed map** (80 × 60 tiles) was approved on 10 November 2026 and is in `js/map-data.js`. It follows this sketch, with small differences: the post office (where Midori works) and the branch office stand north of the main road, the factory site lies south of it, and the village green south of the centre leaves room for festivals.
+
 ---
 
 ## 5. The residents
@@ -168,11 +170,11 @@ Ten residents (the Mori family counts as one household). All are original charac
 
 The player character has a name you choose and no fixed gender. Game text never needs he or she for the player.
 
-**In the Phase 1 test**, which shows only the corner of the village around your house, Gen-san and Midori follow simpler routines:
+**In the test versions before Milestone 2.2**, Gen-san and Midori follow simpler routines:
 - **Gen-san:** at his paddy in the morning, at home at noon and in the evening, and under the big tree in the afternoon.
-- **Midori:** at the pond at dawn, in the village centre during the day, in the meadow by the stream in the afternoon, and at the bridge in the evening.
+- **Midori:** at the pond at dawn, at the post office during the day, by the stream in the afternoon, and at the rice terraces in the evening.
 
-The full routines below come in Phase 2.
+The full routines below come in Milestone 2.2.
 
 ### 5.1 Gen-san (源さん), rice farmer
 
@@ -625,7 +627,7 @@ A gamepad may come later (section 19).
 
 ## 16. Look and sound
 
-- **Pixel art:** 16 × 16 tiles, original and drawn in code, with an own colour palette of about 24–32 colours. No downloaded images or sounds. The only downloaded file is the font.
+- **Pixel art:** 16 × 16 tiles, original and drawn in code, with an own colour palette of 28 colours (style A, including a vermilion for the shrine's torii gate). The ground and trees change colour with the seasons. No downloaded images or sounds. The only downloaded file is the font.
 - **Font: a free pixel-style Japanese font** (decided on 10 November 2026). Proposed: **DotGothic16** (from Google Fonts, under the SIL Open Font License, which allows free use in games). It is used for dialogue, menus and the diary, so the text matches the pixel art. Only the characters the game uses are downloaded, which keeps the file small. The download needs your OK first, in Phase 1.
 - **Characters:** 16 × 16 with large heads (a cute, chunky look), 4 walking directions and 2–3 frames each, plus blinking. Each resident has a clear outline shape (Gen-san's headband towel, Midori's bucket hat and binoculars, Kurokawa's suit).
 - **Art style: A, "Sunspot pastel"** (chosen on 10 November 2026). Soft, warm and light colours from one palette of 27 colours. Outlines are a darker shade of the colour next to them, so shapes look gentle. `art-test.html` keeps all three options for reference.

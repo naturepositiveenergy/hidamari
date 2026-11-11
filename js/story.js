@@ -140,12 +140,8 @@
       });
       return [
         say('midori', 'midori.req.q'),
-        { choice: [
-          { key: 'midori.req.c1', then: [answer(1)] },
-          { key: 'midori.req.c2', then: [answer(2)] },
-          { key: 'midori.req.c3', then: [answer(3)] },
-          { key: 'midori.req.c0', then: [say('midori', 'midori.req.later')] }
-        ] }
+        { choice: HM.DATA.nestChoices.map(n => ({ key: 'midori.req.count', vars: { n }, then: [answer(n)] }))
+          .concat([{ key: 'midori.req.c0', then: [say('midori', 'midori.req.later')] }]) }
       ];
     }
     if (!first) return [say('midori', 'midori.chat.again')];
@@ -158,8 +154,8 @@
       key = 'midori.chat.dense'; flags.midoriSawDense = true;
     } else if (species >= 2 && flags.midoriCounted !== species) { key = 'midori.chat.diaryCount'; vars = { n: species }; flags.midoriCounted = species; }
     else if (resident.spot === 'pondShore') key = 'midori.chat.pond';
-    else if (resident.spot === 'bridge') key = 'midori.chat.bridge';
-    else key = 'midori.chat.meadow';
+    else if (resident.spot === 'terraces') key = 'midori.chat.terraces';
+    else key = 'midori.chat.stream';
     return [say('midori', key, vars)];
   }
 
@@ -197,13 +193,21 @@
       case 'fieldSign':
         return { build: true };
       case 'exitSign':
-        return [narrate('obj.exit')];
+      case 'noticeBoard':
+      case 'postBox':
+      case 'busStop':
+      case 'bench':
+      case 'hidamariTree':
+        return [narrate('obj.' + id)];
       case 'leaves':
         if (flags.genRequest !== 'asked') return [narrate('obj.leaves.look')];
         return [narrate('obj.leaves.clear'), run(g => { g.state.flags.leavesCleared = true; g.passTime(15); })];
       case 'berries1':
-      case 'berries2': {
+      case 'berries2':
+      case 'berries3':
+      case 'berries4': {
         const picked = flags.picked || (flags.picked = {});
+        if (!HM.DATA.berrySeasons.includes(R().seasonOf(state.day))) return [narrate('obj.berries.season')];
         if (picked[id] === state.day) return [narrate('obj.berries.none')];
         return [
           narrate('obj.berries.pick'),
@@ -212,6 +216,8 @@
         ];
       }
     }
+    // Other doors: a short description of the building
+    if (/Door$/.test(id)) return [narrate('obj.door.' + id.replace(/Door$/, ''))];
     return [];
   }
 
@@ -220,11 +226,13 @@
     if (!target) return null;
     if (target.type === 'talk') return 'action.talk';
     if (target.type === 'look') return 'action.look';
+    if (/^berries/.test(target.id)) return 'action.pick';
     return {
       homeDoor: 'action.sleep', genDoor: 'action.knock', letterbox: 'action.read', fieldSign: 'action.build',
-      exitSign: 'action.read', leaves: state.flags.genRequest === 'asked' ? 'action.clear' : 'action.check',
-      berries1: 'action.pick', berries2: 'action.pick'
-    }[target.id] || 'action.check';
+      exitSign: 'action.read', noticeBoard: 'action.read', busStop: 'action.read', postBox: 'action.check',
+      bench: 'action.sit', hidamariTree: 'action.check', shrineDoor: 'action.pray',
+      leaves: state.flags.genRequest === 'asked' ? 'action.clear' : 'action.check'
+    }[target.id] || (/Door$/.test(target.id) ? 'action.knock' : 'action.check');
   }
 
   // ----- Fixed scenes -----
@@ -232,11 +240,10 @@
 
   function morning(state) {
     const weather = R().weatherOf(state.day);
-    return [
-      say('announce', 'announce.chime'), say('announce', 'announce.hello'),
-      say('announce', 'announce.weather.' + weather),
-      say('announce', 'announce.news.' + state.day), say('announce', 'announce.end')
-    ];
+    const steps = [say('announce', 'announce.chime'), say('announce', 'announce.hello')];
+    if (state.day > 1 && R().dayInSeason(state.day) === 1) steps.push(say('announce', 'announce.season.' + R().seasonOf(state.day)));
+    steps.push(say('announce', 'announce.weather.' + weather), say('announce', 'announce.news.' + state.day), say('announce', 'announce.end'));
+    return steps;
   }
 
   HM.story = { talk, useObject, actionLabel, eventWaiting, intro, morning };

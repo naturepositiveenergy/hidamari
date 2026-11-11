@@ -188,11 +188,14 @@
     return spot;
   }
 
-  // Where a resident goes: a named spot, or the door/exit for "inside"/"away"
+  // Where a resident goes: a named spot, or their front door for "inside"
   function spotTile(who, spot) {
-    const name = spot === 'inside' || spot === 'away' ? HM.DATA.residents[who].home : spot;
+    const name = spot === 'inside' ? HM.DATA.residents[who].home : spot;
     return HM.MAP.spots[name];
   }
+
+  // Is the resident indoors (unseen) at this spot?
+  const indoors = spot => spot === 'inside' || !!(HM.MAP.spots[spot] && HM.MAP.spots[spot].inside);
 
   function placeResidents(state) {
     world.residents = Object.keys(HM.DATA.residents).map(who => {
@@ -200,7 +203,7 @@
       const t = spotTile(who, spot);
       const r = makePerson(who, t.x, t.y, t.dir);
       r.spot = spot;
-      r.visible = spot !== 'inside' && spot !== 'away';
+      r.visible = !indoors(spot);
       return r;
     });
   }
@@ -209,19 +212,19 @@
     world.residents.forEach(r => {
       const want = scheduledSpot(r.who, state.minutes);
       if (want !== r.spot) {
+        const from = spotTile(r.who, r.spot);
         r.spot = want;
         const t = spotTile(r.who, want);
         if (!r.visible) {
-          // Coming out of the house or back from the village: appear at the door or exit
-          const start = HM.MAP.spots[HM.DATA.residents[r.who].home];
-          r.x = start.x * T; r.y = start.y * T;
+          // Coming out of a building: appear at its door
+          r.x = from.x * T; r.y = from.y * T;
           r.visible = true;
         }
         r.path = findPath(feetTile(r), { x: t.x, y: t.y }, null) || [];
         if (!r.path.length) r.path = null;
         r.onArrive = () => {
           r.dir = t.dir;
-          if (want === 'inside' || want === 'away') r.visible = false;
+          if (indoors(want)) r.visible = false;
         };
         if (!r.path) r.onArrive();
       }
@@ -262,6 +265,7 @@
   function speciesActive(sp, state) {
     const info = HM.DATA.species[sp];
     const weather = HM.rules.weatherOf(state.day);
+    if (!info.seasons.includes(HM.rules.seasonOf(state.day))) return false;
     if (info.notIn && info.notIn.includes(weather)) return false;
     const hours = weather === 'rain' && info.rainHours ? info.rainHours : info.hours;
     const h = state.minutes / 60;

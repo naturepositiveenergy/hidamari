@@ -9,7 +9,7 @@
   const HM = root.HM = root.HM || {};
   const D = () => HM.DATA;
 
-  const SAVE_VERSION = 1;
+  const SAVE_VERSION = 2;   // 2: the whole village and the whole year (Milestone 2.1)
   const FIELD_SIZE = 16;   // the home field has 4 × 4 tiles
 
   // ----- A new game -----
@@ -142,8 +142,11 @@
     return check;
   }
 
-  // ----- Weather, power and the end of the day -----
-  const weatherOf = day => (D().days[day] || D().days[1]).weather;
+  // ----- Seasons, weather, power and the end of the day -----
+  // Day 1 to 28: spring is day 1–7, summer 8–14, autumn 15–21, winter 22–28
+  const seasonOf = day => D().seasons[Math.min(D().seasons.length - 1, Math.floor((day - 1) / D().daysPerSeason))];
+  const dayInSeason = day => ((day - 1) % D().daysPerSeason) + 1;
+  const weatherOf = day => D().days[Math.max(0, Math.min(D().days.length - 1, day - 1))];
 
   function dayPower(state) {
     const factor = D().weatherPower[weatherOf(state.day)];
@@ -175,6 +178,12 @@
     else {
       state.day++;
       state.minutes = D().time.dayStart;
+      // A new season begins: your cooperator allowance arrives
+      if (dayInSeason(state.day) === 1) {
+        state.money += D().money.allowance;
+        summary.allowance = D().money.allowance;
+        summary.money = state.money;
+      }
     }
     state.dayStart = { points: pointsOf(state.friends), diary: [] };
     return summary;
@@ -204,7 +213,7 @@
 
   HM.rules = {
     newGame, heartsOf, addPoints, talk, giftReaction, canGift, giveGift, addItem,
-    fieldStats, checkPlan, buildPlan, weatherOf, dayPower, endDay, recordSpecies,
+    fieldStats, checkPlan, buildPlan, seasonOf, dayInSeason, weatherOf, dayPower, endDay, recordSpecies,
     serialize, deserialize, FIELD_SIZE
   };
 })(globalThis);
