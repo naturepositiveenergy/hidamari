@@ -32,23 +32,23 @@ These change over time, so they are the most important to check.
 
 | # | The game says | Where | What to check | Status |
 |---|---|---|---|---|
-| B1 | You are a regional revitalisation cooperator (地域おこし協力隊) who moves to the village. | `intro.2`, design 1 | How the programme works (who joins, how long). The game's allowance of ¥40,000 per season is a game number, not real pay. | To check |
-| B2 | At the shrine you bow twice, clap twice and bow once more. | `obj.door.shrine` | The usual shrine etiquette (二礼二拍手一礼). | To check |
-| B3 | Nemawashi (根回し): before you move a tree you loosen the earth around its roots; before a meeting you talk to everyone. | `nema.lesson.1`, `nema.lesson.2` | The origin and meaning of the word. | To check |
-| B4 | Yui (結): villagers help each other, for example with rice planting. | `fest.taue.oda`, design 7.2 | The meaning of yui. | To check |
-| B5 | The evening chime plays at 17:00 over the village loudspeaker, and the shop closes. | `hint.chime`, design 2 | That villages play an evening chime (times vary by place and season). | To check |
-| B6 | The shop drives round to older residents who can't walk to it. | `hiro.chat.delivery` | Mobile shops (移動販売) in rural Japan. | To check |
-| B7 | On the winter solstice, a yuzu bath keeps colds away, people say. | `fest.solstice`, `announce.news.22` | The custom. | To check |
-| B8 | At New Year's Eve the village visits the shrine at midnight, rings the bell, makes a wish and draws a fortune: great blessing, blessing, small blessing. | `fest.hatsumode.1`, `.great`, `.good`, `.small` | The first shrine visit (初詣), the bell and the fortune slips (おみくじ). | To check |
+| B1 | You are a regional revitalisation cooperator (地域おこし協力隊) who moves to the village. | `intro.2`, design 1 | How the programme works (who joins, how long). The game's allowance of ¥40,000 per season is a game number, not real pay. | Checked 13 Nov 2026: 総務省 (see `docs/village-notebook.md`, entry 1) |
+| B2 | At the shrine you bow twice, clap twice and bow once more. | `obj.door.shrine` | The usual shrine etiquette (二礼二拍手一礼). | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| B3 | Nemawashi (根回し): before you move a tree you loosen the earth around its roots; before a meeting you talk to everyone. | `nema.lesson.1`, `nema.lesson.2` | The origin and meaning of the word. | Checked 13 Nov 2026: 愛媛県, weblio (notebook entry 4) |
+| B4 | Yui (結): villagers help each other, for example with rice planting. | `fest.taue.oda`, design 7.2 | The meaning of yui. | Checked 13 Nov 2026: 国土交通省 多言語解説文 (notebook entry 3) |
+| B5 | The evening chime plays at 17:00 over the village loudspeaker, and the shop closes. | `hint.chime`, design 2 | That villages play an evening chime (times vary by place and season). | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| B6 | The shop drives round to older residents who can't walk to it. | `hiro.chat.delivery` | Mobile shops (移動販売) in rural Japan. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| B7 | On the winter solstice, a yuzu bath keeps colds away, people say. | `fest.solstice`, `announce.news.22` | The custom. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| B8 | At New Year's Eve the village visits the shrine at midnight, rings the bell, makes a wish and draws a fortune: great blessing, blessing, small blessing. | `fest.hatsumode.1`, `.great`, `.good`, `.small` | The first shrine visit (初詣), the bell and the fortune slips (おみくじ). | Standard knowledge, not looked up (13 Nov 2026): low risk |
 | B9 | Amazake is "warm and sweet, and no alcohol, so the kids can have some too". | `fest.hatsumode.hiro` | **Check:** amazake made from rice koji has no alcohol, but amazake made from sake lees has a little. Say which kind, or change the line. | Corrected in the game on 12 Nov 2026 (see `docs/village-notebook.md`) |
-| B10 | The first sunrise of the year (初日の出). | `fest.sunrise.1`, `announce.news.26` | The custom. | To check |
-| B11 | Kaibori: in winter the pond is drained and cleaned. Bluegill and bass are removed, and native fish (rice fish, loaches, crucian carp) go back. | `kuma.chat.winter`, `fest.kaibori.1`, `fest.kaibori.2`, `fest.kaibori.kuma` | How kaibori is done, and that bluegill and largemouth bass are invasive in Japan. | To check |
-| B12 | An irrigation pond (ため池) about 300 years old waters the paddies of 12 families, and the families decide together. | `kuma.meet.2`, `kuma.meet.3`, `plot.open.pond.1`, design 5.7 | How irrigation ponds are managed and decided on (irrigation associations, land improvement districts). The pond itself is fiction. | To check |
-| B13 | A seedling paddy wants water "two fingers deep". | `gen.ev1.3` | Typical water depth after rice planting. | To check |
-| B14 | The community hall is the village's evacuation shelter. | `obj.door.hall`, `fest.shelter.time` | Common practice (公民館 as shelter). | To check |
-| B15 | Some solar parks are built on gravel and sprayed with weed killer, so nothing lives there. | `midori.ev1.5`, `worry.midori.ask`, `kuro.buy.narr` | That this practice exists (and is not the rule everywhere). | To check |
-| B16 | Summers are getting hotter every year. | `rin.chat.summer`, `rin.chat.hall` | The temperature trend in Japan. | To check |
-| B17 | Fireflies talk with their light, and torches confuse them; keep lights low at a firefly evening. | `fest.hotaru.midori`, `announce.fest.hotaru` | That artificial light disturbs fireflies' signalling. | To check |
+| B10 | The first sunrise of the year (初日の出). | `fest.sunrise.1`, `announce.news.26` | The custom. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| B11 | Kaibori: in winter the pond is drained and cleaned. Bluegill and bass are removed, and native fish (rice fish, loaches, crucian carp) go back. | `kuma.chat.winter`, `fest.kaibori.1`, `fest.kaibori.2`, `fest.kaibori.kuma` | How kaibori is done, and that bluegill and largemouth bass are invasive in Japan. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| B12 | An irrigation pond (ため池) about 300 years old waters the paddies of 12 families, and the families decide together. | `kuma.meet.2`, `kuma.meet.3`, `plot.open.pond.1`, design 5.7 | How irrigation ponds are managed and decided on (irrigation associations, land improvement districts). The pond itself is fiction. | Checked 13 Nov 2026: 農林水産省 ため池とは (notebook entry 15); the pond is fiction |
+| B13 | A seedling paddy wants water "two fingers deep". | `gen.ev1.3` | Typical water depth after rice planting. | Checked 13 Nov 2026: prefectural rice guides (富山県, 山形県): 4–5 cm just after planting, 2–3 cm later; "two fingers" is fair |
+| B14 | The community hall is the village's evacuation shelter. | `obj.door.hall`, `fest.shelter.time` | Common practice (公民館 as shelter). | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| B15 | Some solar parks are built on gravel and sprayed with weed killer, so nothing lives there. | `midori.ev1.5`, `worry.midori.ask`, `kuro.buy.narr` | That this practice exists (and is not the rule everywhere). | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| B16 | Summers are getting hotter every year. | `rin.chat.summer`, `rin.chat.hall` | The temperature trend in Japan. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| B17 | Fireflies talk with their light, and torches confuse them; keep lights low at a firefly evening. | `fest.hotaru.midori`, `announce.fest.hotaru` | That artificial light disturbs fireflies' signalling. | Checked 13 Nov 2026: 環境省 里地里山 (keep artificial light away while fireflies fly) |
 
 ## C. The nature diary
 
@@ -56,47 +56,47 @@ Each species has a fact (`species.<name>.fact`) and a hint about where and when 
 
 | # | Species | The game says (`species.<name>.fact`) | What to check | Status |
 |---|---|---|---|---|
-| C1 | Cabbage white (モンシロチョウ) | One of the first butterflies of spring; caterpillars eat cabbage-family plants. | Host plants, season. | To check |
-| C2 | Pale grass blue (ヤマトシジミ) | Caterpillars eat only creeping wood sorrel (katabami). | "Only" katabami. | To check |
-| C3 | Small copper (ベニシジミ) | Caterpillars eat sorrel and dock. | Host plants. | To check |
-| C4 | Yellow swallowtail (キアゲハ) | Caterpillars eat carrot-family plants such as Japanese parsley and carrots. | Host plants. | To check |
-| C5 | Japanese honeybee (ニホンミツバチ) | Native; nests in hollow trees; can kill a hornet by surrounding it in a hot ball of bees. | The "heat ball" defence. | To check |
-| C6 | Long-headed grasshopper (ショウリョウバッタ) | One of Japan's biggest grasshoppers; the female is much bigger than the male. | Size claim. | To check |
-| C7 | Bell cricket (スズムシ) | The male rubs its wings to sing on autumn nights; kept for its song for centuries. | Song, history of keeping. | To check |
-| C8 | Japanese tree frog (ニホンアマガエル) | Often calls before rain; can change colour from green to grey. | Both claims. | To check |
-| C9 | Japanese brown frog (ニホンアカガエル) | Lays eggs very early (late winter to early spring) in shallow paddy water. | Breeding season. | To check |
-| C10 | Schlegel's green tree frog (シュレーゲルアオガエル) | Lays eggs in a white foam nest on the banks of paddies and ponds; heard more than seen. | Foam nests. | To check |
-| C11 | Common skimmer (シオカラトンボ) | The male is pale blue-grey, which gives the Japanese name; the yellow-brown female is called the "straw dragonfly". | Name origin, female's name (ムギワラトンボ). Also check the English name. | To check |
-| C12 | Red dragonfly (アキアカネ) | Hatches in paddies in early summer, spends summer in the mountains, comes back down red in autumn. | Life cycle. | To check |
-| C13 | Water strider (アメンボ) | Water-repelling hairs on its legs let it stand on water; it feels the ripples of insects that fall in. | Both claims. | To check |
-| C14 | Japanese rice fish (メダカ) | Wild medaka have become rare and are on Japan's Red List. | The Ministry of the Environment Red List status. | To check |
-| C15 | Diving beetle (ゲンゴロウ) | Carries air under its wings when it dives; needs clean ponds with water plants; very rare now. | Air store, rarity. | To check |
-| C16 | Japanese tit (シジュウカラ) | Black cap, white cheeks, black "necktie"; sings "tsupi, tsupi"; nests in holes and nest boxes. | Call and nesting. | To check |
-| C17 | Warbling white-eye (メジロ) | Named for the white ring round its eye; loves camellia and plum nectar. | Both claims. | To check |
-| C18 | Japanese bush warbler (ウグイス) | Its spring song "ho-hokekyo" is famous, but the bird hides in bushes. | Song. | To check |
-| C19 | Bull-headed shrike (モズ) | Calls loudly from treetops in autumn; spikes prey on thorns ("hayanie"). | Both claims. | To check |
+| C1 | Cabbage white (モンシロチョウ) | One of the first butterflies of spring; caterpillars eat cabbage-family plants. | Host plants, season. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C2 | Pale grass blue (ヤマトシジミ) | Caterpillars eat only creeping wood sorrel (katabami). | "Only" katabami. | Checked 13 Nov 2026: 化学と生物 (2020): caterpillars eat only katabami (single-food) |
+| C3 | Small copper (ベニシジミ) | Caterpillars eat sorrel and dock. | Host plants. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C4 | Yellow swallowtail (キアゲハ) | Caterpillars eat carrot-family plants such as Japanese parsley and carrots. | Host plants. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C5 | Japanese honeybee (ニホンミツバチ) | Native; nests in hollow trees; can kill a hornet by surrounding it in a hot ball of bees. | The "heat ball" defence. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C6 | Long-headed grasshopper (ショウリョウバッタ) | One of Japan's biggest grasshoppers; the female is much bigger than the male. | Size claim. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C7 | Bell cricket (スズムシ) | The male rubs its wings to sing on autumn nights; kept for its song for centuries. | Song, history of keeping. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C8 | Japanese tree frog (ニホンアマガエル) | Often calls before rain; can change colour from green to grey. | Both claims. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C9 | Japanese brown frog (ニホンアカガエル) | Lays eggs very early (late winter to early spring) in shallow paddy water. | Breeding season. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C10 | Schlegel's green tree frog (シュレーゲルアオガエル) | Lays eggs in a white foam nest on the banks of paddies and ponds; heard more than seen. | Foam nests. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C11 | Common skimmer (シオカラトンボ) | The male is pale blue-grey, which gives the Japanese name; the yellow-brown female is called the "straw dragonfly". | Name origin, female's name (ムギワラトンボ). Also check the English name. | Checked 13 Nov 2026; English name corrected to "White-tailed skimmer" (Orthetrum albistylum) |
+| C12 | Red dragonfly (アキアカネ) | Hatches in paddies in early summer, spends summer in the mountains, comes back down red in autumn. | Life cycle. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C13 | Water strider (アメンボ) | Water-repelling hairs on its legs let it stand on water; it feels the ripples of insects that fall in. | Both claims. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C14 | Japanese rice fish (メダカ) | Wild medaka have become rare and are on Japan's Red List. | The Ministry of the Environment Red List status. | Checked 13 Nov 2026: 環境省 (Vulnerable, 絶滅危惧II類) |
+| C15 | Diving beetle (ゲンゴロウ) | Carries air under its wings when it dives; needs clean ponds with water plants; very rare now. | Air store, rarity. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C16 | Japanese tit (シジュウカラ) | Black cap, white cheeks, black "necktie"; sings "tsupi, tsupi"; nests in holes and nest boxes. | Call and nesting. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C17 | Warbling white-eye (メジロ) | Named for the white ring round its eye; loves camellia and plum nectar. | Both claims. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C18 | Japanese bush warbler (ウグイス) | Its spring song "ho-hokekyo" is famous, but the bird hides in bushes. | Song. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C19 | Bull-headed shrike (モズ) | Calls loudly from treetops in autumn; spikes prey on thorns ("hayanie"). | Both claims. | Standard knowledge, not looked up (13 Nov 2026): low risk |
 | C20 | Daurian redstart (ジョウビタキ) | A winter visitor from the continent; keeps a winter territory; bobs its tail. | Note: it has started breeding in parts of Japan. Check whether "winter visitor" is still fair. | Corrected in the game on 12 Nov 2026 (see `docs/village-notebook.md`) |
-| C21 | Grey heron (アオサギ) | The biggest heron you usually see in Japan; stands still, then strikes at fish and frogs. | Size claim. | To check |
-| C22 | Common kingfisher (カワセミ) | Called "the jewel of the stream"; dives for small fish and needs clear water. | Nickname, clear water. | To check |
-| C23 | Genji firefly (ゲンジボタル) | Larvae live in clean streams and eat the snail kawanina; mud and dirty water drive them away. | Larval food, habitat. | To check |
-| C24 | Raccoon dog (タヌキ) | A wild member of the dog family, active at night; shared toilet spots work like a message board. | Latrines (ため糞). | To check |
-| C25 | Japanese weasel (ニホンイタチ) | A slim hunter of mice and frogs; needs cover such as long grass and hedges. | Prey, cover. | To check |
-| C26 | Japanese hare (ノウサギ) | Its tracks in snow show the big hind feet landing in front of the small front feet. | Track pattern. | To check |
-| C27 | Japanese squirrel (ニホンリス) | Buries nuts in autumn; forgotten ones can grow into trees. | Caching. | To check |
-| C28 | Rhinoceros beetle (カブトムシ) | Only the male has the big horn; comes to oak sap on summer nights. | Both claims. | To check |
-| C29 | Robust cicada (ミンミンゼミ) | Sings "meen-min-min" on summer days; larvae live underground for several years. | Song, larval years. Also check the English name. | To check |
-| C30 | Barn swallow (ツバメ) | Flies thousands of kilometres from Southeast Asia each spring; builds a mud nest under the eaves. | Migration, nest. | To check |
-| C31 | Green pheasant (キジ) | Japan's national bird; the male has a red face and long tail and calls "ken-ken". | All three. | To check |
-| C32 | Tree sparrow (スズメ) | Lives close to people and nests in gaps in roofs and walls; has become less common as old houses disappear. | The decline and its reason. | To check |
+| C21 | Grey heron (アオサギ) | The biggest heron you usually see in Japan; stands still, then strikes at fish and frogs. | Size claim. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C22 | Common kingfisher (カワセミ) | Called "the jewel of the stream"; dives for small fish and needs clear water. | Nickname, clear water. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C23 | Genji firefly (ゲンジボタル) | Larvae live in clean streams and eat the snail kawanina; mud and dirty water drive them away. | Larval food, habitat. | Checked 13 Nov 2026: 環境省 (kawanina, clean water) |
+| C24 | Raccoon dog (タヌキ) | A wild member of the dog family, active at night; shared toilet spots work like a message board. | Latrines (ため糞). | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C25 | Japanese weasel (ニホンイタチ) | A slim hunter of mice and frogs; needs cover such as long grass and hedges. | Prey, cover. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C26 | Japanese hare (ノウサギ) | Its tracks in snow show the big hind feet landing in front of the small front feet. | Track pattern. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C27 | Japanese squirrel (ニホンリス) | Buries nuts in autumn; forgotten ones can grow into trees. | Caching. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C28 | Rhinoceros beetle (カブトムシ) | Only the male has the big horn; comes to oak sap on summer nights. | Both claims. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C29 | Robust cicada (ミンミンゼミ) | Sings "meen-min-min" on summer days; larvae live underground for several years. | Song, larval years. Also check the English name. | Checked 13 Nov 2026 (secondary): nymphs live about 2–5 years, so "several years" is fair; English name corrected to "Min-min cicada" |
+| C30 | Barn swallow (ツバメ) | Flies thousands of kilometres from Southeast Asia each spring; builds a mud nest under the eaves. | Migration, nest. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C31 | Green pheasant (キジ) | Japan's national bird; the male has a red face and long tail and calls "ken-ken". | All three. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C32 | Tree sparrow (スズメ) | Lives close to people and nests in gaps in roofs and walls; has become less common as old houses disappear. | The decline and its reason. | Checked 13 Nov 2026: Bird Research / 三上修: decline confirmed, but nest sites alone don't explain it; line reworded |
 
 Other nature lines:
 
 | # | The game says | Where | What to check | Status |
 |---|---|---|---|---|
-| C33 | Fireflies come to the stream in early summer and need clean water. | `midori.chat.stream`, `announce.news.10`, `announce.news.11` | Season. | To check |
-| C34 | Fireflies are a good test for a stream; the town checks the water every summer. | `fest.hotaru.sato` | Fireflies as a sign of water quality. (The town's check is fiction.) | To check |
-| C35 | Hedges give birds food, shelter and nest sites ("a wall that sings"). | `midori.chat.hedgeBuilt`, `survey.tip.hedge`, design 5.2 | General claim. | To check |
-| C36 | A small pond brings frogs, dragonflies and maybe a kingfisher; meadows bring butterflies and bees; connected corridors let animals such as the raccoon dog come in. | `survey.tip.*`, `view.wildlife.hint` | General ecology. These are simplified on purpose; check that they are fair. | To check |
+| C33 | Fireflies come to the stream in early summer and need clean water. | `midori.chat.stream`, `announce.news.10`, `announce.news.11` | Season. | Checked 13 Nov 2026: Genji fireflies fly in early summer (環境省) |
+| C34 | Fireflies are a good test for a stream; the town checks the water every summer. | `fest.hotaru.sato` | Fireflies as a sign of water quality. (The town's check is fiction.) | Checked 13 Nov 2026: fireflies need clean, oxygen-rich water (環境省, 横浜市); the town's check is fiction |
+| C35 | Hedges give birds food, shelter and nest sites ("a wall that sings"). | `midori.chat.hedgeBuilt`, `survey.tip.hedge`, design 5.2 | General claim. | Standard knowledge, not looked up (13 Nov 2026): low risk |
+| C36 | A small pond brings frogs, dragonflies and maybe a kingfisher; meadows bring butterflies and bees; connected corridors let animals such as the raccoon dog come in. | `survey.tip.*`, `view.wildlife.hint` | General ecology. These are simplified on purpose; check that they are fair. | Standard knowledge, not looked up (13 Nov 2026): low risk |
 
 ## F. Heart events and requests (Milestone 3.1)
 
@@ -105,19 +105,19 @@ Real facts in the new heart events (`ev.*`) and the second requests (`*.req2.*`)
 | No. | What the game says | Where (text codes) | What to check | Status |
 |---|---|---|---|---|
 | F1 | Small rooftop systems on buildings still get a fixed price for the power they sell. | `ev.hiro.3.4` | Whether small rooftop solar (for example under 50 kW) still gets FIT support from FY2027, and on what terms (see A4). | Confirmed on 12 Nov 2026 (see `docs/village-notebook.md`) |
-| F2 | A solar park on a steep slope, with the trees cut and no drains, slid onto a road in a summer storm. | `ev.sato.2.2`, `ev.kurokawa.3.1`, `ev.kurokawa.3.2` | Same as A10: that such landslides have happened in Japan. | To check |
+| F2 | A solar park on a steep slope, with the trees cut and no drains, slid onto a road in a summer storm. | `ev.sato.2.2`, `ev.kurokawa.3.1`, `ev.kurokawa.3.2` | Same as A10: that such landslides have happened in Japan. | Confirmed 13 Nov 2026: same as A10 (経済産業省, July 2018 heavy rains) |
 | F3 | A garden can become a candidate nature-coexistence site (自然共生サイト), and the prefecture is told about it. | `ev.midori.5.1`, `ev.midori.5.2`, `survey.site` | How 自然共生サイト certification works (it is run by the Ministry of the Environment), and who applies. Likely needs rewording: the ministry certifies, not the prefecture. | Corrected in the game on 12 Nov 2026 (see `docs/village-notebook.md`) |
-| F4 | Genji firefly larvae live in the stream bed and eat snails; mud from a slope harms them. | `ev.midori.4.3`, `ev.midori.4.7` | Same as C23. | To check |
-| F5 | At kaibori, bass and bluegill are taken out; crucian carp and loaches go back. | `ev.kuma.5.2` | Same as B11. | To check |
-| F6 | Floating panels shade the water: less sun means fewer water plants, insects and fish; the shallow edge is where young fish hide. | `ev.kuma.3.3`, `ev.kuma.3.r1`, `ev.kuma.3.r2` | What is known about floating solar and pond ecology, and whether the shallow-edge claim is fair. | To check |
-| F7 | The hottest summers ever measured come one after another. | `ev.rin.1.2`, `ev.rin.1.3` | Same as B16, with Japan Meteorological Agency records. | To check |
-| F8 | A hedge takes about five years to grow into a proper hedge. | `ev.rin.4.4` | Typical growing time for a native hedge in Japan. | To check |
-| F9 | Some solar parks are built on gravel and sprayed with weed killer every year. | `ev.midori.2.2`, `ev.midori.2.3` | Same as B15. | To check |
-| F10 | The water in a seedling paddy is read by depth, and a pond keeper reads a water gauge at dawn. | `kuma.req2.ask.2`, `kuma.req2.read` | That irrigation ponds have simple water gauges, read by the keeper. The number (1.2 m) is fiction. | To check |
-| F11 | The circular board (回覧板) goes from house to house; each household stamps it. | `ev.oda.1.2`, `ev.oda.1.3` | The custom (see also B-rows on village customs). | To check |
-| F12 | Calligraphy at New Year (書き初め). | `ev.oda.5.4`, `keep.calligraphy.text` | The custom and its timing (usually 2 January). | To check |
-| F13 | Solar panels make a little less power when they get very hot. | `kurokawa.chat.summer` (Milestone 3.2) | The temperature effect on panel output. | To check |
-| F14 | Rice paddies can hold back rainwater for the houses below; swallows nest under eaves; red dragonflies come to the paddies in autumn. | `sato.chat.*`, `announce.news.*.y2`, `midori.chat.*` (Milestone 3.2) | Same as A9 and the C rows for the species. | To check |
+| F4 | Genji firefly larvae live in the stream bed and eat snails; mud from a slope harms them. | `ev.midori.4.3`, `ev.midori.4.7` | Same as C23. | Checked 13 Nov 2026: same as C23 |
+| F5 | At kaibori, bass and bluegill are taken out; crucian carp and loaches go back. | `ev.kuma.5.2` | Same as B11. | Standard knowledge, not looked up (13 Nov 2026): bass and bluegill are designated invasive species; low risk |
+| F6 | Floating panels shade the water: less sun means fewer water plants, insects and fish; the shallow edge is where young fish hide. | `ev.kuma.3.3`, `ev.kuma.3.r1`, `ev.kuma.3.r2` | What is known about floating solar and pond ecology, and whether the shallow-edge claim is fair. | Checked 13 Nov 2026: 農林水産省 says the effects of floating solar on ponds are still being studied; as Kuma-san's worry it is fair |
+| F7 | The hottest summers ever measured come one after another. | `ev.rin.1.2`, `ev.rin.1.3` | Same as B16, with Japan Meteorological Agency records. | Standard knowledge, not looked up (13 Nov 2026): record summers in Japan in recent years (気象庁); low risk |
+| F8 | A hedge takes about five years to grow into a proper hedge. | `ev.rin.4.4` | Typical growing time for a native hedge in Japan. | Standard knowledge, not looked up (13 Nov 2026): a few years for a hedge to close; low risk |
+| F9 | Some solar parks are built on gravel and sprayed with weed killer every year. | `ev.midori.2.2`, `ev.midori.2.3` | Same as B15. | Standard knowledge, not looked up (13 Nov 2026): the practice exists; the line doesn't say it is the rule; low risk |
+| F10 | The water in a seedling paddy is read by depth, and a pond keeper reads a water gauge at dawn. | `kuma.req2.ask.2`, `kuma.req2.read` | That irrigation ponds have simple water gauges, read by the keeper. The number (1.2 m) is fiction. | Standard knowledge, not looked up (13 Nov 2026); the number is fiction |
+| F11 | The circular board (回覧板) goes from house to house; each household stamps it. | `ev.oda.1.2`, `ev.oda.1.3` | The custom (see also B-rows on village customs). | Standard knowledge, not looked up (13 Nov 2026): 回覧板 and stamps; low risk |
+| F12 | Calligraphy at New Year (書き初め). | `ev.oda.5.4`, `keep.calligraphy.text` | The custom and its timing (usually 2 January). | Standard knowledge, not looked up (13 Nov 2026): 書き初め, usually on 2 January; low risk |
+| F13 | Solar panels make a little less power when they get very hot. | `kurokawa.chat.summer` (Milestone 3.2) | The temperature effect on panel output. | Standard knowledge, not looked up (13 Nov 2026): panel output falls as the cells get hotter; low risk |
+| F14 | Rice paddies can hold back rainwater for the houses below; swallows nest under eaves; red dragonflies come to the paddies in autumn. | `sato.chat.*`, `announce.news.*.y2`, `midori.chat.*` (Milestone 3.2) | Same as A9 and the C rows for the species. | Checked 13 Nov 2026: same as A9 and the C rows |
 
 ## D. Game rules that are not facts
 

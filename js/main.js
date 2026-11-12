@@ -294,6 +294,7 @@
     HM.build.init(game);
     HM.ui.initTitle(game);
     applySettings();       // (again, now that the language is known: furigana)
+    HM.offline.init();     // playing offline and installing (only on the website)
     HM.input.init({
       action: e => game.action(e),
       back: () => game.back(),

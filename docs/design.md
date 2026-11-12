@@ -41,6 +41,10 @@
 - *Furigana come from a reading list (`lang/ja-readings.js`) that the game applies automatically, instead of marks in every line of `lang/ja.js`. A line where a word is read differently gets its own mark. A check makes sure every kanji has a reading (section 15).*
 - *Music and sounds start on at a soft level, with two volume sliders and a sound button on the title screen (section 16).*
 
+*Approved on 12 November 2026 (Phase 4 plan, section 18):*
+- *Playtests: one round with the whole game in Milestone 4.2, instead of the Phase 1 round with the three-day version.*
+- *After Milestone 4.1, the website is updated as a clearly marked "Test version", but only after you say "Yes, push".*
+
 *v0.1 is the first draft, written in Phase 0. On 10 November 2026 you approved the concept, the residents, the names (as working names) and art style A, and decided: friendships only, a free pixel-style Japanese font, a furigana setting and a free year after the ending. All numbers are first guesses that will be balanced in Phase 2. Rules marked **(proposal)** still need your decision. Everything still open is listed in section 19.*
 
 ---
@@ -540,7 +544,7 @@ The plots, build mode and gardens follow sections 7.1–7.5. The exact numbers a
 | Habitat | Examples | Needs |
 |---|---|---|
 | Meadows | Butterflies (cabbage white, pale grass blue, small copper, yellow swallowtail), honeybees, grasshoppers, bell crickets in autumn | Meadow tiles or wild meadows. More meadow brings more species. |
-| Ponds and paddies | Frogs (Japanese tree frog, Japanese brown frog, Schlegel's green tree frog), dragonflies (common skimmer, red dragonfly in autumn), water striders, Japanese rice fish (メダカ), the rare diving beetle (ゲンゴロウ) | A biotope pond or a paddy without weed killer. Natural edges help. |
+| Ponds and paddies | Frogs (Japanese tree frog, Japanese brown frog, Schlegel's green tree frog), dragonflies (white-tailed skimmer, red dragonfly in autumn), water striders, Japanese rice fish (メダカ), the rare diving beetle (ゲンゴロウ) | A biotope pond or a paddy without weed killer. Natural edges help. |
 | Hedges and trees | Birds: Japanese tit, warbling white-eye, bush warbler (spring song), bull-headed shrike (autumn), Daurian redstart (winter) | Hedges (4 or more tiles bring birds into a garden) |
 | Rivers and streams | Grey heron, kingfisher (rare), **Genji fireflies (summer nights)** | Clean water. Mud from the slope drives them away. |
 | Corridors and forest edge | Raccoon dog, Japanese weasel, Japanese hare (tracks in snow), Japanese squirrel, rhinoceros beetle (summer nights), cicadas | A connected corridor to the forest or the river |
@@ -916,11 +920,38 @@ A gamepad may come later (section 19).
 - **Pixel art in code:** each tile and character is written in the code as a small grid of letters, one letter per pixel, where each letter stands for a palette colour. A tool (`tools/make-sprites.js`, using the PNG maker from Solar Commons' `tools/make-icons.js`) turns these into PNG sprite sheets. The game loads them as normal images, which also works on double-click. Phase 0's art test draws the same kind of grids directly in the browser.
 - **Font file:** `tools/make-fonts.js` (copied from Solar Commons) collects every character in the language files, downloads just those characters of the font and saves them in `fonts/`, together with the font's licence. The game then works offline and on double-click. The automatic checks make sure every character the game uses is in the font file.
 - **Saving:** in the browser's own storage (localStorage) on the device. No accounts and no server.
-- **Offline and installable (later):** once it's on its own website (GitHub Pages), the game gets an offline file (`sw.js`) and an app manifest, copied from Solar Commons, so it can be installed on a phone and played without internet. This only works from the website, not on double-click.
+- **Offline and installable (since Milestone 4.1):** once it's on its own website (GitHub Pages), the game gets an offline file (`sw.js`) and an app manifest, copied from Solar Commons, so it can be installed on a phone and played without internet. This only works from the website, not on double-click.
 - **Sound:** Web Audio made in code (Phase 3 or 4).
 - **Automatic checks with Node** (`tests/check.js`, like in Solar Commons): every text exists in both languages, no text is written directly in the code, every sprite is exactly 16 × 16 with known colours, the map has no unreachable places, simulated years always reach an ending, and saving then loading gives the same game.
 - **Targets:** smooth on a mid-range phone, a download under 2 MB, and the current versions of Chrome, Edge, Safari (also on iPhone) and Firefox.
 - **Website:** its own GitHub repository and GitHub Pages site later. The repository must be public for GitHub Pages, so we will ask you before creating it.
+
+### 17.1 Since Milestone 4.1 "Ready for players"
+
+- **Offline and installing:**
+  - `sw.js`, `manifest.webmanifest` and `js/offline.js` are adapted from Solar Commons.
+  - On the website, the title screen shows "Install the game" where the browser offers it (on iPhone and iPad, a hint about the Share menu), and "Ready to play offline" once the copy is complete.
+  - The checks make sure the offline list names every file the game loads.
+- **The app icon:** a 16 × 16 pixel drawing in the game's palette (a house with solar panels on its roof, a hedge and a warm sun), made by `tools/make-icons.js` in all the sizes phones and browsers need (approved on 13 November 2026).
+- **Size and speed (measured on 12 November 2026):**
+  - The game downloads 913 KB, about 360 KB compressed, under the 2 MB target.
+  - A frame takes about 1.2 ms on a computer, and 1.4 ms at a festival with all twelve residents. That leaves plenty of room on a phone.
+  - The diary with all species and furigana opens in about 45 ms.
+- **Accessibility check:**
+  - Everything works with the keyboard: walking, actions, menus, conversations (choices get the focus, number keys pick them) and build mode.
+  - Windows keep the keyboard focus inside them, and give it back to the game when they close (fixed in 4.1).
+  - Dialogue and hints are announced to screen readers.
+  - Text contrast meets 4.5:1. The notebook's "New" label was fixed in 4.1.
+  - The four views use shapes as well as colours, with blue and orange as the main pair.
+  - "Reduce motion" is followed by default. Small buttons are 40 px high, which is under Apple's 44 px guideline but above the 24 px minimum of the accessibility standard.
+- **Balance (tools/simulate-year.js):**
+  - Every simulated year reaches an ending.
+  - Friendships come out a little more generous than the goal in section 6:
+    - a player who focuses on four residents gets about 7 to 5 hearts;
+    - a casual player gets about 5 to 5 hearts;
+    - in both styles, nearly everyone reaches 3 hearts or more.
+  - Real players also walk, read and build, so they will be slower than the simulation. Any change to the points waits for your decision and the playtests.
+- **Facts:** every row of `docs/fact-check.md` now has a result: checked with a source, corrected, or standard knowledge that was not looked up (marked as such). In 4.1, three more lines were corrected: the English names of two species, and the reason the sparrow has become rarer.
 
 ---
 
@@ -932,7 +963,7 @@ A gamepad may come later (section 19).
 | **1** | Small playable test: walking on computer and phone, 2 residents (Gen-san and Midori) with dialogue and hearts, 1 plot (home field) in build mode with panels, hedges and meadow, the first 3–5 species in the diary, 3 days, saving. Then **playtests with 3–5 people from the public.** | Answers to "Is it fun? Is it clear? Would you play on?" |
 | **2** | Core systems, in 5 milestones: **2.1** the full map, time, the 4 × 7 days, weather and autosave. **2.2** all residents with routines, hearts, gifts and requests, and the dialogue system. **2.3** all six plots, build mode with the four views, power and money, the shop. **2.4** "Village decisions": the community hall room, the worries list and nemawashi, the 説明会 scene, the farmland permit, the citizen fund, Kurokawa's offers, the forest slope with the water view and the rainy-season mudflow, the promotion zone workshop, letters, the three meters and the ending framework. **2.5** "Nature and festivals": the nature diary with all habitats (about 32 species) and Midori's survey, the festival and special days as scenes, the typhoon shelter night and gifts to the village, and the free year. (2.4 and 2.5 were one milestone until 12 November 2026.) | A complete year, with placeholder story |
 | **3** | Story and content, in 3 milestones (planned on 12 November 2026): **3.1** "Friendships" (built on 12 November 2026, section 6.1); **3.2** built on 12 November 2026 (sections 11.1, 12.1 and 13.1); **3.3** built on 12 November 2026 (sections 15.1 and 16.1): the four player looks, all heart events (including Kurokawa's arc), keepsakes, and one more request for each household. **3.2** "The village's story": the village notebook (researched facts, checked with `docs/fact-check.md`), the full endings and epilogues, and more varied everyday lines, news, festival and meeting texts. **3.3** "Sound and reading": music and sounds made in code, the furigana setting and three text sizes. About **800–1,500 dialogue lines per language.** | The full game in Japanese and English |
-| **4** | Polish and release, in 1–2 milestones: accessibility check, phone performance, offline and installing, the app icon, final playtests, and publishing on GitHub Pages (after your OK) | The public release |
+| **4** | Polish and release, in 2 milestones (planned on 12 November 2026): **4.1** "Ready for players": offline and installing, the app icon, phone speed and download size, an accessibility check, a whole-year check and balance, the rest of the fact check (nature and village customs), and a name check. Then the website shows the test version (after your OK). **4.2** "Release": playtests of the whole game with the public (computers and phones), fixes, version number, credits, and publishing on GitHub Pages (after your OK). | The public release |
 
 **Not in the first release:** multiplayer, more than one year of story (the free year has no new story), a gamepad (maybe later), voice acting. Romance is not planned at all (friendships only).
 
@@ -940,7 +971,11 @@ A gamepad may come later (section 19).
 
 ## 19. Open questions
 
-1. **Names (approved as working names, 10 November 2026):** "Hidamari / ひだまり村", "power garden / おひさまの庭", "Quick Solar Co. / クイックソーラー株式会社" and the town of Komorebi (こもれび町). Before release, check that they don't clash with existing works or companies (there is a well-known manga and anime called *Hidamari Sketch*, and "ひだまり" is a common name for cafés and care homes).
+1. **Names (approved as working names, 10 November 2026):** "Hidamari / ひだまり村", "power garden / おひさまの庭", "Quick Solar Co. / クイックソーラー株式会社" and the town of Komorebi (こもれび町). Before release, check that they don't clash with existing works or companies (there is a well-known manga and anime called *Hidamari Sketch*, and "ひだまり" is a common name for cafés and care homes). **Checked on 13 November 2026 (web search, Milestone 4.1):**
+   - **"Hidamari / ひだまり村":** no game with either name was found. Related titles exist: *Hidamari Sketch* (manga and anime, and a Nintendo DS game in 2009), *陽あたり良好！ひだまり荘の仲間たち* (MSX, 1988) and *Aikagi: Hidamari to Kanojo no Heyagi* (a visual novel). The main risk is confusion with *Hidamari Sketch* in English searches.
+   - **"Quick Solar Co. / クイックソーラー株式会社":** no company of that name was found (the nearest, Qsol, is an IT company in Fukuoka).
+   - **"Komorebi / こもれび町":** no game or company of that name was found.
+   - A web search is not a trademark search. Before the release, the names can be looked up in the Japan Patent Office's free database J-PlatPat (https://www.j-platpat.inpit.go.jp/). Your decision: keep the names, or choose a fuller title (for example "Hidamari Village" / 「ひだまり村」).
 2. **Residents (approved, 10 November 2026):** the ten characters, including Rin as Fumiko's granddaughter. Details can still change in Phase 3.
 3. **The premise (approved, 10 November 2026):** you come as a regional revitalisation cooperator (地域おこし協力隊).
 4. **Calendar:** 28 days from April to just after New Year, with stylised "weeks" for seasons. Is that OK?

@@ -14,7 +14,7 @@ HM_LANG.ja = {
   "app.pageTitle": "ひだまり村",          // ブラウザのタブに表示
   "title.name": "ひだまり村",
   "title.subtitle": "おひさまの村の1年",
-  "title.testNote": "テスト版（マイルストーン3.3）：音と読みやすさ",
+  "title.testNote": "テスト版（マイルストーン4.1）：遊ぶ準備ができました",
   "title.newGame": "はじめから",
   "title.continue": "つづきから（{season} {day}日目）",
   "title.continueDone": "つづきから（おわり）",
@@ -26,6 +26,10 @@ HM_LANG.ja = {
   "title.notebookIntro": "これまでのゲームで見つけたメモです。",
   "title.soundOn": "♪ 音：オン",
   "title.soundOff": "♪ 音：オフ",
+  "title.install": "ゲームをインストール",
+  "title.installHint": "iPhone・iPadでは、共有ボタンから「ホーム画面に追加」を選ぶと、アプリのように遊べます。",
+  "title.offlineReady": "オフラインでも遊べます。",
+  "title.installed": "インストールしました！ホーム画面からゲームを始められます。",
   "title.start": "はじめる",
   "title.overwrite": "はじめから遊ぶと、保存したゲームは消えます。",
 
@@ -257,7 +261,7 @@ HM_LANG.ja = {
   "species.rhinoBeetle.fact": "大きな角があるのはオスだけ。夏の夜、クヌギやコナラの甘い樹液に集まります。",
   "species.cicada.fact": "「ミーンミンミン」と、夏の昼間に鳴きます。幼虫は何年も土の中で暮らしてから、地上に出てきます。",
   "species.pheasant.fact": "日本の国鳥。オスは赤い顔と長い尾を持ち、「ケーン、ケーン」と大きな声で鳴きます。",
-  "species.sparrow.fact": "人のそばで暮らし、屋根や壁のすき間に巣を作ります。古い家が減るにつれて、数も減ってきました。",
+  "species.sparrow.fact": "人のそばで暮らし、屋根や壁のすき間に巣を作ります。昔より数が減っていて、巣を作れる場所や町の食べものが少なくなったことが、理由のひとつと考えられています。",
   "species.cabbageWhite.hint": "晴れやくもりの日に、草地をさがしてみましょう。",
   "species.grassBlue.hint": "庭に、草地のマスを2つ以上つくりましょう。",
   "species.smallCopper.hint": "春から秋の晴れた日の草地。",

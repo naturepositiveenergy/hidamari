@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- All texts on this page come from lang/en.js and lang/ja.js -->
 <title data-i18n="app.pageTitle"></title>
+<meta name="theme-color" content="#F6E8C6">
+<!-- App icon and app description for installing the game (icons made by tools/make-icons.js) -->
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="css/game.css">
 </head>
@@ -22,6 +27,10 @@
       </div>
       <!-- Sound on or off (text set by js/ui.js) -->
       <button type="button" id="soundBtn" class="btn btn-small sound-btn" aria-pressed="true"></button>
+      <!-- Installing and playing offline (js/offline.js) -->
+      <button type="button" id="installBtn" class="btn btn-small install-btn" data-i18n="title.install" hidden></button>
+      <p id="installHint" class="muted install-note" data-i18n="title.installHint" hidden></p>
+      <p id="offlineNote" class="muted install-note" data-i18n="title.offlineReady" hidden></p>
       <form id="nameForm" class="name-form" hidden>
         <label for="nameInput" data-i18n="title.nameLabel"></label>
         <input id="nameInput" maxlength="10" autocomplete="off" spellcheck="false">
@@ -111,6 +120,7 @@
   <script src="js/notebook.js"></script>
   <script src="js/soundscape.js"></script>
   <script src="js/save.js"></script>
+  <script src="js/offline.js"></script>
   <script src="js/render.js"></script>
   <script src="js/input.js"></script>
   <script src="js/world.js"></script>

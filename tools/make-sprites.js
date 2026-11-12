@@ -215,7 +215,7 @@ function png(width, height, pixels) {
   ]);
 }
 
-module.exports = { build };
+module.exports = { build, png };
 
 // ----- Save (only when run directly, not when the checks use build()) -----
 if (require.main === module) {

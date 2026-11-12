@@ -750,6 +750,14 @@ ok(SC.musicFor(sg) === 'hall' && (sg.scene = { kind: 'ending' }, SC.musicFor(sg)
 ok(Object.keys(HM.MUSIC).every(n => HM.MUSIC[n].layers.length), 'every tune has notes');
 console.log('  music and sounds for the moment checked');
 
+// Simulated years in four play styles (tools/simulate-year.js): every year reaches an ending
+{
+  const sim = require(path.join(ROOT, 'tools/simulate-year.js')).run(2);
+  Object.entries(sim).forEach(([style, r]) => ok(r.ended === 2 && r.endings.every(e => D.endings.includes(e)), `a simulated "${style}" year did not reach an ending`));
+  ok(sim.everyone.five === D.friends.length && sim.builder.five < sim.focused.five, 'friendships grow with the time you spend with people');
+  console.log('  simulated years checked');
+}
+
 // ---------- 5. Font ----------
 section('5. Font');
 try {
@@ -760,6 +768,32 @@ try {
   ok(/DotGothic16/.test(read('fonts/fonts.css')) && fs.existsSync(path.join(ROOT, 'fonts/OFL-dotgothic16.txt')), 'fonts/fonts.css or the font licence is missing');
   console.log(`  ${have.size} characters in the font files`);
 } catch (e) { fail('the font files are missing: run  node tools/make-fonts.js  (' + e.message + ')'); }
+
+// ---------- 6. Offline and installing (Milestone 4.1) ----------
+// The offline helper (sw.js) copies the files on its list. A file the game loads but the list
+// forgets would be missing offline. (The font files are read from fonts/fonts.css by the helper.)
+section('6. Offline and installing');
+{
+  const swList = (read('sw.js').match(/const FILES = \[([\s\S]*?)\];/) || [])[1];
+  ok(swList, 'could not find the list of files (const FILES = [...]) in sw.js');
+  const offlineFiles = new Set([...(swList || '').matchAll(/'([^']+)'/g)].map(m => (m[1] === './' ? 'index.html' : m[1])));
+  offlineFiles.forEach(f => ok(fs.existsSync(path.join(ROOT, f)), `sw.js lists ${f}, which does not exist`));
+  // Files the page loads: links and scripts in index.html, the picture sheet, and the icons in the app description
+  const html = read('index.html');
+  const pageFiles = [...html.matchAll(/(?:href|src)="([^"#:]+)"/g)].map(m => m[1].split('?')[0]).concat(['img/sprites.png']);
+  const manifest = JSON.parse(read('manifest.webmanifest'));
+  manifest.icons.forEach(icon => pageFiles.push(icon.src));
+  new Set(pageFiles).forEach(f => {
+    if (!fs.existsSync(path.join(ROOT, f))) fail(`index.html or the manifest uses ${f}, which does not exist`);
+    else ok(offlineFiles.has(f), `${f} is used by the game but missing from the list in sw.js (it would be missing offline)`);
+  });
+  ok(html.includes('js/offline.js'), 'index.html does not load js/offline.js, so the offline helper never starts');
+  // The icon files are up to date with the drawing in tools/make-icons.js
+  const icons = require(path.join(ROOT, 'tools/make-icons.js')).build();
+  Object.entries(icons).forEach(([name, data]) => ok(fs.existsSync(path.join(ROOT, 'icons', name)) &&
+    Buffer.compare(Buffer.from(data), fs.readFileSync(path.join(ROOT, 'icons', name))) === 0, `icons/${name} is out of date: run  node tools/make-icons.js`));
+  console.log(`  ${offlineFiles.size} files for playing offline, ${Object.keys(icons).length} icon files`);
+}
 
 console.log(failures ? `\n${failures} problem(s) found.` : '\nAll checks passed.');
 process.exit(failures ? 1 : 0);

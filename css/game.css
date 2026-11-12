@@ -121,7 +121,8 @@ button:focus-visible, input:focus-visible, .dialogue:focus-visible {
 .lang-btn[aria-pressed="true"], .size-btn[aria-pressed="true"] { background: var(--accent); }
 .size-switch { display: flex; gap: 8px; flex-wrap: wrap; }
 .volume-row input { flex: 1; min-width: 120px; }
-.sound-btn { display: block; margin: 0 auto 12px; }
+.sound-btn, .install-btn { display: block; margin: 0 auto 12px; }
+.install-note { margin: 0 0 12px; font-size: 0.85rem; }
 
 /* ----- The game ----- */
 .game-screen { background: var(--grass); }
@@ -347,7 +348,7 @@ rt { font-size: 0.5em; line-height: 1; letter-spacing: 0; }
   padding: 0 6px;
   border-radius: 6px;
   background: var(--accent);
-  color: var(--accent-ink);
+  color: #2E1C05;
   font-size: 0.8rem;
   vertical-align: middle;
 }

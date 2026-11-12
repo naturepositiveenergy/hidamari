@@ -40,6 +40,8 @@
   // ----- Title screen -----
   function initTitle(g) {
     game = g;
+    keepFocusIn(el('panel'));
+    keepFocusIn(el('titlePanel'));
     el('newGameBtn').addEventListener('click', () => {
       el('nameForm').hidden = false;
       el('overwriteNote').hidden = !HM.save.read();
@@ -192,6 +194,8 @@
   function closePanel(then) {
     if (el('panel').hidden) return;
     el('panel').hidden = true;
+    // (the focus leaves the closed window, so Space and Enter work in the game again)
+    if (el('panel').contains(document.activeElement)) document.activeElement.blur();
     const after = panelOnClose;
     panelOnClose = null;
     game.setMode(panelReturn);
@@ -200,6 +204,20 @@
     if (then) then();
   }
   const panelOpen = () => !el('panel').hidden;
+
+  // ----- Keyboard focus stays inside an open window (Tab and Shift+Tab go round) -----
+  function keepFocusIn(box) {
+    box.addEventListener('keydown', e => {
+      if (e.key !== 'Tab') return;
+      const items = [...box.querySelectorAll('button, input, select, a[href], [tabindex]:not([tabindex="-1"])')]
+        .filter(x => !x.disabled && x.offsetParent);
+      if (!items.length) return;
+      const first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      else if (!box.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    });
+  }
 
   function listOf(lines) {
     const ul = node('ul', { class: 'panel-list' });
