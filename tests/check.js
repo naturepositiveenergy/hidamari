@@ -86,8 +86,16 @@ D.speciesOrder.forEach(sp => { used.add('species.' + sp); used.add('species.' + 
 HM.MAP.areas.forEach(a => used.add('place.' + a.id));
 used.add('place.field');
 D.buildOrder.forEach(tl => { used.add('tile.' + tl); used.add('build.info.' + tl); });
-['tooMany', 'money', 'late', 'needs.seedling'].forEach(p => used.add('build.p.' + p));
-const spriteNames = /^(ui|tile|critter)\.(alert|sun|cursor|item)$/;
+['money', 'late', 'needs.seedling', 'notHere', 'rubble', 'maxPanels', 'naturalEdge', 'parts', 'helpers', 'workDayLate', 'rubbleHelpers', 'repair']
+  .forEach(p => used.add('build.p.' + p));
+D.plotOrder.forEach(id => {
+  used.add('plot.' + id);
+  const rule = D.plots[id].open;
+  if (rule && !rule.later) ['plot.closed.' + id, `plot.open.${id}.1`, `plot.open.${id}.2`].forEach(k => used.add(k));
+});
+['wind', 'wildlife', 'light'].forEach(v => { used.add('view.' + v); used.add(`view.${v}.hint`); });
+['good', 'poor'].forEach(h => used.add('summary.harvest.' + h));
+const spriteNames = /^(ui|tile|critter)\.(alert|sun|cursor|item|concrete|spacedTop)$/;
 [...used].filter(k => !spriteNames.test(k) && !(k in en)).forEach(k => fail(`the code uses "${k}", but it is not in the language files`));
 
 // No Japanese text in the code (it belongs in lang/ja.js). Comments are allowed.
@@ -152,8 +160,13 @@ Object.entries(D.residents).forEach(([who, r]) => {
   [...r.loved, ...r.liked, ...r.disliked].forEach(item => ok(D.items[item], `${who} likes an unknown item "${item}"`));
 });
 D.shop.items.forEach(item => ok(D.items[item] && D.items[item].price, `the shop sells "${item}" without a price`));
-const f = map.field;
-for (let y = f.y; y < f.y + f.h; y++) for (let x = f.x; x < f.x + f.w; x++) ok(map.rows[y][x] === 'F', `the home field should be soil (F) at ${x},${y}`);
+// The plots: inside the map, one for each plot in the game data, the home field is soil, and open plots have a sign
+D.plotOrder.forEach(id => ok(map.plots.some(p => p.id === id), `plot "${id}" is not on the map`));
+map.plots.forEach(p => ok(p.x >= 0 && p.y >= 0 && p.x + p.w <= map.width && p.y + p.h <= map.height, `plot "${p.id}" is outside the map`));
+const home = map.plots.find(p => p.id === 'home');
+for (let y = home.y; y < home.y + home.h; y++) for (let x = home.x; x < home.x + home.w; x++) ok(map.rows[y][x] === 'F', `the home field should be soil (F) at ${x},${y}`);
+D.plotOrder.filter(id => !(D.plots[id].open || {}).later).forEach(id => ok(map.objects.some(o => o.plot === id), `plot "${id}" has no sign`));
+Object.values(D.plots).forEach(p => p.tools.forEach(tl => ok(D.buildTiles[tl], `unknown tile "${tl}" in a plot`)));
 console.log(`  ${map.width} × ${map.height} tiles, ${reach.size} reachable`);
 
 // ---------- 4. Rules ----------
@@ -167,25 +180,89 @@ ok(R.talk(s, 'gen') && !R.talk(s, 'gen'), 'only the first chat of the day should
 ok(R.giveGift(s, 'gen', 'persimmon') === 'loved' && s.friends.gen.points === D.points.talk + D.points.loved, 'a loved gift should give its points');
 ok(R.giveGift(s, 'gen', 'tea') === null, 'only one gift per resident per day');
 ok(R.heartsOf(99) === 0 && R.heartsOf(100) === 1 && R.heartsOf(9999) === D.hearts.max, 'hearts should be points ÷ 100, at most 5');
-// Building
-const plan = s.field.slice();
+// Building on your home field
+const plan = s.plots.home.tiles.slice();
 plan[0] = 'dense'; plan[1] = 'spaced'; plan[4] = 'hedge'; plan[5] = 'meadow';
-const check = R.checkPlan(s, plan);
+const check = R.checkPlan(s, 'home', plan);
 ok(check.ok && check.cost === 20000 + 24000 + 2000 + 500 && check.minutes === 4 * D.build.minutesPerTile, 'a small plan should be allowed, with the right cost and time');
-const stats = R.fieldStats(plan);
+const stats = R.plotStats(s, 'home', plan);
 ok(stats.power === 17 && stats.nature === 1 + 3 + 2 + D.varietyBonus * 2, `nature points should include the variety bonus (got ${stats.nature})`);
-const big = s.field.map(() => 'meadow');
-ok(R.checkPlan(s, big).problems.includes('tooMany'), 'more than 8 new tiles alone should not be allowed');
-const hedges = s.field.slice(); [0, 1, 2, 3, 4].forEach(i => { hedges[i] = 'hedge'; });
-ok(R.checkPlan(s, hedges).problems.includes('needs.seedling'), 'hedges should need seedlings');
-const rich = s.field.slice(); [0, 1, 2, 3].forEach(i => { rich[i] = 'spaced'; });
-ok(R.checkPlan(s, rich).problems.includes('money'), 'a plan you cannot pay for should not be allowed');
+const big = s.plots.home.tiles.map(() => 'meadow');
+ok(R.checkPlan(s, 'home', big).problems.includes('helpers'), 'more than 8 tiles need a work day with friends');
+const hedges = s.plots.home.tiles.slice(); [0, 1, 2, 3, 4].forEach(i => { hedges[i] = 'hedge'; });
+ok(R.checkPlan(s, 'home', hedges).problems.includes('needs.seedling'), 'hedges should need seedlings');
+const rich = s.plots.home.tiles.slice(); [0, 1, 2].forEach(i => { rich[i] = 'spaced'; });
+ok(R.checkPlan(s, 'home', rich).problems.includes('money'), 'a plan you cannot pay for should not be allowed');
+const tooManyPanels = s.plots.home.tiles.slice(); [0, 1, 2, 3, 4].forEach(i => { tooManyPanels[i] = 'dense'; });
+ok(R.checkPlan(s, 'home', tooManyPanels).problems.includes('parts'), 'the starter kit has parts for 4 panels only');
+const notHere = s.plots.home.tiles.slice(); notHere[0] = 'floating';
+ok(R.checkPlan(s, 'home', notHere).problems.includes('notHere'), 'floating panels only on the pond');
 const before = s.money;
-R.buildPlan(s, plan);
-ok(s.money === before - check.cost && s.bag.seedling === D.startBag.seedling - 1, 'building should cost money and seedlings');
-const removePlan = s.field.slice(); removePlan[0] = null;
-const removeCheck = R.checkPlan(s, removePlan);
-ok(removeCheck.refund === D.buildTiles.dense.cost * D.build.refund, 'removing a built tile should give half its cost back');
+R.buildPlan(s, 'home', plan);
+ok(s.money === before - check.cost && s.bag.seedling === D.startBag.seedling - 1 && s.flags.starterPanels === D.starterPanels - 2,
+  'building should cost money, seedlings and panel parts');
+const removePlan = s.plots.home.tiles.slice(); removePlan[0] = null;
+ok(R.checkPlan(s, 'home', removePlan).refund === D.buildTiles.dense.cost * D.build.refund, 'removing a built tile should give half its cost back');
+// The plot rules
+const g = R.newGame('Test');
+ok(!g.plots.gen.open && g.plots.home.open, 'only your home field is open at the start');
+g.friends.gen.points = 400;
+ok(R.canOpen(g, 'gen') && !R.canOpen(g, 'slope'), 'Gen-san opens his paddy at 4 hearts; the slope comes later');
+const pondPlan = g.plots.pond.tiles.map((t, i) => (i < 19 ? 'floating' : null));
+g.friends.hiro.points = 200;
+ok(R.checkPlan(g, 'pond', pondPlan).problems.includes('maxPanels'), 'floating panels may cover at most half of the pond plot');
+const pg = map.plots.find(p => p.id === 'pond');
+const ring = g.plots.pond.tiles.map((t, i) => (i === 0 ? 'floating' : null));
+const inner = g.plots.pond.tiles.map((t, i) => (i === pg.w + 1 ? 'floating' : null));
+ok(R.checkPlan(g, 'pond', ring).problems.includes('naturalEdge') && !R.checkPlan(g, 'pond', inner).problems.includes('naturalEdge'), 'the outer ring of the pond stays natural');
+ok(R.checkPlan(g, 'factory', g.plots.factory.tiles.map((t, i) => (i === 0 ? 'meadow' : null))).problems.includes('rubble'), 'the factory rubble must be cleared first');
+g.minutes = 9 * 60;
+ok(!R.checkRubble(R.newGame('Alone')).ok, 'clearing the rubble needs two friends');
+g.friends.gen.points = 400; g.friends.kuma.points = 200;
+ok(R.clearRubble(g, 'factory') && g.plots.factory.rubbleCleared && g.minutes === D.workDay.endAt * 60, 'a rubble work day lasts until the evening');
+g.minutes = 9 * 60;
+const workPlan = g.plots.home.tiles.map(() => 'meadow');
+const work = R.checkPlan(g, 'home', workPlan);
+ok(work.ok && work.workDay && work.helpers.length >= 1, 'with friends, a big plan becomes a work day');
+// Corridors count only when connected; panels without a hedge to the south are exposed
+const fp = map.plots.find(p => p.id === 'fumiko');
+const corr = Array(fp.w * fp.h).fill(null);
+corr[fp.w * 2 + 3] = 'corridor';
+ok(!R.connectedCorridors('fumiko', corr).size, 'a lonely corridor tile is not connected');
+corr[fp.w * 2 + 0] = 'corridor'; corr[fp.w * 2 + 1] = 'corridor'; corr[fp.w * 2 + 2] = 'corridor'; corr[fp.w * 2 + 4] = 'pond';
+ok(R.connectedCorridors('fumiko', corr).size === 4, 'a corridor from the edge to a pond is connected');
+const wind = Array(16).fill(null); wind[0] = 'dense'; wind[1] = 'dense'; wind[13] = 'hedge';
+ok(JSON.stringify(R.exposedPanels('home', wind)) === '[0]', 'a hedge south of a panel shelters it');
+// The light rule on Gen-san's paddy
+const paddy = g.plots.gen.tiles.map((t, i) => (i < 30 ? 'spaced' : null));
+ok(R.plotStats(g, 'gen', paddy).shade < D.agriShadeLimit, 'about half spaced panels keeps the paddy under 30% shade');
+const dark = g.plots.gen.tiles.map((t, i) => (i < 40 ? 'spaced' : null));
+ok(R.plotStats(g, 'gen', dark).shade >= D.agriShadeLimit, 'too many panels shade the paddy too much');
+ok(R.checkPlan(g, 'gen', g.plots.gen.tiles.map((t, i) => (i === 0 ? 'dense' : null))).problems.includes('notHere'), 'only spaced panels on the paddy');
+// Vegetables: sow, grow with light, harvest; nothing grows under dense panels
+const v = R.newGame('Test');
+ok(R.plant(v, 0, 'seedKomatsuna') && !R.plant(v, 0, 'seedKomatsuna'), 'one crop per tile');
+v.plots.home.tiles[1] = 'dense';
+ok(!R.plant(v, 1, 'seedKomatsuna'), 'nothing can be sown under dense panels');
+for (let d = 0; d < D.crops.komatsuna.days; d++) R.endDay(v);
+ok(R.isGrown(R.cropAt(v, 0)) && R.harvest(v, 0) === 'komatsuna' && v.bag.komatsuna === 1, 'komatsuna can be harvested after 3 days');
+v.minutes = 10 * 60;
+ok(R.sell(v, 'komatsuna') && !v.bag.komatsuna, 'vegetables can be sold to Hiro');
+// The typhoon loosens exposed panels; the harvest check on Gen-san's paddy
+const ty = R.newGame('Test');
+ty.plots.home.tiles = Array(16).fill(null); [0, 1, 2, 3].forEach(i => { ty.plots.home.tiles[i] = 'dense'; });
+ty.day = D.days.indexOf('typhoon') + 1;
+const tsum = R.endDay(ty);
+ok(tsum.loose === 2 && ty.plots.home.loose.length === 2, 'the typhoon loosens about half of the exposed panels');
+ty.plots.gen.tiles = paddy.slice();
+ty.day = D.harvestDay;
+const hsum = R.endDay(ty);
+ok(hsum.harvest === 'good' && hsum.friends.find(f => f.who === 'gen').gained === D.points.event, 'enough light gives a good rice harvest, and Gen-san is happy');
+// Saves from Milestone 2.2 (version 2) are brought up to date
+const old = JSON.parse(R.serialize(R.newGame('Old')));
+old.version = 2; old.field = Array(16).fill(null); old.field[0] = 'dense'; delete old.plots;
+const up = R.deserialize(JSON.stringify(old));
+ok(up && up.plots.home.tiles[0] === 'dense' && up.flags.starterPanels === D.starterPanels - 1, 'a save from Milestone 2.2 should still load');
 // Days, money and the end of the test
 const money1 = s.money;
 const sum1 = R.endDay(s);
@@ -218,7 +295,7 @@ const cash = m.money;
 ok(R.shopOpen(m) && R.buy(m, 'manju') && m.money === cash - D.items.manju.price && m.bag.manju === 1, 'buying at the shop should cost money and fill the bag');
 m.day = D.shop.closedDay;
 ok(!R.shopOpen(m), 'the shop should be closed on its closing day');
-console.log('  friendship, gifts, the shop, building, money, days and saving checked');
+console.log('  friendship, gifts, the shop, plots, building, work days, vegetables, the typhoon, money, days and saving checked');
 
 // ---------- 5. Font ----------
 section('5. Font');

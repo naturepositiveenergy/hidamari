@@ -13,8 +13,46 @@
   const run = fn => ({ run: fn });
 
   const hour = state => state.minutes / 60;
-  const fieldHas = (state, type) => state.field.includes(type);
-  const count = (state, type) => state.field.filter(t => t === type).length;
+  // What you have built, on all your plots together
+  const allTiles = state => Object.values(state.plots).flatMap(p => p.tiles);
+  const fieldHas = (state, type) => allTiles(state).includes(type);
+  const count = (state, type) => allTiles(state).filter(t => t === type).length;
+
+  // ----- A plot owner gives permission (design.md section 7.1) -----
+  // When you are close enough friends, the owner of a plot lets you build there.
+  function permission(state, who) {
+    const friend = R().friendOf(who);
+    const id = HM.DATA.plotOrder.find(id => {
+      const rule = HM.DATA.plots[id].open;
+      return rule && rule.friend === friend && !state.plots[id].open && R().canOpen(state, id);
+    });
+    if (!id) return null;
+    return [say(who, `plot.open.${id}.1`), say(who, `plot.open.${id}.2`),
+      run(g => { g.state.plots[id].open = true; }), narrate('plot.opened', { plot: { key: 'plot.' + id } })];
+  }
+
+  // ----- Your home field: sow, wait, harvest -----
+  function farm(game, i) {
+    const state = game.state;
+    const crop = R().cropAt(state, i);
+    if (crop && R().isGrown(crop)) {
+      return [run(g => { R().harvest(g.state, i); g.passTime(5); }), received(crop.crop, 1)];
+    }
+    if (crop) {
+      if (!R().cropLight(state, i)) return [narrate('farm.dark')];
+      const left = HM.DATA.crops[crop.crop].days - crop.age;
+      return [narrate('farm.growing', { crop: { key: 'item.' + crop.crop }, days: left })];
+    }
+    if (!R().cropLight(state, i)) return [narrate('farm.dark')];
+    const seeds = R().sowable(state);
+    if (!seeds.length) return [narrate(state.plots.home.tiles[i] && state.plots.home.tiles[i] !== 'spaced' ? 'farm.built' : 'farm.noSeeds')];
+    return [narrate('farm.sow'), {
+      choice: seeds.map(seed => ({
+        key: 'talk.giftItem', vars: { item: { key: 'item.' + seed }, n: state.bag[seed] },
+        then: [run(g => { R().plant(g.state, i, seed); g.passTime(5); }), narrate('farm.sown', { crop: { key: 'item.' + HM.DATA.items[seed].crop } })]
+      })).concat([{ key: 'talk.cancel', then: [] }])
+    }];
+  }
 
   // An item you received, as a line
   const received = (item, n) => narrate('got.item', { item: { key: 'item.' + item }, n });
@@ -64,6 +102,8 @@
         run(g => { g.state.flags.genRequest = 'asked'; })
       ];
     }
+    const allow = permission(state, 'gen');
+    if (allow) return allow;
     if (eventWaiting(state, 'gen', resident.spot)) {
       return [
         say('gen', 'gen.ev1.1'), narrate('gen.ev1.2'), say('gen', 'gen.ev1.3'), say('gen', 'gen.ev1.4'), say('gen', 'gen.ev1.5'),
@@ -224,6 +264,9 @@
       met[who] = state.day;
       return HM.TALKS[who].meet.map(k => say(who, k));
     }
+    // A plot owner who now trusts you enough
+    const allow = permission(state, who);
+    if (allow) return allow;
     // Someone else's request that needs this person (for example Mr. Oda's stamp for Ms. Sato)
     const task = openTask(state, t => t.talk === who);
     if (task) return doTask(task, who);
@@ -286,6 +329,10 @@
       const r = HM.world.residents.find(r => obj.spots.includes(r.spot) && !r.visible && r.arrived);
       if (r) return { talkTo: r };
     }
+    // A plot's sign: build mode if the owner has said yes
+    if (obj.plot && obj.plot !== 'home') {
+      return state.plots[obj.plot].open ? { build: obj.plot } : [narrate('plot.closed.' + obj.plot)];
+    }
     switch (id) {
       case 'shopDoor':
         if (R().shopOpen(state)) return { shop: true };
@@ -310,7 +357,7 @@
         }
         return [narrate('obj.letterbox.empty')];
       case 'fieldSign':
-        return { build: true };
+        return { build: 'home' };
       case 'exitSign':
       case 'noticeBoard':
       case 'postBox':
@@ -332,6 +379,11 @@
     if (!target) return null;
     if (target.type === 'talk') return 'action.talk';
     if (target.type === 'look') return 'action.look';
+    if (target.type === 'farm') {
+      const crop = R().cropAt(state, target.i);
+      return crop && R().isGrown(crop) ? 'action.harvest' : crop ? 'action.check' : 'action.sow';
+    }
+    if (/^sign/.test(target.id)) return 'action.build';
     const obj = HM.MAP.objects.find(o => o.id === target.id) || {};
     if (obj.forage) return 'action.pick';
     if (target.id === 'sunriseView') return 'action.photo';
@@ -369,5 +421,5 @@
   // Can a thing be used now? (things for requests only while the request needs them)
   const available = (state, obj) => !obj.request || !!openTask(state, t => t.object === obj.id);
 
-  HM.story = { talk, useObject, actionLabel, eventWaiting, intro, morning, sparkles, available };
+  HM.story = { talk, useObject, actionLabel, eventWaiting, intro, morning, sparkles, available, farm };
 })(globalThis);

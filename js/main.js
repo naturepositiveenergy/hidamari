@@ -83,7 +83,7 @@
 
     useObject(id) {
       const result = HM.story.useObject(this, id);
-      if (result && result.build) HM.build.open();
+      if (result && result.build) HM.build.open(result.build === true ? 'home' : result.build);
       else if (result && result.shop) HM.ui.showShop();
       else if (result && result.talkTo) this.talkTo(result.talkTo);
       else if (result && result.length) this.play(result);
@@ -94,6 +94,7 @@
       if (target.type === 'talk') this.talkTo(target.resident);
       else if (target.type === 'look') HM.world.startLook(target.critter);
       else if (target.type === 'object') this.useObject(target.id);
+      else if (target.type === 'farm') this.play(HM.story.farm(this, target.i));
     },
 
     // ----- Input -----
@@ -121,11 +122,11 @@
       this.showControls = false;
       const state = this.state, w = HM.world, p = w.player;
       let thing = w.thingAt(tile.x, tile.y, state);
-      if (!thing && w.fieldIndex(tile.x, tile.y) >= 0) thing = { type: 'object', id: 'fieldSign' };
+      if (!thing && w.fieldIndex(tile.x, tile.y) >= 0) thing = { type: 'farm', i: w.fieldIndex(tile.x, tile.y) };
       const from = w.feetTile(p);
       if (thing) {
         const target = thing.type === 'talk' ? w.feetTile(thing.resident)
-          : thing.type === 'object' ? HM.MAP.objects.find(o => o.id === thing.id) : { x: tile.x, y: tile.y };
+          : thing.type === 'object' && thing.x === undefined ? HM.MAP.objects.find(o => o.id === thing.id) : { x: tile.x, y: tile.y };
         const beside = w.besideTile(target.x, target.y, from, state);
         if (!beside) return;
         w.walkTo(beside.x, beside.y, state, () => {
@@ -133,6 +134,7 @@
           if (this.mode !== 'world') return;
           if (thing.type === 'talk') { if (thing.resident.visible) this.talkTo(thing.resident); }
           else if (thing.type === 'look') { if (w.critters.includes(thing.critter)) w.startLook(thing.critter); }
+          else if (thing.type === 'farm') this.play(HM.story.farm(this, thing.i));
           else this.useObject(thing.id);
         });
         return;
@@ -146,9 +148,11 @@
 
     openBuild() {
       if (this.mode !== 'world') return false;
-      const f = HM.MAP.field, here = HM.world.feetTile(HM.world.player);
-      const near = here.x >= f.x - 3 && here.x <= f.x + f.w + 2 && here.y >= f.y - 3 && here.y <= f.y + f.h + 2;
-      if (near) HM.build.open();
+      // The nearest open plot within 3 tiles
+      const here = HM.world.feetTile(HM.world.player);
+      const near = HM.MAP.plots.find(p => this.state.plots[p.id].open &&
+        here.x >= p.x - 3 && here.x <= p.x + p.w + 2 && here.y >= p.y - 3 && here.y <= p.y + p.h + 2);
+      if (near) HM.build.open(near.id);
       else HM.ui.say('build.tooFar');
       return true;
     },

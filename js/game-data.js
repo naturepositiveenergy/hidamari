@@ -44,14 +44,41 @@
       maxAlone: 8,                // bigger plans need a work day with friends (later)
       refund: 0.5                 // removing a built tile gives half its cost back
     },
-    // cost in yen · power per sunny day · nature points · needs an item from your bag
+    // cost in yen · power per sunny day · nature points · needs an item from your bag ·
+    // panel: needs panel parts · walk: you can walk on it · shade: how much it shades the crops below ·
+    // crops: crops can grow under it · summer: extra power in summer (the water cools floating panels)
     buildTiles: {
-      dense: { cost: 20000, power: 10, nature: 0 },
-      spaced: { cost: 24000, power: 7, nature: 1, natureType: true },
+      dense: { cost: 20000, power: 10, nature: 0, panel: true, shade: 1 },
+      spaced: { cost: 24000, power: 7, nature: 1, natureType: true, panel: true, shade: 0.5, walk: true, crops: true },
+      floating: { cost: 26000, power: 9, nature: 0, panel: true, summer: 1 },
       hedge: { cost: 2000, power: 0, nature: 3, natureType: true, needs: 'seedling' },
-      meadow: { cost: 500, power: 0, nature: 2, natureType: true }
+      meadow: { cost: 500, power: 0, nature: 2, natureType: true, walk: true },
+      pond: { cost: 5000, power: 0, nature: 4, natureType: true },
+      corridor: { cost: 1000, power: 0, nature: 2, natureType: true, walk: true, mustConnect: true },
+      path: { cost: 300, power: 0, nature: 0, walk: true },
+      fence: { cost: 3000, power: 0, nature: 0 }
     },
-    buildOrder: ['dense', 'spaced', 'hedge', 'meadow'],
+    buildOrder: ['dense', 'spaced', 'floating', 'hedge', 'meadow', 'pond', 'corridor', 'path', 'fence'],
+    // The six plots (design.md section 7.1; where they are: js/map-data.js)
+    // tools: what can be built · farm: you can grow vegetables there · agri: the light rule (shade under 30%) ·
+    // maxPanels: share of the plot panels may cover · rubble: must be cleared first ·
+    // open: whose hearts open the plot (the town meeting comes in Milestone 2.4)
+    plots: {
+      home: { tools: ['dense', 'spaced', 'hedge', 'meadow', 'pond', 'corridor', 'path', 'fence'], farm: true, open: null },
+      fumiko: { tools: ['dense', 'spaced', 'hedge', 'meadow', 'pond', 'corridor', 'path', 'fence'], open: { friend: 'fumiko', hearts: 4 } },
+      gen: { tools: ['spaced', 'hedge', 'corridor'], agri: true, open: { friend: 'gen', hearts: 4 } },
+      pond: { tools: ['floating'], maxPanels: 0.5, naturalEdge: true, open: { friend: 'kuma', hearts: 4 } },
+      factory: { tools: ['dense', 'spaced', 'hedge', 'meadow', 'pond', 'corridor', 'path', 'fence'], rubble: true, open: { friend: 'sato', hearts: 2 } },
+      slope: { tools: [], open: { later: true } }
+    },
+    plotOrder: ['home', 'fumiko', 'gen', 'pond', 'factory', 'slope'],
+    agriShadeLimit: 0.3,          // shade on Gen-san's paddy must stay under 30% (the rule from April 2027)
+    starterPanels: 4,             // the town's starter kit: enough parts for 4 panels
+    partsFrom: { friend: 'hiro', hearts: 2 },   // after that, Hiro orders panel parts
+    // A work day (結): for plans of more than 8 tiles, or to clear the factory rubble
+    workDay: { startBy: 12, endAt: 17, helperHearts: 2, minHelpers: 1, rubbleHelpers: 2, helperPoints: 10 },
+    typhoon: { looseShare: 0.5, repairCost: 2000, repairMinutes: 15 },
+    harvestDay: 17,               // autumn day 3: the rice harvest on Gen-san's paddy
     varietyBonus: 5,              // nature points for each different nature tile type after the first
 
     // ----- Friendship (design.md section 6) -----
@@ -74,11 +101,35 @@
       stone: { gift: true },
       chestnut: { gift: true },
       camellia: { gift: true },
-      seedling: { gift: false, price: 500 }
+      seedling: { gift: false, price: 500 },
+      seedKomatsuna: { gift: false, price: 200, crop: 'komatsuna' },
+      seedCucumber: { gift: false, price: 250, crop: 'cucumber' },
+      seedTomato: { gift: false, price: 300, crop: 'tomato' },
+      seedSweetPotato: { gift: false, price: 300, crop: 'sweetPotato' },
+      seedDaikon: { gift: false, price: 200, crop: 'daikon' },
+      // sell: what Hiro pays for it
+      komatsuna: { gift: true, sell: 300 },
+      cucumber: { gift: true, sell: 250 },
+      tomato: { gift: true, sell: 350 },
+      sweetPotato: { gift: true, sell: 400 },
+      daikon: { gift: true, sell: 350 }
     },
-    startBag: { onigiri: 2, tea: 2, persimmon: 1, seedling: 4 },
+    startBag: { onigiri: 2, tea: 2, persimmon: 1, seedling: 4, seedKomatsuna: 2 },
+    // Vegetables for your home field: when you can sow them, and how many days until harvest
+    crops: {
+      komatsuna: { seasons: ['spring', 'autumn'], days: 3, seed: 'seedKomatsuna' },
+      cucumber: { seasons: ['summer'], days: 3, seed: 'seedCucumber' },
+      tomato: { seasons: ['summer'], days: 4, seed: 'seedTomato' },
+      sweetPotato: { seasons: ['autumn'], days: 4, seed: 'seedSweetPotato' },
+      daikon: { seasons: ['winter'], days: 4, seed: 'seedDaikon' }
+    },
     // What Hiro's shop sells, in this order. It is open 9:00–17:00, except on the closing day.
-    shop: { items: ['onigiri', 'tea', 'manju', 'senbei', 'coffee', 'ramune', 'camelliaSeedling', 'seedling'], open: 9, close: 17, closedDay: 3 },
+    // Seeds are only sold in their sowing season.
+    shop: {
+      items: ['onigiri', 'tea', 'manju', 'senbei', 'coffee', 'ramune', 'camelliaSeedling', 'seedling',
+        'seedKomatsuna', 'seedCucumber', 'seedTomato', 'seedSweetPotato', 'seedDaikon'],
+      open: 9, close: 17, closedDay: 3
+    },
     // Things to pick around the village, once a day each, in their seasons (the places are in js/map-data.js)
     forage: {
       berries: { item: 'strawberry', seasons: ['spring', 'summer'] },
@@ -104,7 +155,7 @@
           { when: { weather: ['rain'] }, at: [[6, 'genHome'], [20, 'inside']] },     // repairing tools by his barn
           { at: [[6, 'genPaddy'], [11, 'genHome'], [14, 'shopBenchA'], [17, 'genHome'], [20, 'inside']] }
         ],
-        loved: ['persimmon', 'onigiri'], liked: ['tea', 'strawberry', 'chestnut', 'senbei'], disliked: []
+        loved: ['persimmon', 'onigiri'], liked: ['sweetPotato', 'tea', 'strawberry', 'chestnut', 'senbei'], disliked: []
       },
       midori: {
         friend: 'midori', legs: 'normal', speed: 38, home: 'midoriHome',
@@ -114,7 +165,7 @@
           { when: { days: [3] }, at: [[6, 'pondShore'], [9, 'post'], [15, 'streamside'], [18, 'hallMeeting'], [21, 'inside']] },
           { at: [[6, 'pondShore'], [9, 'post'], [15, 'streamside'], [18, 'terraces'], [20, 'inside']] }
         ],
-        loved: [], liked: ['strawberry', 'onigiri', 'tea', 'chestnut'], disliked: []
+        loved: [], liked: ['komatsuna', 'strawberry', 'onigiri', 'tea', 'chestnut'], disliked: []
       },
       fumiko: {
         friend: 'fumiko', legs: 'wide', speed: 26, home: 'fumikoHome',
@@ -123,7 +174,7 @@
           { when: { weather: ['rain', 'snow'] }, at: [[0, 'inside'], [12, 'fumikoPorch'], [15, 'inside']] },
           { at: [[6, 'fumikoGarden'], [9, 'shrineSweep'], [12, 'fumikoPorch'], [17, 'inside']] }
         ],
-        loved: ['camelliaSeedling', 'manju'], liked: ['strawberry', 'tea', 'camellia', 'chestnut'], disliked: ['coffee']
+        loved: ['camelliaSeedling', 'manju'], liked: ['daikon', 'strawberry', 'tea', 'camellia', 'chestnut'], disliked: ['coffee']
       },
       aya: {
         friend: 'mori', legs: 'normal', speed: 38, home: 'moriHome',
@@ -132,7 +183,7 @@
           { when: { weekend: true }, at: [[0, 'inside'], [9, 'riverside'], [12, 'shrineFamily'], [15, 'moriGarden'], [17, 'inside']] },
           { at: [[0, 'inside'], [7.5, 'busWait'], [8.25, 'inside'], [14.75, 'busWait'], [15.5, 'moriGarden'], [17, 'inside']] }
         ],
-        loved: ['coffee'], liked: ['tea', 'strawberry', 'manju'], disliked: []
+        loved: ['coffee'], liked: ['tomato', 'tea', 'strawberry', 'manju'], disliked: []
       },
       ken: {
         friend: 'mori', legs: 'normal', speed: 40, home: 'moriHome',
@@ -141,7 +192,7 @@
           { when: { weekend: true }, at: [[0, 'inside'], [9, 'riverside2'], [12, 'shrineFamily2'], [15, 'moriGarden2'], [17, 'inside']] },
           { at: [[0, 'inside'], [7.5, 'bus'], [18, 'moriGarden2'], [19, 'inside']] }
         ],
-        loved: ['tea'], liked: ['senbei', 'onigiri', 'coffee'], disliked: []
+        loved: ['tea'], liked: ['cucumber', 'senbei', 'onigiri', 'coffee'], disliked: []
       },
       sora: {
         friend: 'mori', legs: 'child', speed: 34, home: 'moriHome',
@@ -151,7 +202,7 @@
           { when: { weather: ['rain', 'snow'] }, at: [[0, 'inside'], [7.5, 'bus'], [15, 'inside']] },
           { at: [[0, 'inside'], [7.5, 'bus'], [15, 'soraPlay'], [17, 'inside']] }
         ],
-        loved: ['stone', 'ramune'], liked: ['strawberry', 'manju', 'chestnut'], disliked: ['coffee']
+        loved: ['stone', 'ramune'], liked: ['tomato', 'strawberry', 'manju', 'chestnut'], disliked: ['coffee']
       },
       oda: {
         friend: 'oda', legs: 'normal', speed: 32, home: 'odaHome', pet: 'kotetsu', petRoute: 'walkA',
@@ -159,7 +210,7 @@
           { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
           { at: [[6, ['walkA', 'walkB', 'walkC', 'walkB']], [9, 'hall'], [14, ['visitGen', 'visitFumiko', 'visitHome', 'visitMori']], [17, 'inside']] }
         ],
-        loved: ['senbei'], liked: ['tea', 'manju', 'persimmon'], disliked: []
+        loved: ['senbei'], liked: ['daikon', 'tea', 'manju', 'persimmon'], disliked: []
       },
       hiro: {
         friend: 'hiro', legs: 'wide', speed: 34, home: 'shopFront',
@@ -168,7 +219,7 @@
           { when: { days: [3] }, at: [[0, 'inside'], [10, 'riverside4'], [15, 'shopBenchC'], [18, 'inside']] },   // closing day: fishing
           { at: [[6, ['visitFumiko2', 'visitGen2', 'visitKuma']], [9, 'shopFront'], [17, 'inside']] }
         ],
-        loved: ['coffee'], liked: ['onigiri', 'strawberry', 'chestnut'], disliked: []
+        loved: ['coffee'], liked: ['komatsuna', 'onigiri', 'strawberry', 'chestnut'], disliked: []
       },
       kuma: {
         friend: 'kuma', legs: 'wide', speed: 28, home: 'kumaHome',
@@ -176,7 +227,7 @@
           { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
           { at: [[6, 'sluice'], [8, ['terraceA', 'terraceB']], [15, 'shopBenchB'], [18, 'sluice'], [19, 'inside']] }
         ],
-        loved: [], liked: ['tea', 'onigiri', 'senbei', 'chestnut'], disliked: ['ramune']
+        loved: [], liked: ['cucumber', 'tea', 'onigiri', 'senbei', 'chestnut'], disliked: ['ramune']
       },
       rin: {
         friend: 'rin', legs: 'normal', speed: 46, home: 'fumikoHome',
@@ -185,7 +236,7 @@
           { when: { weekend: true }, at: [[0, 'inside'], [10, ['rinA', 'rinB', 'rinC', 'rinD']], [17, 'rinShop'], [19, 'inside']] },
           { at: [[0, 'inside'], [8, 'hall'], [12, ['rinA', 'rinB', 'rinC', 'rinD']], [17, 'rinShop'], [19, 'inside']] }
         ],
-        loved: ['soySnack'], liked: ['strawberry', 'ramune', 'stone'], disliked: ['coffee']
+        loved: ['soySnack'], liked: ['komatsuna', 'strawberry', 'ramune', 'stone'], disliked: ['coffee']
       },
       sato: {
         friend: 'sato', legs: 'normal', speed: 38, home: 'town',
@@ -196,7 +247,7 @@
           { when: { days: [2] }, at: [[0, 'inside'], [8.5, 'office'], [10, ['siteFactory', 'siteField']], [13, 'lunch'], [14, 'office'], [17.25, 'inside']] },
           { at: [[0, 'inside'], [8.5, 'office'], [12, 'lunch'], [13, 'office'], [17.25, 'inside']] }
         ],
-        loved: ['manju'], liked: ['coffee', 'tea', 'chestnut'], disliked: []
+        loved: ['manju'], liked: ['sweetPotato', 'coffee', 'tea', 'chestnut'], disliked: []
       },
       kurokawa: {
         friend: 'kurokawa', legs: 'normal', speed: 44, home: 'town',

@@ -22,7 +22,7 @@
     'TTTTTTT.~~~~~~~~~~..=............TTT.kkkkkk.TTT....TTTTTTTTTTTTTTTTTTT~~~TTTTTTT',
     'TTTTTTT.~~~~~~~~~~..=............TTTQkkkkkkQTTT....TTTTTTTTTTTTTTTTTTT~~~TTTTTTT',
     'TTTTTTT.~~~~~~~~~~..=......T.....TTTTTTIJTTTTTT....TTTTTTTTTTTTTTTTTTT~~~TTTTTTT',
-    'TT..................=................QTHHTQ.........TTTTTTTTTTTTTTTTTT~~~TTTTTTT',
+    'TT................S.=................QTHHTQ.........TTTTTTTTTTTTTTTTTT~~~TTTTTTT',
     'TT."""""""""""""""""=.........T......TTHHTT.........TTTTTT=TT~~TTTTTTT~~~TTTTTTT',
     'TT."""""""""""""""""=...............QTTHHTTQ...AAAA.TTTTTT=TTT~~TTTTTT~~~TTTTTTT',
     'TT.GGGGGGGGGGGGGGGGG=...T............TTHHTT....BBBB.TTTTTT=TTTT~~TTTTT~~~TTTTTTT',
@@ -40,12 +40,12 @@
     'TT..................=.......=.X....=.n..=.nkkkkkkkkZ...=.............~~~TTTTTTTT',
     'TT..................=.......=......=..S.=.=kkkkkkkk....=..Pn.........~~~TTTTTTST',
     'TT===================================================================###========',
-    'TT........T.............................=..................==........~~~TTTTTTTT',
+    'TT........T.............................=..................==.S......~~~TTTTTTTT',
     'TT......................................=.............fffff==fffff...~~~TTTTTTTT',
     'TT.....................AAAA.............=.............fccccccccccf...~~~TTTTTTTT',
     'TT..........vvvvvvvv...BBNB.............=.............fccccccccccf...~~~TTTTTTTT',
     'TT..........vvvvvvvv...WDWO.............=.............fccrcccccccf...~~~TTTTTTTT',
-    'TT..........vvvvvvvv....=...............=.............fcccccccrccf...~~~TTTTTTTT',
+    'TT.........Svvvvvvvv....=...............=.............fcccccccrccf...~~~TTTTTTTT',
     'TT..........vvvvvvvv....=.""""""L"""""".=.............fccccccccccf...~~~TTTTTTTT',
     'TT..........vvvvvvvv....=.""""""="""""".=.AAAA..AAAA..fccccccccccf...~~~TTTTTTTT',
     'TT..........vvvvvvvv....=.""""""="""""".=.BBBN..BBBB..fccccccrcccf...~~~TTTTTTTT',
@@ -57,7 +57,7 @@
     'TT.WDOW....,,,,=,,,,,...=.""""""="""""".=.,,,,,,,,,,,,,,,,,,,,,,,,,.~~~TTTTTTTTT',
     'TT.X=..........=........=.""""""="""""".=.,,,,,,,,,,,,,,,,,,,,,,,,,.~~~TTTTTTTTT',
     'TT.======================================.,,,T,,,,,,,,,,,,,,,,,,T,,.~~~TTTTTTTTT',
-    'TT....SFFFF..........."""""""""=""""""".=.,,,,,Y,,,,,,,,,,,,,,,,,,,.~~~TTTTTTTTT',
+    'TT....SFFFF..........S"""""""""=""""""".=.,,,,,Y,,,,,,,,,,,,,,,,,,,.~~~TTTTTTTTT',
     'TT.....FFFF..........."""""""""=""""""".=.,,,,,,,,,,,,,,,,,,,,,,,,,.~~~TTTTTTTTT',
     'TT.....FFFF..........."""""""""=""""""".=.,,,,,,,,,,T,,,,,,,,,,,,,,.~~~TTTTTTTTT',
     'TT.....FFFF..........."""""""""=""""""".=.,,,,,,,,,,,,,,,,,,,,,,,,,.~~~TTTTTTTTT',
@@ -112,7 +112,11 @@
   const OBJECTS = [
     { id: 'homeDoor', x: 4, y: 45 },
     { id: 'letterbox', x: 3, y: 46 },
-    { id: 'fieldSign', x: 6, y: 48 },
+    { id: 'fieldSign', x: 6, y: 48, plot: 'home' },
+    { id: 'signFumiko', x: 11, y: 36, plot: 'fumiko' },
+    { id: 'signGen', x: 21, y: 48, plot: 'gen' },
+    { id: 'signPond', x: 18, y: 13, plot: 'pond' },
+    { id: 'signFactory', x: 62, y: 31, plot: 'factory' },
     { id: 'genDoor', x: 24, y: 35 },
     { id: 'leaves', x: 32, y: 37 },
     { id: 'berries1', x: 5, y: 54, forage: 'berries' },
@@ -262,7 +266,6 @@
   HM.MAP = {
     width: ROWS[0].length, height: ROWS.length, rows: ROWS, legend: LEGEND,
     objects: OBJECTS, spots: SPOTS, plots: PLOTS, areas: AREAS,
-    field: { x: 7, y: 48, w: 4, h: 4 },         // your home field (plot "home")
     start: { x: 4, y: 46, dir: 'down' }         // in front of your door
   };
 })(globalThis);

@@ -87,7 +87,7 @@ function render(grid, colours, soft, name) {
 
 // ----- Collect every frame: [name, grid, colours, soft] -----
 function collectFrames(data) {
-  const { PALETTE, ROLES, TILES, PEOPLE, LEGS, PETS, CRITTERS, SPECIES_ART, UI, SEASONS } = data;
+  const { PALETTE, ROLES, TILES, CROPS, PEOPLE, LEGS, PETS, CRITTERS, SPECIES_ART, UI, SEASONS } = data;
   const frames = [];   // { name, grids: [frame0, frame1...], colours, soft }
   const tileColours = colourMap(ROLES.tile, PALETTE);
 
@@ -102,6 +102,9 @@ function collectFrames(data) {
       if (looks(colours) !== looks(tileColours)) frames.push({ name: `tile.${name}@${season}`, grids, colours });
     }
   }
+
+  // Vegetables (no season changes: they are already seasonal plants)
+  for (const [name, grid] of Object.entries(CROPS || {})) frames.push({ name: 'crop.' + name, grids: [grid], colours: tileColours });
 
   for (const [who, person] of Object.entries(PEOPLE)) {
     const colours = colourMap(Object.assign({}, ROLES.people.base, ROLES.people[who]), PALETTE);

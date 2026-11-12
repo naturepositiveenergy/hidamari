@@ -248,7 +248,7 @@
     const message = node('p', { class: 'shop-message', 'aria-live': 'polite' });
     const list = node('ul', { class: 'shop-list' });
     const refresh = () => { money.textContent = t('shop.money', { money: fmt(s.money) }); };
-    HM.DATA.shop.items.forEach(item => {
+    HM.rules.shopItems(s).forEach(item => {
       const row = node('li', { class: 'shop-row' });
       row.appendChild(node('span', {}, t('shop.line', { item: t('item.' + item), price: fmt(HM.DATA.items[item].price) })));
       const b = node('button', { type: 'button', class: 'btn btn-small' }, t('shop.buy'));
@@ -260,9 +260,32 @@
       row.appendChild(b);
       list.appendChild(row);
     });
+    // Selling vegetables from your field
+    const sellList = node('ul', { class: 'shop-list' });
+    const fillSell = () => {
+      sellList.innerHTML = '';
+      Object.keys(s.bag).filter(item => HM.DATA.items[item] && HM.DATA.items[item].sell && s.bag[item] > 0).forEach(item => {
+        const row = node('li', { class: 'shop-row' });
+        row.appendChild(node('span', {}, t('shop.sellLine', { item: t('item.' + item), price: fmt(HM.DATA.items[item].sell), n: s.bag[item] })));
+        const b = node('button', { type: 'button', class: 'btn btn-small' }, t('shop.sell'));
+        b.setAttribute('aria-label', t('shop.sellLabel', { item: t('item.' + item) }));
+        b.addEventListener('click', () => {
+          if (HM.rules.sell(s, item)) message.textContent = t('shop.sold', { item: t('item.' + item) });
+          refresh();
+          fillSell();
+        });
+        row.appendChild(b);
+        sellList.appendChild(row);
+      });
+      sellHead.hidden = !sellList.children.length;
+    };
+    const sellHead = node('h3', {}, t('shop.sellTitle'));
     body.appendChild(money);
     body.appendChild(list);
+    body.appendChild(sellHead);
+    body.appendChild(sellList);
     body.appendChild(message);
+    fillSell();
     refresh();
     openPanel({ title: 'shop.title', body });
   }
@@ -270,9 +293,13 @@
   // ----- Evening summary -----
   function showSummary(sum, onNext) {
     const lines = [t('summary.weather', { weather: t('weather.' + sum.weather) })];
-    lines.push(sum.power > 0 || HM.rules.fieldStats(game.state.field).power > 0
-      ? t('summary.power', { power: sum.power, income: fmt(sum.income) })
-      : t('summary.noPanels'));
+    const panels = Object.keys(game.state.plots).some(id => HM.rules.plotStats(game.state, id).panels > 0);
+    lines.push(sum.power > 0 || panels ? t('summary.power', { power: sum.power, income: fmt(sum.income) }) : t('summary.noPanels'));
+    if (sum.loose) lines.push(t('summary.loose', { n: sum.loose }));
+    else if (sum.weather === 'typhoon' && panels) lines.push(t('summary.noLoose'));
+    if (sum.harvest) lines.push(t('summary.harvest.' + sum.harvest));
+    const ready = (game.state.plots.home.crops || []).filter(c => HM.rules.isGrown(c)).length;
+    if (ready) lines.push(t('summary.crops', { n: ready }));
     if (sum.allowance) lines.push(t('summary.allowance', { amount: fmt(sum.allowance), season: t('season.' + HM.rules.seasonOf(sum.day + 1)) }));
     lines.push(t('summary.money', { money: fmt(sum.money) }));
     sum.friends.filter(f => f.hearts > 0 || f.gained !== 0).forEach(f => lines.push(t('summary.friend', {

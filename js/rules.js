@@ -1,16 +1,15 @@
 // Hidamari: the game rules, without anything on screen.
 //
-// Everything that decides numbers (hearts, gifts, building, power, money, the end of a day)
+// Everything that decides numbers (hearts, gifts, building, power, money, vegetables, the end of a day)
 // lives here, so the automatic checks (tests/check.js) can test the rules without a browser.
-// The numbers come from js/game-data.js.
+// The numbers come from js/game-data.js; where the plots are comes from js/map-data.js.
 
 (function (root) {
   'use strict';
   const HM = root.HM = root.HM || {};
   const D = () => HM.DATA;
 
-  const SAVE_VERSION = 2;   // 2: the whole village and the whole year (Milestone 2.1)
-  const FIELD_SIZE = 16;   // the home field has 4 × 4 tiles
+  const SAVE_VERSION = 3;   // 3: six plots and vegetables (Milestone 2.3)
 
   // ----- A new game -----
   function newGame(name) {
@@ -24,9 +23,9 @@
       minutes: data.time.firstDayStart,
       money: data.money.start + data.money.allowance,
       bag: Object.assign({}, data.startBag),
-      field: Array(FIELD_SIZE).fill(null),
+      plots: newPlots(),
       friends,
-      flags: {},
+      flags: { starterPanels: data.starterPanels },
       requests: {},          // the residents' requests: { friend: { status: 'asked' | 'done', tasks: [true/false...] } }
       diary: {},
       stats: { powerTotal: 0, incomeTotal: 0 },
@@ -54,6 +53,7 @@
 
   // Whose heart meter a character belongs to (Aya, Ken and Sora share the Mori family's)
   const friendOf = who => (D().residents[who] && D().residents[who].friend) || who;
+  const heartsWith = (state, friend) => heartsOf(state.friends[friend].points);
 
   // The first chat of the day with a household gives points. Returns true if it did.
   function talk(state, who) {
@@ -80,11 +80,18 @@
   function giveGift(state, who, item) {
     if (!canGift(state, who) || !(state.bag[item] > 0) || !D().items[item] || !D().items[item].gift) return null;
     const reaction = giftReaction(who, item);
-    state.bag[item]--;
-    if (!state.bag[item]) delete state.bag[item];
+    takeItem(state, item, 1);
     state.friends[friendOf(who)].giftDay = state.day;
     addPoints(state, friendOf(who), D().points[reaction]);
     return reaction;
+  }
+
+  function addItem(state, item, count) {
+    state.bag[item] = (state.bag[item] || 0) + (count || 1);
+  }
+  function takeItem(state, item, count) {
+    state.bag[item] -= count;
+    if (!(state.bag[item] > 0)) delete state.bag[item];
   }
 
   // ----- Hiro's shop -----
@@ -94,74 +101,254 @@
     return dayInSeason(state.day) !== shop.closedDay && h >= shop.open && h < shop.close;
   }
 
+  // What the shop sells today (seeds only in their sowing season)
+  function shopItems(state) {
+    return D().shop.items.filter(item => {
+      const crop = D().items[item].crop;
+      return !crop || D().crops[crop].seasons.includes(seasonOf(state.day));
+    });
+  }
+
   // Buy one item. Returns true if it worked.
   function buy(state, item) {
     const price = D().items[item] && D().items[item].price;
-    if (!price || !D().shop.items.includes(item) || state.money < price) return false;
+    if (!price || !shopItems(state).includes(item) || state.money < price) return false;
     state.money -= price;
     addItem(state, item, 1);
     return true;
   }
 
-  function addItem(state, item, count) {
-    state.bag[item] = (state.bag[item] || 0) + (count || 1);
+  // Sell one item to Hiro (vegetables from your field). Returns true if it worked.
+  function sell(state, item) {
+    const price = D().items[item] && D().items[item].sell;
+    if (!price || !(state.bag[item] > 0)) return false;
+    takeItem(state, item, 1);
+    state.money += price;
+    return true;
   }
 
-  // ----- The home field -----
-  // Power, nature points and counts for a field (a list of 16 tiles or nulls)
-  function fieldStats(field) {
-    const tiles = D().buildTiles;
-    const counts = {};
-    let power = 0, nature = 0;
-    field.forEach(t => {
-      if (!t) return;
-      counts[t] = (counts[t] || 0) + 1;
-      power += tiles[t].power;
-      nature += tiles[t].nature;
+  // ----- The plots -----
+  const plotGeo = id => HM.MAP.plots.find(p => p.id === id);
+  const tileInfo = t => D().buildTiles[t];
+
+  function newPlots() {
+    const plots = {};
+    HM.MAP.plots.forEach(p => {
+      plots[p.id] = { tiles: Array(p.w * p.h).fill(null), loose: [], open: !D().plots[p.id].open };
+      if (D().plots[p.id].farm) plots[p.id].crops = Array(p.w * p.h).fill(null);
+      if (D().plots[p.id].rubble) plots[p.id].rubbleCleared = false;
     });
-    const types = Object.keys(counts).filter(t => tiles[t].natureType).length;
-    if (types > 1) nature += D().varietyBonus * (types - 1);
-    return { power, nature, counts };
+    return plots;
   }
 
-  // Check a plan (the field as it would be after building). Returns what it costs and any problems.
-  function checkPlan(state, plan) {
-    const data = D();
-    let cost = 0, refund = 0, newTiles = 0, removed = 0;
+  // Can this plot be opened now? (the owner's hearts)
+  function canOpen(state, id) {
+    const rule = D().plots[id].open;
+    if (!rule) return true;
+    if (rule.later) return false;
+    return heartsWith(state, rule.friend) >= rule.hearts;
+  }
+
+  // Which corridor tiles are connected: a chain of corridor, hedge, meadow and pond tiles that
+  // touches the plot's edge and has a pond, hedge or meadow in it (design.md section 7.3)
+  function connectedCorridors(id, tiles) {
+    const { w, h } = plotGeo(id);
+    const chain = t => ['corridor', 'hedge', 'meadow', 'pond'].includes(t);
+    const seen = new Set(), connected = new Set();
+    tiles.forEach((t, start) => {
+      if (t !== 'corridor' || seen.has(start)) return;
+      const group = [start];
+      seen.add(start);
+      let edge = false, habitat = false;
+      for (let k = 0; k < group.length; k++) {
+        const i = group[k], x = i % w, y = Math.floor(i / w);
+        if (x === 0 || y === 0 || x === w - 1 || y === h - 1) edge = true;
+        if (tiles[i] !== 'corridor') habitat = true;
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => {
+          const nx = x + dx, ny = y + dy, n = ny * w + nx;
+          if (nx < 0 || ny < 0 || nx >= w || ny >= h || seen.has(n) || !chain(tiles[n])) return;
+          seen.add(n);
+          group.push(n);
+        });
+      }
+      if (edge && habitat) group.forEach(i => { if (tiles[i] === 'corridor') connected.add(i); });
+    });
+    return connected;
+  }
+
+  // Panels with no hedge between them and the south edge of the plot (the typhoon's side).
+  // Floating panels are anchored and are not counted.
+  function exposedPanels(id, tiles) {
+    const { w, h } = plotGeo(id);
+    const out = [];
+    tiles.forEach((t, i) => {
+      if (!t || !tileInfo(t).panel || t === 'floating') return;
+      const x = i % w;
+      let sheltered = false;
+      for (let y = Math.floor(i / w) + 1; y < h; y++) if (tiles[y * w + x] === 'hedge') sheltered = true;
+      if (!sheltered) out.push(i);
+    });
+    return out;
+  }
+
+  // Power, nature, shade and more for a plot (tiles: a plan, or the built tiles)
+  function plotStats(state, id, tiles) {
+    tiles = tiles || state.plots[id].tiles;
+    const loose = new Set(state.plots[id].loose || []);
+    const summer = seasonOf(state.day) === 'summer';
+    const connected = connectedCorridors(id, tiles);
+    const counts = {};
+    let power = 0, nature = 0, shade = 0, panels = 0;
+    const types = new Set();
+    tiles.forEach((t, i) => {
+      if (!t) return;
+      const info = tileInfo(t);
+      counts[t] = (counts[t] || 0) + 1;
+      if (info.panel) panels++;
+      if (info.panel && !loose.has(i)) power += info.power + (summer && info.summer ? info.summer : 0);
+      if (info.mustConnect && !connected.has(i)) return;
+      nature += info.nature;
+      if (info.natureType) types.add(t);
+      shade += info.shade || 0;
+    });
+    if (types.size > 1) nature += D().varietyBonus * (types.size - 1);
+    return {
+      power, nature, counts, panels,
+      shade: shade / tiles.length,             // the share of the plot in shade (for the light rule)
+      connected, exposed: exposedPanels(id, tiles), loose: loose.size
+    };
+  }
+
+  // Helpers for a work day: friends with enough hearts
+  const helpers = state => D().friends.filter(f => heartsWith(state, f) >= D().workDay.helperHearts);
+
+  // Panel parts you can still use: the starter kit, or any number once Hiro orders them
+  function partsLeft(state) {
+    const p = D().partsFrom;
+    return heartsWith(state, p.friend) >= p.hearts ? Infinity : (state.flags.starterPanels || 0);
+  }
+
+  // Check a plan for a plot. Returns what it costs, how long it takes, and any problems.
+  function checkPlan(state, id, plan) {
+    const data = D(), rules = data.plots[id], plot = state.plots[id];
+    let cost = 0, refund = 0, newTiles = 0, removed = 0, newPanels = 0;
     const needs = {};
+    const problems = [];
     plan.forEach((t, i) => {
-      const was = state.field[i];
+      const was = plot.tiles[i];
       if (t === was) return;
-      if (was) { removed++; refund += Math.round(data.buildTiles[was].cost * data.build.refund); }
+      if (was) { removed++; refund += Math.round(tileInfo(was).cost * data.build.refund); }
       if (t) {
+        if (!rules.tools.includes(t) && !problems.includes('notHere')) problems.push('notHere');
         newTiles++;
-        cost += data.buildTiles[t].cost;
-        const need = data.buildTiles[t].needs;
+        cost += tileInfo(t).cost;
+        if (tileInfo(t).panel) newPanels++;
+        const need = tileInfo(t).needs;
         if (need) needs[need] = (needs[need] || 0) + 1;
       }
     });
-    const problems = [];
-    if (newTiles > data.build.maxAlone) problems.push('tooMany');
+    if (rules.rubble && !plot.rubbleCleared) problems.push('rubble');
+    if (rules.maxPanels && plan.filter(t => t && tileInfo(t).panel).length > rules.maxPanels * plan.length) problems.push('maxPanels');
+    // The outer ring of the pond stays natural (for frogs and dragonflies)
+    if (rules.naturalEdge) {
+      const p = plotGeo(id);
+      const edge = i => i % p.w === 0 || i % p.w === p.w - 1 || i < p.w || i >= p.w * (p.h - 1);
+      if (plan.some((t, i) => t && tileInfo(t).panel && edge(i))) problems.push('naturalEdge');
+    }
+    if (newPanels > partsLeft(state)) problems.push('parts');
     if (cost - refund > state.money) problems.push('money');
     Object.entries(needs).forEach(([item, n]) => { if ((state.bag[item] || 0) < n) problems.push('needs.' + item); });
-    const minutes = (newTiles + removed) * data.build.minutesPerTile;
+    let minutes = (newTiles + removed) * data.build.minutesPerTile;
+    let workDay = false;
+    const helping = helpers(state);
     if (newTiles + removed === 0) problems.push('nothing');
-    else if (state.minutes + minutes > data.time.dayEnd) problems.push('late');
-    return { cost, refund, newTiles, removed, minutes, needs, problems, ok: problems.length === 0 };
+    else if (newTiles + removed > data.build.maxAlone) {
+      // A big plan: a work day with friends
+      workDay = true;
+      if (helping.length < data.workDay.minHelpers) problems.push('helpers');
+      else if (state.minutes / 60 > data.workDay.startBy) problems.push('workDayLate');
+      minutes = Math.max(0, data.workDay.endAt * 60 - state.minutes);
+    } else if (state.minutes + minutes > data.time.dayEnd) problems.push('late');
+    return { cost, refund, newTiles, removed, newPanels, minutes, needs, workDay, helpers: helping, problems, ok: problems.length === 0 };
   }
 
-  // Build a plan that passed checkPlan. Returns the minutes it took.
-  function buildPlan(state, plan) {
-    const check = checkPlan(state, plan);
+  // Build a plan that passed checkPlan. Returns the check (with what happened).
+  function buildPlan(state, id, plan) {
+    const check = checkPlan(state, id, plan);
     if (!check.ok) return null;
+    const plot = state.plots[id];
     state.money += check.refund - check.cost;
-    Object.entries(check.needs).forEach(([item, n]) => {
-      state.bag[item] -= n;
-      if (!state.bag[item]) delete state.bag[item];
+    Object.entries(check.needs).forEach(([item, n]) => takeItem(state, item, n));
+    if (partsLeft(state) !== Infinity) state.flags.starterPanels -= check.newPanels;
+    plan.forEach((t, i) => {
+      if (t === plot.tiles[i]) return;
+      plot.loose = plot.loose.filter(n => n !== i);
+      // Crops survive only under spaced panels or on open soil
+      if (plot.crops && t && !tileInfo(t).crops) plot.crops[i] = null;
     });
-    state.field = plan.slice();
+    plot.tiles = plan.slice();
     state.minutes += check.minutes;
+    if (check.workDay) check.helpers.forEach(f => addPoints(state, f, D().workDay.helperPoints));
     return check;
+  }
+
+  // Clear the factory site's rubble on a work day (at least two friends must help)
+  function checkRubble(state) {
+    const problems = [];
+    if (helpers(state).length < D().workDay.rubbleHelpers) problems.push('rubbleHelpers');
+    else if (state.minutes / 60 > D().workDay.startBy) problems.push('workDayLate');
+    return { ok: !problems.length, problems, helpers: helpers(state) };
+  }
+  function clearRubble(state, id) {
+    const check = checkRubble(state);
+    if (!check.ok) return null;
+    state.plots[id].rubbleCleared = true;
+    state.minutes = Math.max(state.minutes, D().workDay.endAt * 60);
+    check.helpers.forEach(f => addPoints(state, f, D().workDay.helperPoints));
+    return check;
+  }
+
+  // Repair panels the typhoon loosened
+  function repairCost(state, id) {
+    const n = state.plots[id].loose.length;
+    return { n, cost: n * D().typhoon.repairCost, minutes: n * D().typhoon.repairMinutes };
+  }
+  function repair(state, id) {
+    const r = repairCost(state, id);
+    if (!r.n || r.cost > state.money || state.minutes + r.minutes > D().time.dayEnd) return null;
+    state.money -= r.cost;
+    state.minutes += r.minutes;
+    state.plots[id].loose = [];
+    return r;
+  }
+
+  // ----- Vegetables on your home field -----
+  const cropAt = (state, i) => (state.plots.home.crops || [])[i] || null;
+  // Crops need light: they grow on open soil and under spaced panels, not under dense panels
+  function cropLight(state, i) {
+    const t = state.plots.home.tiles[i];
+    return !t || !!tileInfo(t).crops;
+  }
+  // Seeds you can sow today
+  const sowable = state => Object.keys(state.bag).filter(item => {
+    const crop = D().items[item] && D().items[item].crop;
+    return crop && D().crops[crop].seasons.includes(seasonOf(state.day));
+  });
+  function plant(state, i, seed) {
+    const crop = D().items[seed] && D().items[seed].crop;
+    if (!crop || !(state.bag[seed] > 0) || cropAt(state, i) || !cropLight(state, i)) return false;
+    if (!D().crops[crop].seasons.includes(seasonOf(state.day))) return false;
+    takeItem(state, seed, 1);
+    state.plots.home.crops[i] = { crop, age: 0 };
+    return true;
+  }
+  const isGrown = c => !!c && c.age >= D().crops[c.crop].days;
+  function harvest(state, i) {
+    const c = cropAt(state, i);
+    if (!isGrown(c)) return null;
+    addItem(state, c.crop, 1);
+    state.plots.home.crops[i] = null;
+    return c.crop;
   }
 
   // ----- Seasons, weather, power and the end of the day -----
@@ -172,11 +359,12 @@
 
   function dayPower(state) {
     const factor = D().weatherPower[weatherOf(state.day)];
-    return Math.round(fieldStats(state.field).power * factor);
+    const total = Object.keys(state.plots).reduce((sum, id) => sum + plotStats(state, id).power, 0);
+    return Math.round(total * factor);
   }
 
-  // Ends the day: the panels' power becomes money, and the next morning begins.
-  // Returns a summary of the day for the evening screen.
+  // Ends the day: the panels' power becomes money, crops grow, the typhoon loosens panels,
+  // the rice harvest is checked, and the next morning begins. Returns a summary for the evening screen.
   function endDay(state) {
     const power = dayPower(state);
     const income = power * D().money.perPower;
@@ -189,13 +377,40 @@
       weather: weatherOf(state.day),
       power, income, money: state.money,
       newSpecies: state.dayStart.diary.slice(),
-      friends: Object.keys(state.friends).map(who => ({
-        who,
-        gained: state.friends[who].points - (before[who] || 0),
-        hearts: heartsOf(state.friends[who].points)
-      })),
       last: state.day >= D().time.lastDay
     };
+
+    // Crops with light grow one day
+    (state.plots.home.crops || []).forEach((c, i) => { if (c && cropLight(state, i)) c.age++; });
+
+    // The typhoon night: about half of the exposed panels come loose
+    if (summary.weather === 'typhoon') {
+      let loose = 0;
+      Object.keys(state.plots).forEach(id => {
+        const plot = state.plots[id];
+        const exposed = exposedPanels(id, plot.tiles).filter(i => !plot.loose.includes(i));
+        const hit = exposed.filter((i, n) => n % Math.round(1 / D().typhoon.looseShare) === 0);
+        plot.loose = plot.loose.concat(hit);
+        loose += hit.length;
+      });
+      summary.loose = loose;
+    }
+
+    // The rice harvest on Gen-san's paddy: enough light under the panels?
+    if (state.day === D().harvestDay && state.plots.gen.tiles.some(t => t && tileInfo(t).panel)) {
+      const good = plotStats(state, 'gen').shade < D().agriShadeLimit;
+      summary.harvest = good ? 'good' : 'poor';
+      if (good) { addPoints(state, 'gen', D().points.event); addItem(state, 'onigiri', 3); }
+      else state.flags.genGuidance = true;
+    }
+
+    // Friendship today (after the harvest, which can add some)
+    summary.friends = Object.keys(state.friends).map(who => ({
+      who,
+      gained: state.friends[who].points - (before[who] || 0),
+      hearts: heartsOf(state.friends[who].points)
+    }));
+
     if (summary.last) state.finished = true;
     else {
       state.day++;
@@ -222,14 +437,24 @@
   // ----- Saving -----
   function serialize(state) { return JSON.stringify(state); }
 
-  // Read a saved game. Returns null if it is damaged or from another version.
+  // Read a saved game. Returns null if it is damaged or too old. Saves from Milestones 2.1 and 2.2
+  // (version 2) are brought up to date.
   function deserialize(text) {
     let s;
     try { s = JSON.parse(text); } catch (e) { return null; }
-    if (!s || s.version !== SAVE_VERSION || typeof s.day !== 'number' || !Array.isArray(s.field) ||
-        s.field.length !== FIELD_SIZE || !s.friends || !s.bag || !s.flags || !s.diary) return null;
+    if (!s || typeof s.day !== 'number' || !s.friends || !s.bag || !s.flags || !s.diary) return null;
+    if (s.version === 2 && Array.isArray(s.field) && s.field.length === 16) {
+      // Version 2: one home field → six plots
+      s.plots = newPlots();
+      s.plots.home.tiles = s.field;
+      delete s.field;
+      const built = s.plots.home.tiles.filter(t => t && tileInfo(t) && tileInfo(t).panel).length;
+      s.flags.starterPanels = Math.max(0, D().starterPanels - built);
+      s.version = SAVE_VERSION;
+    }
+    if (s.version !== SAVE_VERSION || !s.plots || !s.plots.home) return null;
     const fresh = newGame(s.name);
-    // Saves from before Milestone 2.2: add the new residents and their requests
+    // Residents added in Milestone 2.2
     Object.keys(fresh.friends).forEach(who => { if (!s.friends[who]) s.friends[who] = fresh.friends[who]; });
     if (!s.requests) s.requests = {};
     Object.keys(fresh.friends).forEach(who => { if (!(who in s.dayStart.points)) s.dayStart.points[who] = s.friends[who].points; });
@@ -237,8 +462,11 @@
   }
 
   HM.rules = {
-    newGame, heartsOf, addPoints, friendOf, talk, giftReaction, canGift, giveGift, addItem, shopOpen, buy,
-    fieldStats, checkPlan, buildPlan, seasonOf, dayInSeason, weatherOf, dayPower, endDay, recordSpecies,
-    serialize, deserialize, FIELD_SIZE
+    newGame, heartsOf, addPoints, friendOf, heartsWith, talk, giftReaction, canGift, giveGift, addItem, takeItem,
+    shopOpen, shopItems, buy, sell,
+    canOpen, plotStats, connectedCorridors, exposedPanels, helpers, partsLeft, checkPlan, buildPlan,
+    checkRubble, clearRubble, repairCost, repair,
+    cropAt, cropLight, sowable, plant, isGrown, harvest,
+    seasonOf, dayInSeason, weatherOf, dayPower, endDay, recordSpecies, serialize, deserialize
   };
 })(globalThis);

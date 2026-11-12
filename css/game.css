@@ -235,19 +235,19 @@ canvas.px {
 .build-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .build-head h2 { margin: 0; font-size: 1.1rem; }
 .build-head p { margin: 0; font-size: 0.85rem; }
-.tools { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 8px 0; }
+.tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 6px; margin: 8px 0; }
 .tool {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 6px 4px;
-  font-size: 0.8rem;
-  line-height: 1.25;
+  gap: 6px;
+  padding: 4px 6px 4px 14px;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: left;
 }
 .tool[aria-pressed="true"] { background: var(--accent); }
-.tool-icon { width: 32px; height: 32px; }
+.tool-icon { width: 28px; height: 28px; flex: none; }
 .remove-icon {
   display: flex;
   align-items: center;
@@ -259,11 +259,11 @@ canvas.px {
   border: 2px dashed #C9B79A;
   border-radius: 4px;
 }
-.tool-key { position: absolute; top: 2px; left: 6px; font-size: 0.7rem; color: var(--ink-soft); }
+.tool-key { position: absolute; top: 2px; left: 4px; font-size: 0.65rem; color: var(--ink-soft); }
 .build-info, .build-problem { margin: 2px 0; font-size: 0.85rem; }
 .build-problem { color: var(--ink-soft); min-height: 1.4em; }
 .build-problem.problem { color: #A3361E; }
-.build-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+.build-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 6px; }
 
 /* ----- Windows ----- */
 .panel {
@@ -296,6 +296,9 @@ canvas.px {
 .shop-list { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .shop-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0; border-bottom: 1px solid var(--paper-2); }
 .shop-message { min-height: 1.6em; margin: 4px 0 0; }
+.shop h3 { margin: 12px 0 0; font-size: 1rem; }
+.views { display: flex; gap: 6px; flex-wrap: wrap; margin-right: auto; }
+.view-btn[aria-pressed="true"] { background: #2F6FB0; color: #fff; }
 
 /* Nature diary */
 .diary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
@@ -325,8 +328,10 @@ canvas.px {
 }
 @media (max-width: 420px) {
   .dialogue { font-size: 1rem; padding: 8px 12px 12px; }
-  .tools { grid-template-columns: repeat(5, 1fr); gap: 4px; }
-  .tool { font-size: 0.72rem; padding: 4px 2px; }
+  .tools { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 4px; }
+  .tool { font-size: 0.7rem; padding: 3px 4px 3px 12px; gap: 4px; }
+  .tool-icon { width: 22px; height: 22px; }
+  .build-head p { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }

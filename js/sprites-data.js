@@ -294,6 +294,63 @@
       'qqqqqqqqqqqqqqqq',
       'nnnnnnnnnnnnnnnn'
     ],
+    // Floating panels on the irrigation pond, on white floats
+    floating: [
+      'wwwwwyywwwwwwwww',
+      'wRRRRRRRRRRRRRRw',
+      'wPggQPPPQPPPQPPw',
+      'wQQQQQQQQQQQQQQw',
+      'wPPPQPPPQPPPQPPw',
+      'wFFFFFFFFFFFFFFw',
+      'wggggggggggggggw',
+      'xxxxxxxxxxxxxxxx',
+      'wwwwwwwwwwzzwwww',
+      'wRRRRRRRRRRRRRRw',
+      'wPPPQPPPQPggQPPw',
+      'wQQQQQQQQQQQQQQw',
+      'wPPPQPPPQPPPQPPw',
+      'wFFFFFFFFFFFFFFw',
+      'wggggggggggggggw',
+      'xxxxxxxxxxxxxxxx'
+    ],
+    // A wildlife corridor: a strip of long grass with an old log and stones
+    corridor: [
+      'acbabcabacbabcab',
+      'bcbcbbcbcbcbbcbc',
+      'abcbabcbabcbabcb',
+      'aaaaaaaaaaaaaaaa',
+      'aaannnnnnnnnaaaa',
+      'aanqqqqqqqqqnaaa',
+      'aanqpqqqqpqqnaaa',
+      'aaannnnnnnnnaaaa',
+      'aaaaaaaaaaaaaaaa',
+      'abcbabcbabcbabcb',
+      'bcbcbbcbcbcbbcbc',
+      'acbabcabacbabcab',
+      'aaaafffaaaaaeeaa',
+      'aaafeeffaaaafeea',
+      'aaaaeeaaaaaaaeaa',
+      'aaaaaaaaaaaaaaaa'
+    ],
+    // Spaced panels drawn over the ground of a plot (see-through below, so crops and rice show)
+    spacedTop: [
+      '................',
+      'RRRRRRRRRRRRRRRR',
+      'PggQPPPQPPPQPPPQ',
+      'QQQQQQQQQQQQQQQQ',
+      'PPPQPPPQPPPQPPPQ',
+      'FFFFFFFFFFFFFFFF',
+      '..F..........F..',
+      '..F..........F..',
+      '..F..........F..',
+      '..T..........T..',
+      '................',
+      '................',
+      '................',
+      '................',
+      '................',
+      '................'
+    ],
     // A cherry tree (blossoms in spring)
     cherry: [
       'aaaaaVVVVVVaaaaa',
@@ -1424,6 +1481,24 @@
   const EMPTY = '................';
   const pad = (top, rows) => [...Array(top).fill(EMPTY), ...rows, ...Array(16 - top - rows.length).fill(EMPTY)];
 
+  // ----- Vegetables on your home field (drawn over the soil, four plants per tile) -----
+  // Each plant is a small 6 × 6 drawing, repeated in the four corners of the tile.
+  const fourPlants = plant => {
+    const grid = Array.from({ length: 16 }, () => Array(16).fill('.'));
+    [[1, 1], [9, 1], [1, 9], [9, 9]].forEach(([ox, oy]) => plant.forEach((row, y) => [...row].forEach((ch, x) => {
+      if (ch !== '.') grid[oy + y][ox + x] = ch;
+    })));
+    return grid.map(r => r.join(''));
+  };
+  const CROPS = {
+    sprout: fourPlants(['......', '..s...', '.sts..', '..t...', '......', '......']),
+    komatsuna: fourPlants(['..c...', '.cbc.c', 'cbbcbc', '.cbbc.', '..tt..', '......']),
+    cucumber: fourPlants(['.b2b..', 'bbbbb.', '.tbt..', '.t.t..', '.t.t..', '......']),
+    tomato: fourPlants(['..b...', '.bZb..', 'bZbZb.', '.bbZ..', '..t...', '......']),
+    sweetPotato: fourPlants(['b.b.b.', 'bbbbbb', '.b3b..', '..33..', '......', '......']),
+    daikon: fourPlants(['.c.c..', 'cbcbc.', '.bbb..', '.ggg..', '..g...', '......'])
+  };
+
   // ----- Kotetsu, Mr. Oda's shiba dog (two walking frames for each direction) -----
   const PETS = {
     kotetsu: {
@@ -1611,5 +1686,5 @@
     }
   };
 
-  HM.SPRITE_DATA = { PALETTE, ROLES, TILES, PEOPLE, LEGS, PETS, CRITTERS, SPECIES_ART, UI, SEASONS };
+  HM.SPRITE_DATA = { PALETTE, ROLES, TILES, CROPS, PEOPLE, LEGS, PETS, CRITTERS, SPECIES_ART, UI, SEASONS };
 })(globalThis);

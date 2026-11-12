@@ -4,6 +4,8 @@
 
 *Changes in v0.2 (from the Phase 1 test, approved on 10 November 2026): you can pick wild strawberries as gifts (section 6), built panels and hedges block the way but meadow doesn't (section 7.2), the game also saves when a new game starts (section 2), and Gen-san and Midori follow simpler routines in the Phase 1 test (section 5).*
 
+*Changes approved on 12 November 2026 (Milestone 2.3): the typhoon wind comes from the south only (section 7.3), work days start on the same day and last until 17:00 (section 7.2), and crops grow under spaced panels on your home field from the start (sections 5.1 and 7.6).*
+
 *v0.1 is the first draft, written in Phase 0. On 10 November 2026 you approved the concept, the residents, the names (as working names) and art style A, and decided: friendships only, a free pixel-style Japanese font, a furigana setting and a free year after the ending. All numbers are first guesses that will be balanced in Phase 2. Rules marked **(proposal)** still need your decision. Everything still open is listed in section 19.*
 
 ---
@@ -184,7 +186,7 @@ Only Gen-san's and Midori's first heart events exist so far; the others come wit
 - **Daily routine:** dawn at his paddy checking the water. Mornings in the fields. Noon on his veranda. Afternoons on the bench outside Hiro's shop with tea. On rainy days he repairs tools in his barn.
 - **Loves:** dried persimmons (干し柿), rice balls (おにぎり). **Likes:** pickles, green tea, fresh vegetables, a whetstone. **Dislikes:** fancy city snacks, anything from Quick Solar Co.
 - **Worry:** "Fields must stay fields." He is the last farmer in his family; his son lives in Nagoya. Who will farm after him?
-- **As a friend:** at 2♥ you can plant shade-tolerant crops under spaced panels on your home field, with his advice. At 4♥ he offers his paddy [3] for agrivoltaics. He teaches rice planting and harvest.
+- **As a friend:** crops under spaced panels on your home field work from the start. At 4♥ he offers his paddy [3] for agrivoltaics. He teaches rice planting and harvest.
 - **Requests:** clear the irrigation channel (spring), bring rice seedlings, find his lost sickle, keep the crows away from the seed beds.
 - **Heart events:**
   1. ♥1: At dawn in his paddy, he shows you how to read the water level and tells you how his grandfather built the terraces.
@@ -367,7 +369,7 @@ A **power garden** (proposed Japanese name: おひさまの庭, "sun garden") is
 - Open build mode on a plot you may use. Time stops while you plan.
 - The plot appears as a grid. Pick a tile type from the bar and tap or click to place it, or drag to paint several tiles. Remove a tile the same way. Planned tiles look like pencil sketches until they are built.
 - The plan shows its cost, its sun-power, its nature score and, through the four views (section 7.3), what the rules will do.
-- **Building:** small plans (up to 8 tiles) you build alone. Each tile takes 15 in-game minutes. Bigger plans need a **work day** (結, yui): you pick a day, and friends with ♥2 or more come to help. The more helpers, the faster it goes, and the work day is a small scene with jokes and lunch.
+- **Building:** small plans (up to 8 tiles) you build alone. Each tile takes 15 in-game minutes. Bigger plans need a **work day** (結, yui): friends with ♥2 or more come to help. A work day starts on the same day, must start by noon and lasts until 17:00, however many friends come. It is a small scene with lunch.
 - **Changing your mind:** unbuilt plans can always be changed for free. Built tiles can be removed for half their cost back.
 - **Walking:** built panels and hedges block the way, so you walk around them. Meadow tiles can be walked on.
 
@@ -392,7 +394,7 @@ A **power garden** (proposed Japanese name: おひさまの庭, "sun garden") is
 In build mode, four buttons switch on a **view** that draws its rule on the plot, so players *see* why a design is good, not just a score. These are the same placement rules as in Solar Commons, as simple things to look at.
 
 1. **Wind view: hedges on the edge shelter the park in a typhoon.**
-   Arrows show the typhoon wind coming in from the south and east. A panel is *sheltered* if a hedge stands between it and the plot edge on the windward side. Exposed panels glow orange. On typhoon night (autumn day 2), about half of the exposed panels come loose and stop working until you repair them (a task and a small cost). Sheltered panels are always fine. Hedges inside the plot still give nature points but don't shelter anything.
+   Arrows show the typhoon wind coming in from the south. A panel is *sheltered* if a hedge stands south of it in the same column, between the panel and the south edge of the plot. Exposed panels glow orange. On typhoon night (autumn day 2), about half of the exposed panels come loose and stop working until you repair them (a task and a small cost). Sheltered panels are always fine. Hedges north of a panel give nature points but don't shelter it. Floating panels on the pond are anchored and never come loose.
 
 2. **Wildlife view: connected wildlife corridors bring animals.**
    Corridor tiles, hedges and meadows that touch each other form a chain. When a chain touches the edge of the plot *and* a pond, hedge or meadow, it lights up with little footprints and counts as connected. Connected corridors bring animals into the garden: the raccoon dog (タヌキ) and the Japanese weasel (イタチ) can only appear in a garden with one. Corridor tiles that aren't connected cost money but bring nothing, and the view shows them grey.
@@ -418,6 +420,20 @@ The views use **shapes and icons as well as colour**: arrows, footprints, shadin
 - Each panel tile makes power every day: sunny 100%, cloudy 50%, rain 20%, snow 10% (until you sweep the panels). Loose or unrepaired panels make nothing.
 - The power is used first by the community hall, the shop and the households that joined, then sold. In the game, power is simply turned into money each evening (first guess: ¥150 per power point).
 - **Balance goal:** a well-built garden pays back its cost in about two seasons, so building early in spring pays off, but a summer garden still earns back most of its cost by New Year.
+
+### 7.6 In the game (since Milestone 2.3)
+
+The plots, build mode and gardens follow sections 7.1–7.5. The exact numbers are in `js/game-data.js`. Some details the game needed:
+
+- **The shared home field:** from the start, you can grow vegetables on your home field, on open soil or under spaced panels (nothing grows under dense panels). Hiro sells the seeds for the season: komatsuna (spring and autumn, 3 days), cucumber and tomato (summer, 3 and 4 days), sweet potato (autumn, 4 days) and daikon (winter, 4 days). You can give the vegetables as gifts or sell them to Hiro.
+- **Opening plots:** the owner tells you the next time you talk, once you have enough hearts (section 7.1). The 説明会 part comes in Milestone 2.4, and so do the forest slope [6] and the water view.
+- **Panel parts:** a starter kit has parts for 4 panels. After that, Hiro orders parts once he has ♥2 with you.
+- **Each plot has its own tiles:** Gen-san's paddy only spaced panels, hedges and corridors. The pond only floating panels, never on its outer ring and on at most half the water.
+- **Shade (light view):** a dense panel counts as full shade and a spaced panel as half shade, shared over the whole plot. Build mode warns when the paddy reaches 30%. On autumn day 3, a paddy with panels and less than 30% shade has a good harvest (Gen-san is happy and sends rice balls). With more shade the harvest is poor.
+- **Work days (結):** plans of more than 8 tiles need at least one friend with ♥2. A work day must start by noon and lasts until 17:00. Each helper gains a little friendship. Clearing the factory rubble is a work day with at least 2 friends.
+- **The typhoon (autumn day 2):** every other exposed panel comes loose. Repairing costs ¥2,000 and 15 minutes per panel, in build mode. Floating panels are anchored and never come loose.
+- **Nature score:** build mode shows each plot's nature points (Midori's survey scene comes later).
+- **Small screens:** build mode zooms out in whole steps when a plot doesn't fit above the build bar.
 
 ---
 

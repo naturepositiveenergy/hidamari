@@ -23,13 +23,33 @@
 
   // Fit the canvas to its box: show about 11 tiles across the shorter side
   let fitted = '';
-  function resize() {
+  const fitKey = (box, fit) => [box.clientWidth, box.clientHeight, root.devicePixelRatio || 1, fit ? fit.id : ''].join();
+  // In build mode: the plot, and the parts of the screen the top bar and the build bar cover (CSS pixels)
+  function buildFit(g) {
+    if (g.mode !== 'build') return null;
+    const p = HM.MAP.plots.find(q => q.id === HM.build.plotId());
+    const box = canvas.getBoundingClientRect();
+    const hud = document.querySelector('.hud'), bar = document.getElementById('buildBar');
+    return {
+      id: p.id, w: p.w, h: p.h,
+      top: hud ? Math.max(0, hud.getBoundingClientRect().bottom - box.top) : 0,
+      bottom: bar ? Math.max(0, box.bottom - bar.getBoundingClientRect().top) : 0
+    };
+  }
+  // fit (in build mode): the plot's size and how much of the screen the top bar and the build bar
+  // cover (in CSS pixels). Then the picture zooms out, in whole steps so the pixels stay crisp,
+  // until the whole plot fits between the two bars.
+  function resize(fit) {
     const box = canvas.parentElement;
     const ratio = root.devicePixelRatio || 1;
-    fitted = [box.clientWidth, box.clientHeight, ratio].join();
+    fitted = fitKey(box, fit);
     const devW = Math.max(1, Math.round(box.clientWidth * ratio));
     const devH = Math.max(1, Math.round(box.clientHeight * ratio));
-    const scale = Math.max(1, Math.floor(Math.min(devW, devH) / (T * 11)));
+    let scale = Math.max(1, Math.floor(Math.min(devW, devH) / (T * 11)));
+    if (fit) {
+      const seenH = devH - (fit.top + fit.bottom) * ratio;
+      scale = Math.max(1, Math.min(scale, Math.floor(seenH / ((fit.h + 1) * T)), Math.floor(devW / ((fit.w + 1) * T))));
+    }
     view = { w: Math.ceil(devW / scale), h: Math.ceil(devH / scale), scale, ratio };
     canvas.width = view.w;
     canvas.height = view.h;
@@ -50,12 +70,16 @@
     if (alpha !== undefined) ctx.globalAlpha = 1;
   }
 
-  // Keep the camera centred on (x, y), but inside the map
-  function centreOn(x, y) {
+  // Keep the camera centred on (x, y), but inside the map. top, bottom: how much of the screen
+  // the top bar and the build bar cover (in canvas pixels), so the point is centred in the part you can see.
+  function centreOn(x, y, top, bottom) {
     const map = HM.MAP;
     const mw = map.width * T, mh = map.height * T;
+    top = top || 0; bottom = bottom || 0;
+    const seen = view.h - top - bottom;
     camera.x = mw <= view.w ? (mw - view.w) / 2 : Math.max(0, Math.min(mw - view.w, x - view.w / 2));
-    camera.y = mh <= view.h ? (mh - view.h) / 2 : Math.max(0, Math.min(mh - view.h, y - view.h / 2));
+    // (with the build bar open, the camera may go past the bottom of the map: that part is behind the bar)
+    camera.y = mh <= view.h ? (mh - view.h) / 2 : Math.max(0, Math.min(mh - view.h + bottom, y - top - seen / 2));
     camera.x = Math.round(camera.x);
     camera.y = Math.round(camera.y);
   }
@@ -109,12 +133,15 @@
     const state = g.state;
     // The window or the screen zoom changed: fit again
     const box = canvas.parentElement;
-    if ([box.clientWidth, box.clientHeight, root.devicePixelRatio || 1].join() !== fitted) resize();
+    const fit = buildFit(g);
+    if (fitKey(box, fit) !== fitted) resize(fit);
     const map = HM.MAP;
     const season = HM.rules.seasonOf(state.day);
     const anim = g.settings.motion ? Math.floor(time / 700) % 2 : 0;
     const focus = g.mode === 'build' ? HM.build.focusPoint() : { x: w.player.x + T / 2, y: w.player.y + T / 2 };
-    centreOn(focus.x, focus.y + (g.mode === 'dialogue' ? T * 1.5 : 0));
+    // In build mode, keep the plot between the top bar and the build bar
+    const css = view.h / Math.max(1, canvas.getBoundingClientRect().height);
+    centreOn(focus.x, focus.y + (g.mode === 'dialogue' ? T * 1.5 : 0), fit ? fit.top * css : 0, fit ? fit.bottom * css : 0);
 
     ctx.fillStyle = '#5E9A50';
     ctx.fillRect(0, 0, view.w, view.h);
@@ -129,22 +156,40 @@
       }
     }
 
-    // Your home field: built tiles, and the plan while in build mode
-    const f = map.field;
-    const plan = g.mode === 'build' ? HM.build.plan() : null;
-    for (let i = 0; i < state.field.length; i++) {
-      const fx = (f.x + i % f.w) * T, fy = (f.y + Math.floor(i / f.w)) * T;
-      const built = state.field[i];
-      const planned = plan ? plan[i] : built;
-      if (built && planned === built) sprite(seasonal(built, season), anim, fx, fy);
-      else if (planned) {
-        sprite(seasonal(planned, season), anim, fx, fy, 0.55);
-        ctx.strokeStyle = 'rgba(91, 70, 54, 0.8)';
-        ctx.setLineDash([2, 2]);
-        ctx.strokeRect(Math.round(fx - camera.x) + 0.5, Math.round(fy - camera.y) + 0.5, T - 1, T - 1);
-        ctx.setLineDash([]);
+    // The plots: vegetables, built tiles, and the plan of the plot you are planning
+    const building = g.mode === 'build' ? HM.build.plotId() : null;
+    map.plots.forEach(p => {
+      const plot = state.plots[p.id];
+      const plan = p.id === building ? HM.build.plan() : null;
+      for (let i = 0; i < plot.tiles.length; i++) {
+        const fx = (p.x + i % p.w) * T, fy = (p.y + Math.floor(i / p.w)) * T;
+        // Cleared rubble becomes plain concrete
+        if (map.rows[p.y + Math.floor(i / p.w)][p.x + i % p.w] === 'r' && plot.rubbleCleared) sprite('tile.concrete', 0, fx, fy);
+        const built = plot.tiles[i];
+        const planned = plan ? plan[i] : built;
+        const crop = plot.crops && plot.crops[i];
+        if (crop && (!planned || planned === 'spaced')) sprite(HM.rules.isGrown(crop) ? 'crop.' + crop.crop : 'crop.sprout', 0, fx, fy);
+        const draw = (t, alpha) => sprite(t === 'spaced' ? 'tile.spacedTop' : seasonal(t, season), anim, fx, fy, alpha);
+        if (built && planned === built) draw(built);
+        else if (planned) {
+          draw(planned, 0.55);
+          ctx.strokeStyle = 'rgba(91, 70, 54, 0.8)';
+          ctx.setLineDash([2, 2]);
+          ctx.strokeRect(Math.round(fx - camera.x) + 0.5, Math.round(fy - camera.y) + 0.5, T - 1, T - 1);
+          ctx.setLineDash([]);
+        }
+        if (plot.loose.includes(i) && built && planned === built) sprite('ui.alert', 0, fx + 2, fy - 4);
       }
-    }
+      if (plan) {
+        // The edge of the plot you are planning (on open water or grass you could not see it otherwise)
+        const ox = Math.round(p.x * T - camera.x), oy = Math.round(p.y * T - camera.y);
+        ctx.strokeStyle = 'rgba(255, 248, 225, 0.9)';
+        ctx.setLineDash([4, 3]);
+        ctx.strokeRect(ox - 0.5, oy - 0.5, p.w * T + 1, p.h * T + 1);
+        ctx.setLineDash([]);
+        drawView(p, plan, state);
+      }
+    });
 
     // Sparkles on things to pick or find
     map.objects.forEach(o => {
@@ -164,8 +209,8 @@
     w.residents.forEach(r => { if (r.visible && r.eventWaiting) sprite('ui.sun', 0, r.x, r.y - 13); });
     if (w.look) drawLookRing(w.look);
     if (g.mode === 'build') {
-      const c = HM.build.cursorTile();
-      if (c) sprite('ui.cursor', 0, (f.x + c.x) * T, (f.y + c.y) * T);
+      const c = HM.build.cursorTile(), p = map.plots.find(p => p.id === building);
+      if (c && p) sprite('ui.cursor', 0, (p.x + c.x) * T, (p.y + c.y) * T);
     }
 
     // Time of day and weather
@@ -176,6 +221,55 @@
     }
     const weather = HM.rules.weatherOf(state.day);
     if (weather === 'rain' || weather === 'typhoon' || weather === 'snow') drawWeather(weather, time, !g.settings.motion);
+  }
+
+  // ----- The four views in build mode (design.md section 7.3) -----
+  // They use shapes as well as colour: stripes, footprints, dots and arrows.
+  function drawView(p, plan, state) {
+    const view = HM.build.view();
+    if (!view) return;
+    const at = i => ({ x: Math.round((p.x + i % p.w) * T - camera.x), y: Math.round((p.y + Math.floor(i / p.w)) * T - camera.y) });
+    if (view === 'wind') {
+      // Arrows blowing in from the south; exposed panels get orange stripes
+      ctx.fillStyle = 'rgba(80, 120, 200, 0.85)';
+      for (let x = 0; x < p.w; x++) {
+        const sx = Math.round((p.x + x) * T - camera.x) + 7, sy = Math.round((p.y + p.h) * T - camera.y) + 3;
+        ctx.fillRect(sx, sy, 2, 7);
+        ctx.fillRect(sx - 2, sy + 2, 6, 1);
+        ctx.fillRect(sx - 1, sy + 1, 4, 1);
+      }
+      HM.rules.exposedPanels(p.id, plan).forEach(i => {
+        const { x, y } = at(i);
+        ctx.fillStyle = 'rgba(240, 140, 40, 0.55)';
+        for (let k = -T; k < T; k += 4) ctx.fillRect(x + Math.max(0, k), y + Math.max(0, -k), 2, 2);
+        ctx.strokeStyle = 'rgba(220, 110, 20, 0.95)';
+        ctx.strokeRect(x + 0.5, y + 0.5, T - 1, T - 1);
+      });
+    } else if (view === 'wildlife') {
+      // Footprints on connected corridors; a grey cross on corridors that lead nowhere
+      const connected = HM.rules.connectedCorridors(p.id, plan);
+      plan.forEach((t, i) => {
+        if (t !== 'corridor') return;
+        const { x, y } = at(i);
+        if (connected.has(i)) {
+          ctx.fillStyle = 'rgba(70, 45, 30, 0.9)';
+          [[3, 4], [6, 2], [9, 8], [12, 6], [5, 12], [8, 10]].forEach(([dx, dy]) => ctx.fillRect(x + dx, y + dy, 2, 2));
+        } else {
+          ctx.fillStyle = 'rgba(120, 120, 120, 0.9)';
+          for (let k = 2; k < 14; k++) { ctx.fillRect(x + k, y + k, 1, 1); ctx.fillRect(x + 15 - k, y + k, 1, 1); }
+        }
+      });
+    } else if (view === 'light') {
+      // Shade on the ground: dark under dense panels, dappled under spaced ones
+      plan.forEach((t, i) => {
+        const shade = t ? HM.DATA.buildTiles[t].shade || 0 : 0;
+        if (!shade) return;
+        const { x, y } = at(i);
+        ctx.fillStyle = 'rgba(30, 30, 60, 0.45)';
+        if (shade >= 1) ctx.fillRect(x, y, T, T);
+        else for (let yy = 0; yy < T; yy += 2) for (let xx = (yy / 2) % 2 * 2; xx < T; xx += 4) ctx.fillRect(x + xx, y + yy, 2, 2);
+      });
+    }
   }
 
   // "Look closely": a ring around the animal that fills up while you stand still

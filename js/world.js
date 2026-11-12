@@ -25,20 +25,30 @@
     return map.rows[ty][tx];
   }
 
-  // Field tile index at a map tile, or -1
+  // Which plot a map tile belongs to, and its number in that plot: { id, i }, or null
+  function plotAt(tx, ty) {
+    const p = HM.MAP.plots.find(p => tx >= p.x && ty >= p.y && tx < p.x + p.w && ty < p.y + p.h);
+    return p ? { id: p.id, i: (ty - p.y) * p.w + (tx - p.x) } : null;
+  }
+  // The home field (for vegetables): its tile number, or -1
   function fieldIndex(tx, ty) {
-    const f = HM.MAP.field;
-    if (tx < f.x || ty < f.y || tx >= f.x + f.w || ty >= f.y + f.h) return -1;
-    return (ty - f.y) * f.w + (tx - f.x);
+    const at = plotAt(tx, ty);
+    return at && at.id === 'home' ? at.i : -1;
+  }
+  // What is built on a map tile, if anything
+  function builtAt(tx, ty, state) {
+    const at = state && plotAt(tx, ty);
+    return at ? state.plots[at.id].tiles[at.i] : null;
   }
 
-  // Can you walk on this tile? Built panels and hedges on your field block the way; meadow does not.
+  // Can you walk on this tile? On plots, panels on posts, meadow, paths and corridors can be walked on;
+  // dense panels, hedges, ponds and fences block the way. Cleared rubble becomes walkable concrete.
   function walkable(tx, ty, state) {
     const ch = tileAt(tx, ty);
-    if (ch === null || !HM.MAP.legend[ch].walk) return false;
-    const i = fieldIndex(tx, ty);
-    if (i >= 0 && state && state.field[i] && state.field[i] !== 'meadow') return false;
-    return true;
+    if (ch === null) return false;
+    const ground = (ch === 'r' && state && state.plots.factory.rubbleCleared) || !!HM.MAP.legend[ch].walk;
+    const built = builtAt(tx, ty, state);
+    return built ? ground && !!HM.DATA.buildTiles[built].walk : ground;
   }
 
   const feetTile = e => ({ x: Math.floor((e.x + 8) / T), y: Math.floor((e.y + 13) / T) });
@@ -307,9 +317,10 @@
   function habitatTiles(habitat, state) {
     const map = HM.MAP;
     const tiles = [];
-    const f = map.field;
-    const fieldTiles = type => state.field
-      .map((t, i) => (t === type ? { x: f.x + i % f.w, y: f.y + Math.floor(i / f.w) } : null)).filter(Boolean);
+    // Tiles of one type built on any plot
+    const fieldTiles = type => map.plots.flatMap(p => state.plots[p.id].tiles
+      .map((t, i) => (t === type ? { x: p.x + i % p.w, y: p.y + Math.floor(i / p.w) } : null)).filter(Boolean));
+    const wet = (x, y) => ['water', 'paddy'].includes((map.legend[tileAt(x, y)] || {}).habitat) || builtAt(x, y, state) === 'pond';
     if (habitat === 'gardenMeadow') return fieldTiles('meadow');
     for (let y = 0; y < map.height; y++) {
       for (let x = 0; x < map.width; x++) {
@@ -318,7 +329,7 @@
         if (habitat === 'meadow' && h === 'meadow') tiles.push({ x, y });
         if (habitat === 'hedge' && h === 'hedge') tiles.push({ x, y });
         if (habitat === 'waterEdge' && walkable(x, y, state) && fieldIndex(x, y) < 0 &&
-            [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => ['water', 'paddy'].includes((map.legend[tileAt(x + dx, y + dy)] || {}).habitat))) tiles.push({ x, y });
+            [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => wet(x + dx, y + dy))) tiles.push({ x, y });
         if (habitat === 'nest' && walkable(x, y, state)) {
           for (let ny = y - 3; ny <= y; ny++) for (let nx = x - 2; nx <= x + 2; nx++) {
             if (tileAt(nx, ny) === 'N' && !tiles.some(t => t.x === x && t.y === y)) tiles.push({ x, y });
@@ -428,7 +439,8 @@
     for (const t of [ft, own]) {
       const obj = HM.MAP.objects.find(o => o.x === t.x && o.y === t.y && HM.story.available(state, o));
       if (obj && !(obj.id === 'leaves' && state.flags.leavesCleared)) return { type: 'object', id: obj.id };
-      if (fieldIndex(t.x, t.y) >= 0) return { type: 'object', id: 'fieldSign' };
+      const i = fieldIndex(t.x, t.y);
+      if (i >= 0) return { type: 'farm', i };
     }
     return null;
   }
@@ -440,7 +452,7 @@
     const c = world.critters.find(c => c.tx === tx && c.ty === ty);
     if (c) return { type: 'look', critter: c };
     const obj = HM.MAP.objects.find(o => o.x === tx && o.y === ty && HM.story.available(state, o));
-    if (obj) return { type: 'object', id: obj.id };
+    if (obj) return { type: 'object', id: obj.id, x: obj.x, y: obj.y };
     return null;
   }
 
@@ -463,7 +475,7 @@
 
   Object.assign(world, {
     reset, settle, updatePlayer, updateResidents, updateCritters, startLook,
-    actionTarget, thingAt, walkTo, besideTile, faceTowards, feetTile, unstick, walkable, fieldIndex
+    actionTarget, thingAt, walkTo, besideTile, faceTowards, feetTile, unstick, walkable, fieldIndex, plotAt, builtAt
   });
   HM.world = world;
 })(globalThis);
