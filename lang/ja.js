@@ -14,7 +14,7 @@ HM_LANG.ja = {
   "app.pageTitle": "ひだまり村",          // ブラウザのタブに表示
   "title.name": "ひだまり村",
   "title.subtitle": "おひさまの村の1年",
-  "title.testNote": "テスト版（マイルストーン4.1）：遊ぶ準備ができました",
+  "title.testNote": "プレイテスト用のテスト版",
   "title.newGame": "はじめから",
   "title.continue": "つづきから（{season} {day}日目）",
   "title.continueDone": "つづきから（おわり）",

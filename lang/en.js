@@ -14,7 +14,7 @@ HM_LANG.en = {
   "app.pageTitle": "Hidamari",            // shown in the browser tab
   "title.name": "Hidamari",
   "title.subtitle": "A year in a sunny village",
-  "title.testNote": "Test version (Milestone 4.1): ready for players",
+  "title.testNote": "Test version for the playtests",
   "title.newGame": "New game",
   "title.continue": "Continue ({season}, day {day})",
   "title.continueDone": "Continue (finished)",
