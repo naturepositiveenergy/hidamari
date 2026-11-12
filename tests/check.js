@@ -791,7 +791,8 @@ section('6. Offline and installing');
   // The icon files are up to date with the drawing in tools/make-icons.js
   const icons = require(path.join(ROOT, 'tools/make-icons.js')).build();
   Object.entries(icons).forEach(([name, data]) => ok(fs.existsSync(path.join(ROOT, 'icons', name)) &&
-    Buffer.compare(Buffer.from(data), fs.readFileSync(path.join(ROOT, 'icons', name))) === 0, `icons/${name} is out of date: run  node tools/make-icons.js`));
+    (name.endsWith('.svg') ? read('icons/' + name).replace(/\r\n/g, '\n') === data   // (Windows may store text files with other line endings)
+      : Buffer.compare(Buffer.from(data), fs.readFileSync(path.join(ROOT, 'icons', name))) === 0), `icons/${name} is out of date: run  node tools/make-icons.js`));
   console.log(`  ${offlineFiles.size} files for playing offline, ${Object.keys(icons).length} icon files`);
 }
 
