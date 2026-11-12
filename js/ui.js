@@ -57,16 +57,34 @@
     });
     el('continueBtn').addEventListener('click', () => game.continueGame());
     el('soundBtn').addEventListener('click', () => { game.changeSetting('soundOn', !game.settings.soundOn); soundButton(); });
-    // The village notebook from the title screen
-    el('notebookBtn').addEventListener('click', () => {
+    // A window on the title screen (the village notebook, About)
+    let titleOpener = null;
+    const openTitlePanel = (titleKey, fill, opener) => {
+      const heading = el('titlePanelTitle');
+      heading.dataset.i18n = titleKey;
+      heading.textContent = t(titleKey);
       const body = el('titlePanelBody');
       body.innerHTML = '';
-      body.appendChild(node('p', { class: 'muted' }, t('title.notebookIntro')));
-      body.appendChild(notesList(HM.notebook.everFound(), () => false));
+      fill(body);
+      titleOpener = opener;
       el('titlePanel').hidden = false;
       el('titlePanelClose').focus();
-    });
-    const closeTitlePanel = () => { el('titlePanel').hidden = true; el('notebookBtn').focus(); };
+    };
+    // The village notebook from the title screen
+    el('notebookBtn').addEventListener('click', () => openTitlePanel('notebook.title', body => {
+      body.appendChild(node('p', { class: 'muted' }, t('title.notebookIntro')));
+      body.appendChild(notesList(HM.notebook.everFound(), () => false));
+    }, el('notebookBtn')));
+    // About this game: the version, who made it, the font's licence, the sources and privacy
+    el('aboutBtn').addEventListener('click', () => openTitlePanel('about.title', body => {
+      body.appendChild(node('p', { class: 'big' }, t('about.version', { version: version() })));
+      ['made', 'art', 'font', 'facts', 'fiction', 'privacy'].forEach(k => body.appendChild(node('p', {}, t('about.' + k))));
+      const link = node('a', { href: HM.DATA.about.url, target: '_blank', rel: 'noopener' }, HM.DATA.about.url);
+      const p = node('p', { class: 'muted' }, t('about.project') + ' ');
+      p.appendChild(link);
+      body.appendChild(p);
+    }, el('aboutBtn')));
+    const closeTitlePanel = () => { el('titlePanel').hidden = true; if (titleOpener) titleOpener.focus(); };
     el('titlePanelClose').addEventListener('click', closeTitlePanel);
     el('titlePanel').addEventListener('keydown', e => { if (e.key === 'Escape') closeTitlePanel(); });
     buildLanguageButtons(el('langSwitch'));
@@ -94,6 +112,12 @@
       label.append(input, c);
       box.append(label);
     });
+  }
+
+  // The game's version: the ?v=... on the scripts in index.html (one number everywhere, see tests/check.js)
+  function version() {
+    const script = document.querySelector('script[src*="?v="]');
+    return script ? script.getAttribute('src').split('?v=')[1] : '';
   }
 
   // The title screen's sound button: on or off

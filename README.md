@@ -19,6 +19,7 @@ Double-click `index.html`. It works without internet and without installing anyt
 |---|---|
 | `index.html` | The game |
 | `docs/design.md` | The game design document: story, residents, rules, plan |
+| `docs/playtest-full.md` | How to run the playtests of the whole game, the questions to ask and a notes table |
 | `docs/playtest-phase1.md` | How to run the Phase 1 playtests (replaced by one round with the whole game in Milestone 4.2) |
 | `docs/fact-check.md` | Every real fact in the game, with where it appears and the result of checking it |
 | `docs/village-notebook.md` | The village notebook's notes, with their sources |

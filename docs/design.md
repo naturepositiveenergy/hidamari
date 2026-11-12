@@ -45,6 +45,11 @@
 - *Playtests: one round with the whole game in Milestone 4.2, instead of the Phase 1 round with the three-day version.*
 - *After Milestone 4.1, the website is updated as a clearly marked "Test version", but only after you say "Yes, push".*
 
+*Decided on 13 November 2026 (Milestone 4.2 plan):*
+- *The name stays "Hidamari / ひだまり村" (section 19, question 1).*
+- *Credits: the game is made by Christian Doedt, as a personal project (not for an organisation).*
+- *Licence: all rights reserved (no open licence). The font keeps its own open licence (SIL Open Font License).*
+
 *v0.1 is the first draft, written in Phase 0. On 10 November 2026 you approved the concept, the residents, the names (as working names) and art style A, and decided: friendships only, a free pixel-style Japanese font, a furigana setting and a free year after the ending. All numbers are first guesses that will be balanced in Phase 2. Rules marked **(proposal)** still need your decision. Everything still open is listed in section 19.*
 
 ---
@@ -971,7 +976,7 @@ A gamepad may come later (section 19).
 
 ## 19. Open questions
 
-1. **Names (approved as working names, 10 November 2026):** "Hidamari / ひだまり村", "power garden / おひさまの庭", "Quick Solar Co. / クイックソーラー株式会社" and the town of Komorebi (こもれび町). Before release, check that they don't clash with existing works or companies (there is a well-known manga and anime called *Hidamari Sketch*, and "ひだまり" is a common name for cafés and care homes). **Checked on 13 November 2026 (web search, Milestone 4.1):**
+1. **Names (decided on 13 November 2026: the name stays "Hidamari / ひだまり村"; approved as working names on 10 November 2026):** "Hidamari / ひだまり村", "power garden / おひさまの庭", "Quick Solar Co. / クイックソーラー株式会社" and the town of Komorebi (こもれび町). Before release, check that they don't clash with existing works or companies (there is a well-known manga and anime called *Hidamari Sketch*, and "ひだまり" is a common name for cafés and care homes). **Checked on 13 November 2026 (web search, Milestone 4.1):**
    - **"Hidamari / ひだまり村":** no game with either name was found. Related titles exist: *Hidamari Sketch* (manga and anime, and a Nintendo DS game in 2009), *陽あたり良好！ひだまり荘の仲間たち* (MSX, 1988) and *Aikagi: Hidamari to Kanojo no Heyagi* (a visual novel). The main risk is confusion with *Hidamari Sketch* in English searches.
    - **"Quick Solar Co. / クイックソーラー株式会社":** no company of that name was found (the nearest, Qsol, is an IT company in Fukuoka).
    - **"Komorebi / こもれび町":** no game or company of that name was found.

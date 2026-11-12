@@ -48,7 +48,7 @@ Object.keys(ja).forEach(k => { if (!(k in en)) fail(`"${k}" is missing in lang/e
 const codeFiles = fs.readdirSync(path.join(ROOT, 'js')).filter(f => f.endsWith('.js') && f !== 'sprite-sheet.js').map(f => 'js/' + f);
 const PREFIXES = 'title|ui|weather|hint|action|who|talk|got|item|bag|intro|letter|announce|obj|gen|midori|diary|look|species|place|menu|settings|summary|end|build|tile|game|app|name|art|style|lang|' +
   'plot|view|workday|farm|meeting|worry|worries|nema|fund|kuro|slope|zone|notebook|meter|ending|' +
-  'fest|party|shelter|gift|survey|free|ev|keep|nb|sound';
+  'fest|party|shelter|gift|survey|free|ev|keep|nb|sound|about';
 const used = new Set();
 codeFiles.forEach(f => {
   for (const m of read(f).matchAll(new RegExp(`['\`"]((?:${PREFIXES})\\.[A-Za-z0-9.]+[A-Za-z0-9])['\`"]`, 'g'))) used.add(m[1]);
@@ -147,6 +147,8 @@ Object.keys(HM.MUSIC).forEach(n => used.add('sound.tune.' + n));
 ['talk', 'choose', 'pickup', 'build', 'coin', 'species', 'heart', 'knock', 'chime'].forEach(n => used.add('sound.fx.' + n));
 // Morning news in the free year (Milestone 3.2)
 D.freeYearNews.forEach(day => used.add(`announce.news.${day}.y2`));
+// The About window (Milestone 4.2)
+['made', 'art', 'font', 'facts', 'fiction', 'privacy'].forEach(k => used.add('about.' + k));
 // The village notebook (Milestone 3.2)
 HM.notebook.ORDER.forEach(id => { used.add(`nb.${id}.title`); used.add(`nb.${id}.text`); });
 const spriteNames = /^(ui|tile|critter)\.(alert|sun|cursor|item|concrete|spacedTop|cleared|hallTable|lantern|lamp|donation|roofPanel)$/;

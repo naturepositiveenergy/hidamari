@@ -333,6 +333,7 @@ canvas.px {
 .panel-box h2 { margin: 0 0 8px; font-size: 1.3rem; }
 .panel-body p { margin: 6px 0; }
 .panel-list { margin: 4px 0 8px; padding-left: 1.2em; }
+.panel-body a { overflow-wrap: anywhere; }   /* (long links, such as the project page, wrap on phones) */
 .keepsakes li { margin-bottom: 6px; }
 /* Furigana: small readings above the kanji (js/furigana.js); lines need a little more room */
 body.furigana { line-height: 2; }

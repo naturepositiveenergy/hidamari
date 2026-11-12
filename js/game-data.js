@@ -202,6 +202,8 @@
     // at: [from this hour, at this spot]. A list of spots is a walk from spot to spot.
     // "inside" = indoors at home, unseen. Spots are in js/map-data.js.
     friends: ['gen', 'midori', 'fumiko', 'mori', 'oda', 'hiro', 'kuma', 'rin', 'sato', 'kurokawa'],
+    // The About window on the title screen: the project's page (its sources are in the docs there)
+    about: { url: 'https://github.com/naturepositiveenergy/hidamari' },
     // The player's four looks (design.md section 5): the names of their drawings in js/sprites-data.js
     looks: ['player', 'player2', 'player3', 'player4'],
     residents: {
