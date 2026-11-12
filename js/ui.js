@@ -239,6 +239,34 @@
     openPanel({ title: 'settings.title', body });
   }
 
+  // ----- Hiro's shop -----
+  function showShop() {
+    const s = game.state;
+    const body = node('div', { class: 'shop' });
+    body.appendChild(node('p', {}, t('shop.intro')));
+    const money = node('p', { class: 'muted' });
+    const message = node('p', { class: 'shop-message', 'aria-live': 'polite' });
+    const list = node('ul', { class: 'shop-list' });
+    const refresh = () => { money.textContent = t('shop.money', { money: fmt(s.money) }); };
+    HM.DATA.shop.items.forEach(item => {
+      const row = node('li', { class: 'shop-row' });
+      row.appendChild(node('span', {}, t('shop.line', { item: t('item.' + item), price: fmt(HM.DATA.items[item].price) })));
+      const b = node('button', { type: 'button', class: 'btn btn-small' }, t('shop.buy'));
+      b.setAttribute('aria-label', t('shop.buyLabel', { item: t('item.' + item) }));
+      b.addEventListener('click', () => {
+        message.textContent = HM.rules.buy(s, item) ? t('shop.bought', { item: t('item.' + item) }) : t('shop.noMoney');
+        refresh();
+      });
+      row.appendChild(b);
+      list.appendChild(row);
+    });
+    body.appendChild(money);
+    body.appendChild(list);
+    body.appendChild(message);
+    refresh();
+    openPanel({ title: 'shop.title', body });
+  }
+
   // ----- Evening summary -----
   function showSummary(sum, onNext) {
     const lines = [t('summary.weather', { weather: t('weather.' + sum.weather) })];
@@ -247,7 +275,7 @@
       : t('summary.noPanels'));
     if (sum.allowance) lines.push(t('summary.allowance', { amount: fmt(sum.allowance), season: t('season.' + HM.rules.seasonOf(sum.day + 1)) }));
     lines.push(t('summary.money', { money: fmt(sum.money) }));
-    sum.friends.forEach(f => lines.push(t('summary.friend', {
+    sum.friends.filter(f => f.hearts > 0 || f.gained !== 0).forEach(f => lines.push(t('summary.friend', {
       who: t('who.' + f.who), hearts: '♥'.repeat(f.hearts) + '♡'.repeat(HM.DATA.hearts.max - f.hearts), gained: f.gained
     })));
     lines.push(sum.newSpecies.length
@@ -286,6 +314,6 @@
 
   HM.ui = {
     initTitle, refreshTitle, showScreen, updateHud, say, openPanel, closePanel, panelOpen,
-    showBag, showDiary, showNewSpecies, showMenu, showSettings, showSummary, showEnd, onLanguage, clock
+    showBag, showDiary, showNewSpecies, showMenu, showSettings, showShop, showSummary, showEnd, onLanguage, clock
   };
 })(globalThis);

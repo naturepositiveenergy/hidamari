@@ -53,10 +53,22 @@
       base: { K: 'outline', e: 'skin1', f: 'skin0', 9: 'outline', W: 'white' },
       player: { H: 'earth0', I: 'earth1', C: 'teal1', D: 'teal0', E: 'yellow', G: 'orange', L: 'panel1', M: 'earth0' },
       gen: { E: 'white', G: 'panel1', H: 'grey', I: 'grey', C: 'earth1', D: 'earth0', L: 'metal0', M: 'panel0' },
-      midori: { E: 'green2', G: 'green1', H: 'earth0', I: 'earth1', C: 'earth2', D: 'white', B: 'metal0', L: 'green1', M: 'earth0' }
+      midori: { E: 'green2', G: 'green1', H: 'earth0', I: 'earth1', C: 'earth2', D: 'white', B: 'metal0', L: 'green1', M: 'earth0' },
+      fumiko: { H: 'grey', I: 'white', C: 'lilac', D: 'panel1', E: 'white', G: 'grey', L: 'panel0', M: 'earth0' },
+      aya: { H: 'earth0', I: 'earth1', C: 'yellow', D: 'orange', E: 'white', L: 'panel1', M: 'white' },
+      ken: { H: 'outline', I: 'earth0', E: 'panel1', G: 'panel0', C: 'metal1', D: 'metal0', L: 'panel0', M: 'white' },
+      sora: { E: 'yellow', G: 'orange', H: 'earth0', I: 'earth1', C: 'panel2', D: 'panel1', B: 'red', L: 'panel1', M: 'earth0' },
+      oda: { H: 'grey', I: 'white', C: 'earth2', D: 'earth1', E: 'white', B: 'metal0', L: 'metal0', M: 'earth0' },
+      hiro: { H: 'earth0', I: 'earth1', C: 'white', D: 'grey', E: 'orange', G: 'earth1', L: 'panel0', M: 'earth0' },
+      kuma: { E: 'earth0', G: 'earth1', H: 'white', I: 'grey', C: 'teal1', D: 'teal0', L: 'metal0', M: 'panel0' },
+      rin: { H: 'outline', I: 'earth0', C: 'pink', D: 'red', E: 'yellow', B: 'metal1', L: 'panel0', M: 'white' },
+      sato: { H: 'earth0', I: 'earth1', C: 'panel0', D: 'outline', E: 'white', G: 'red', L: 'panel0', M: 'outline' },
+      kurokawa: { H: 'outline', I: 'metal0', C: 'metal0', D: 'outline', E: 'white', G: 'panel1', B: 'earth0', L: 'metal0', M: 'outline' }
     },
     // Animals: K outline · W wings or belly · M grey · G D greens · N navy · R red throat
     critter: { K: 'outline', W: 'white', M: 'metal1', G: 'green4', D: 'green2', N: 'panel0', R: 'orange' },
+    // Kotetsu, Mr. Oda's shiba dog: K outline · O fur · W white chest · 9 eyes
+    pet: { K: 'outline', O: 'orange', W: 'white', 9: 'outline' },
     // Small signs above people and animals, and the build mode cursor
     ui: { K: 'outline', W: 'white', Y: 'yellow', O: 'orange' }
   };
@@ -881,6 +893,496 @@
         '.....KCDCCK.....',
         '.....KCeCCK.....'
       ]
+    },
+    // Fumiko-san: grey hair in a bun, lilac cardigan, white apron, work trousers
+    fumiko: {
+      legs: 'wide',
+      down: [
+        '................',
+        '......KKKK......',
+        '......KHHK......',
+        '....KKKHHKKK....',
+        '...KHHHHHHHHK...',
+        '...KHIeeeeIHK...',
+        '...KHe9ee9eHK...',
+        '....KeeffeeK....',
+        '.....KKeeKK.....',
+        '....KCEEEECK....',
+        '...KCCEEEECCK...',
+        '..KCKCEEEECKCK..',
+        '..KeKCEEEECKeK..'
+      ],
+      up: [
+        '................',
+        '......KKKK......',
+        '......KHHK......',
+        '....KKKIIKKK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '....KHHHHHHK....',
+        '.....KKeeKK.....',
+        '....KCCGGCCK....',
+        '...KCCCGGCCCK...',
+        '..KCKCCCCCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '................',
+        '................',
+        '..KKK...........',
+        '.KHHHKKKKKKK....',
+        '.KHHKHHHHHHHK...',
+        '..KKKHHHIeeeK...',
+        '....KHHHee9eK...',
+        '....KHHeeeefK...',
+        '.....KKeeKK.....',
+        '.....KCEEEK.....',
+        '.....KCEEGK.....',
+        '.....KCDEEK.....',
+        '.....KCeEEK.....'
+      ]
+    },
+    // Aya: shoulder-length hair, mustard cardigan over a white shirt
+    aya: {
+      legs: 'normal',
+      down: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHIHHHHIHK...',
+        '..KHHeeeeeeHHK..',
+        '..KHHe9ee9eHHK..',
+        '..KHHeeeeeeHHK..',
+        '..KHHKKffKKHHK..',
+        '...KKCEEEECKK...',
+        '...KCCEEEECCK...',
+        '..KCKCEEEECKCK..',
+        '..KeKCCDDCCKeK..'
+      ],
+      up: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '..KHHHHHHHHHHK..',
+        '..KHHHHHHHHHHK..',
+        '..KHHHIHHIHHHK..',
+        '..KHHHHHHHHHHK..',
+        '...KKCCCCCCKK...',
+        '...KCCCCCCCCK...',
+        '..KCKCCDDCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '..KHHHHHIeeeK...',
+        '..KHHHHHee9eK...',
+        '..KHHHHKeeeK....',
+        '..KHHHKKffKK....',
+        '...KKKCEEEK.....',
+        '.....KCEEEK.....',
+        '.....KCDCCK.....',
+        '.....KCeCCK.....'
+      ]
+    },
+    // Ken: blue baseball cap, grey sweatshirt
+    ken: {
+      legs: 'normal',
+      down: [
+        '................',
+        '.....KKKKKK.....',
+        '....KEEEEEEK....',
+        '...KEEEEEEEEK...',
+        '...KGGGGGGGGK...',
+        '...KHeeeeeeHK...',
+        '...KHe9ee9eHK...',
+        '....KeeeeeeK....',
+        '.....KKffKK.....',
+        '....KCCCCCCK....',
+        '...KCCCCCCCCK...',
+        '..KCKCCDDCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      up: [
+        '................',
+        '.....KKKKKK.....',
+        '....KEEEEEEK....',
+        '...KEEEEEEEEK...',
+        '...KEEEGGEEEK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '....KHHHHHHK....',
+        '.....KKffKK.....',
+        '....KCCCCCCK....',
+        '...KCCCCCCCCK...',
+        '..KCKCCDDCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '................',
+        '.....KKKKKK.....',
+        '....KEEEEEEK....',
+        '...KEEEEEEEEK...',
+        '...KEEEEEGGGGGK.',
+        '...KHHHHIeeeK...',
+        '...KHHHHee9eK...',
+        '....KHHHeeeK....',
+        '.....KKffKK.....',
+        '.....KCCCCK.....',
+        '.....KCCCCK.....',
+        '.....KCDCCK.....',
+        '.....KCeCCK.....'
+      ]
+    },
+    // Sora (7): yellow school hat and a red school backpack (randoseru)
+    sora: {
+      legs: 'child',
+      down: [
+        '................',
+        '................',
+        '................',
+        '......KKKK......',
+        '.....KEEEEK.....',
+        '....KEEEEEEK....',
+        '....KGGGGGGK....',
+        '....KHeeeeHK....',
+        '....Ke9ee9eK....',
+        '.....KeffeK.....',
+        '.....KKCCKK.....',
+        '....KCCCCCCK....',
+        '....KeCCCCeK....'
+      ],
+      up: [
+        '................',
+        '................',
+        '................',
+        '......KKKK......',
+        '.....KEEEEK.....',
+        '....KEEEEEEK....',
+        '....KEEGGEEK....',
+        '....KHHHHHHK....',
+        '....KHHHHHHK....',
+        '.....KHHHHK.....',
+        '....KKBBBBKK....',
+        '....KBBBBBBK....',
+        '....KeBBBBeK....'
+      ],
+      side: [
+        '................',
+        '................',
+        '................',
+        '......KKKK......',
+        '.....KEEEEK.....',
+        '....KEEEEEEK....',
+        '....KEEEGGGGK...',
+        '....KHHHIeeK....',
+        '....KHHHe9eK....',
+        '.....KHeeefK....',
+        '.....KBKCCK.....',
+        '....KBBKCCK.....',
+        '....KBBKeCK.....'
+      ]
+    },
+    // Mr. Oda: tidy grey hair, glasses, beige jacket
+    oda: {
+      legs: 'normal',
+      down: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHIHHHHHK...',
+        '...KHeeeeeeHK...',
+        '...KHB9BB9BHK...',
+        '....KeeffeeK....',
+        '.....KKeeKK.....',
+        '....KCCEECCK....',
+        '...KCCCEECCCK...',
+        '..KCKCCDDCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      up: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '....KHHHHHHK....',
+        '.....KKeeKK.....',
+        '....KCCCCCCK....',
+        '...KCCCCCCCCK...',
+        '..KCKCCDDCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHIeeeK...',
+        '...KHHHHeB9BK...',
+        '....KHHHeeeK....',
+        '.....KKeeKK.....',
+        '.....KCCEEK.....',
+        '.....KCCCCK.....',
+        '.....KCDCCK.....',
+        '.....KCeCCK.....'
+      ]
+    },
+    // Hiro: brown moustache, orange shop apron over a white shirt
+    hiro: {
+      legs: 'wide',
+      down: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KeeeeeeeeK...',
+        '...Ke9eeee9eK...',
+        '...KeeIIIIeeK...',
+        '....KKeeeeKK....',
+        '..KCCEEEEEECCK..',
+        '..KCCEEEEEECCK..',
+        '..KCKEEEEEEKCK..',
+        '..KeKEEEEEEKeK..'
+      ],
+      up: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KeHHHHHHeK...',
+        '....KKeeeeKK....',
+        '..KCCCGGGGCCCK..',
+        '..KCCCCCCCCCCK..',
+        '..KCKCCCCCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHeeeeK...',
+        '...KHHHHee9eK...',
+        '...KHHHeeIIIK...',
+        '....KKKeeeK.....',
+        '....KCCEEEEK....',
+        '....KCCEEEEK....',
+        '....KCDCEEEK....',
+        '....KCeCEEEK....'
+      ]
+    },
+    // Kuma-san: knitted cap, big grey beard, padded vest, rubber boots
+    kuma: {
+      legs: 'wide',
+      down: [
+        '................',
+        '....KKKKKKKK....',
+        '...KEEEEEEEEK...',
+        '...KEGEGEGEGK...',
+        '...KEEEEEEEEK...',
+        '...KeeeeeeeeK...',
+        '...Ke9eeee9eK...',
+        '...KIIeffeIIK...',
+        '...KIIIIIIIIK...',
+        '..KCKIIIIIIKCK..',
+        '..KCCKIIIIKCCK..',
+        '..KCKCCCCCCKCK..',
+        '..KeKCCDDCCKeK..'
+      ],
+      up: [
+        '................',
+        '....KKKKKKKK....',
+        '...KEEEEEEEEK...',
+        '...KEGEGEGEGK...',
+        '...KEEEEEEEEK...',
+        '...KEEEEEEEEK...',
+        '...KeHHHHHHeK...',
+        '...KHHHHHHHHK...',
+        '...KKeeeeeeKK...',
+        '..KCCCCCCCCCCK..',
+        '..KCCCCCCCCCCK..',
+        '..KCKCCDDCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '................',
+        '....KKKKKKKK....',
+        '...KEEEEEEEEK...',
+        '...KEGEGEGEGK...',
+        '...KEEEEEEEEK...',
+        '...KHHHHeeeeK...',
+        '...KHHHHee9eK...',
+        '...KHHHIIeeeK...',
+        '...KHHIIIIIIK...',
+        '....KKIIIIIK....',
+        '....KCCIIICK....',
+        '....KCDCCCCK....',
+        '....KCeCCCCK....'
+      ]
+    },
+    // Rin: dark hair with long bangs, pink hoodie, headphones, a sun badge
+    rin: {
+      legs: 'normal',
+      down: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHe9ee9eHK...',
+        '...KHeeeeeeHK...',
+        '...KHKBffBKHK...',
+        '....KBBCCBBK....',
+        '...KCCCCCCECK...',
+        '..KCKCCDDCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      up: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHIIHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHKBBBBKHK...',
+        '....KCCCCCCK....',
+        '...KCCDDDDCCK...',
+        '..KCKCCCCCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHee9eK...',
+        '...KHHHHeeeK....',
+        '...KHHKBffK.....',
+        '....KCKBBCK.....',
+        '.....KCCECK.....',
+        '.....KCDCCK.....',
+        '.....KCeCCK.....'
+      ]
+    },
+    // Ms. Sato: neat bob, navy blazer, white blouse, red ID lanyard
+    sato: {
+      legs: 'normal',
+      down: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHIHHHHHHK...',
+        '...KHeeeeeeHK...',
+        '...KHe9ee9eHK...',
+        '...KHeeeeeeHK...',
+        '...KHKKffKKHK...',
+        '....KCEEEECK....',
+        '...KCCEGGECCK...',
+        '..KCKCCGGCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      up: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHKKeeKKHK...',
+        '....KCCCCCCK....',
+        '...KCCCCCCCCK...',
+        '..KCKCCCCCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHIeeeK...',
+        '...KHHHHee9eK...',
+        '...KHHHHeeeK....',
+        '...KHHKKffK.....',
+        '.....KCCEEK.....',
+        '.....KCCGEK.....',
+        '.....KCDCCK.....',
+        '.....KCeCCK.....'
+      ]
+    },
+    // Mr. Kurokawa: slicked-back hair, grey suit, blue company tie, briefcase
+    kurokawa: {
+      legs: 'normal',
+      down: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHeeeeeeHK...',
+        '...KHe9ee9eHK...',
+        '....KeeffeeK....',
+        '.....KKeeKK.....',
+        '....KCEGGECK....',
+        '...KCCEGGECCK...',
+        '..KCKCCGGCCKCK..',
+        '..KeKCCCCCCKeB..'
+      ],
+      up: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '....KHHHHHHK....',
+        '.....KKeeKK.....',
+        '....KCCCCCCK....',
+        '...KCCCDDCCCK...',
+        '..KCKCCDDCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHIeeeK...',
+        '...KHHHHee9eK...',
+        '....KHHHeeeK....',
+        '.....KKffKK.....',
+        '.....KCEGCK.....',
+        '.....KCEGCK.....',
+        '.....KCDCCK.....',
+        '.....KCeBBK.....'
+      ]
     }
   };
 
@@ -905,12 +1407,42 @@
         stand: ['.....KLLLLK.....', '.....KLLLLK.....', '.....KMMMMMK....'],
         step: ['.....KLLLLK.....', '....KLLKKLLK....', '...KMMK..KMMK...']
       }
+    },
+    // A child: shorts and short legs
+    child: {
+      front: {
+        stand: ['.....KLLLLK.....', '.....KeKKeK.....', '.....KMKKMK.....'],
+        step: ['.....KLLLLK.....', '.....KeKKMK.....', '.....KMKKKK.....']
+      },
+      side: {
+        stand: ['......KLLK......', '......KeeK......', '......KMMMK.....'],
+        step: ['......KLLK......', '.....KeKKeK.....', '....KMK..KMK....']
+      }
+    }
+  };
+
+  const EMPTY = '................';
+  const pad = (top, rows) => [...Array(top).fill(EMPTY), ...rows, ...Array(16 - top - rows.length).fill(EMPTY)];
+
+  // ----- Kotetsu, Mr. Oda's shiba dog (two walking frames for each direction) -----
+  const PETS = {
+    kotetsu: {
+      down: [
+        pad(8, ['.....K....K.....', '....KOK..KOK....', '....KOOKKOOK....', '....KO9OO9OK....', '....KOOKKOOK....', '.....KWWWWK.....', '....KOWWWWOK....', '....KK....KK....']),
+        pad(8, ['.....K....K.....', '....KOK..KOK....', '....KOOKKOOK....', '....KO9OO9OK....', '....KOOKKOOK....', '.....KWWWWK.....', '....KOWWWWOK....', '.....KK..KK.....'])
+      ],
+      up: [
+        pad(8, ['.....K....K.....', '....KOK..KOK....', '....KOOOOOOK....', '....KOOOOOOK....', '.....KOOOOK.....', '....KOOOOOOK....', '....KOOKKOOK....', '....KK....KK....']),
+        pad(8, ['.....K....K.....', '....KOK..KOK....', '....KOOOOOOK....', '....KOOOOOOK....', '.....KOOOOK.....', '....KOOOOOOK....', '....KOOKKOOK....', '.....KK..KK.....'])
+      ],
+      side: [
+        pad(9, ['..K........KK...', '.KOK......KOOK..', '.KOOKKKKKKOO9OK.', '..KOOOOOOOOOOOKK', '..KOOOOOOOWWWK..', '..KOK.KOK.KOK...', '..KK..KK..KK....']),
+        pad(9, ['..K........KK...', '.KOK......KOOK..', '.KOOKKKKKKOO9OK.', '..KOOOOOOOOOOOKK', '..KOOOOOOOWWWK..', '...KOK.KOK.KOK..', '...KK..KK..KK...'])
+      ]
     }
   };
 
   // ----- Animals for the nature diary (two animation frames each) -----
-  const EMPTY = '................';
-  const pad = (top, rows) => [...Array(top).fill(EMPTY), ...rows, ...Array(16 - top - rows.length).fill(EMPTY)];
   const CRITTERS = {
     butterfly: [
       pad(5, [
@@ -1028,6 +1560,14 @@
       '..Y....Y....Y...',
       '.......Y........'
     ]),
+    // A sparkle on things you can pick or find
+    item: pad(4, [
+      '.......Y........',
+      '......YWY.......',
+      '....YYWWWYY.....',
+      '......YWY.......',
+      '.......Y........'
+    ]),
     // The build mode cursor
     cursor: [
       'OOOO........OOOO',
@@ -1071,5 +1611,5 @@
     }
   };
 
-  HM.SPRITE_DATA = { PALETTE, ROLES, TILES, PEOPLE, LEGS, CRITTERS, SPECIES_ART, UI, SEASONS };
+  HM.SPRITE_DATA = { PALETTE, ROLES, TILES, PEOPLE, LEGS, PETS, CRITTERS, SPECIES_ART, UI, SEASONS };
 })(globalThis);

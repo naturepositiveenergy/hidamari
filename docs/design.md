@@ -170,11 +170,14 @@ Ten residents (the Mori family counts as one household). All are original charac
 
 The player character has a name you choose and no fixed gender. Game text never needs he or she for the player.
 
-**In the test versions before Milestone 2.2**, Gen-san and Midori follow simpler routines:
-- **Gen-san:** at his paddy in the morning, at home at noon and in the evening, and under the big tree in the afternoon.
-- **Midori:** at the pond at dawn, at the post office during the day, by the stream in the afternoon, and at the rice terraces in the evening.
+**Routines in the game (since Milestone 2.2):** everyone follows the routines below; the exact hours and places are in `js/game-data.js`. Days 6 and 7 of each season are the weekend, and on the typhoon day everyone stays indoors. Some details the routines needed:
+- Gen-san stays by his barn on rainy days, so you can still find him.
+- Midori spends her evenings at the rice terraces (frogs), and goes to the nature group meeting at the community hall on day 3.
+- Hiro's shop is closed on day 3 of each week; he goes fishing by the river.
+- Residents who are indoors at work (Midori at the post office, Mr. Oda and Rin at the community hall, Ms. Sato at the branch office) come to the door when you knock.
+- Kotetsu walks with Mr. Oda on his morning round.
 
-The full routines below come in Milestone 2.2.
+Only Gen-san's and Midori's first heart events exist so far; the others come with the story in Phase 3.
 
 ### 5.1 Gen-san (源さん), rice farmer
 
@@ -335,7 +338,7 @@ The full routines below come in Milestone 2.2.
 | Attending a festival together | +10 for everyone there |
 | A heart event | +30 |
 
-- **One gift per resident per day.** Each resident has 1–2 loved and 3–4 liked gifts. Residents' words hint at them ("Gen-san keeps looking at the persimmon tree…").
+- **One gift per resident per day** (per household for the Mori family, who share one heart meter; each of them has their own tastes). Each resident has 1–2 loved and 3–4 liked gifts. Residents' words hint at them ("Gen-san keeps looking at the persimmon tree…").
 - **Where gifts come from:** things you grow, buy or find. Once a day you can pick wild strawberries (クサイチゴ) at a few bushes: a small gift that costs nothing.
 - **Heart events** start when a resident has enough hearts and the place, time and season fit. A small sun icon over their head shows that one is waiting. Events tied to a season have a fallback, so you can't miss them for good.
 - **Requests** come by letter or on the board outside the community hall: small tasks of 5–20 minutes such as fetching, finding, helping or delivering. They give points, sometimes money, seeds or items.

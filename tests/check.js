@@ -26,7 +26,7 @@ const section = name => console.log('\n' + name);
 
 // Load the game's data and rules the same way the page does (without the screen)
 const ctx = vm.createContext({ console });
-for (const f of ['js/i18n.js', 'lang/en.js', 'lang/ja.js', 'js/sprites-data.js', 'js/map-data.js', 'js/game-data.js', 'js/rules.js']) {
+for (const f of ['js/i18n.js', 'lang/en.js', 'lang/ja.js', 'js/sprites-data.js', 'js/map-data.js', 'js/game-data.js', 'js/rules.js', 'js/talks.js']) {
   vm.runInContext(read(f), ctx, { filename: f });
 }
 const HM = ctx.HM, LANG = ctx.HM_LANG;
@@ -54,6 +54,22 @@ codeFiles.forEach(f => {
 });
 // Text codes the code builds from parts
 const D = HM.DATA;
+D.friends.forEach(who => used.add('who.' + who));
+// Everything the residents say (js/talks.js)
+Object.entries(HM.TALKS).forEach(([who, talk]) => {
+  [...talk.meet, talk.again, ...talk.chats.map(c => c.key)].forEach(k => used.add(k));
+  ok(D.residents[who], `js/talks.js has lines for "${who}", who is not a resident`);
+});
+Object.entries(HM.REQUESTS).forEach(([friend, req]) => {
+  [...req.ask, req.remind, ...req.done].forEach(k => used.add(k));
+  req.tasks.forEach(task => {
+    task.say.forEach(k => used.add(k));
+    if (task.notNow) used.add(task.notNow);
+    if (task.object) ok(HM.MAP.objects.some(o => o.id === task.object), `the request of "${friend}" needs "${task.object}", which is not on the map`);
+    if (task.talk) ok(D.residents[task.talk], `the request of "${friend}" needs to talk to "${task.talk}", who is not a resident`);
+  });
+  Object.keys((req.reward || {}).items || {}).forEach(item => ok(D.items[item], `unknown reward "${item}"`));
+});
 Object.keys(D.residents).forEach(who => {
   used.add('who.' + who);
   ['loved', 'liked', 'neutral', 'disliked'].forEach(r => used.add(`${who}.gift.${r}`));
@@ -61,7 +77,8 @@ Object.keys(D.residents).forEach(who => {
 D.days.forEach((weather, i) => { used.add('weather.' + weather); used.add('announce.weather.' + weather); used.add('announce.news.' + (i + 1)); });
 D.seasons.forEach((season, i) => { used.add('season.' + season); if (i) used.add('announce.season.' + season); });
 HM.MAP.objects.forEach(o => {
-  if (/Door$/.test(o.id) && o.id !== 'homeDoor' && o.id !== 'genDoor') used.add('obj.door.' + o.id.replace(/Door$/, ''));
+  if (/Door$/.test(o.id) && !['homeDoor', 'genDoor', 'shopDoor'].includes(o.id)) used.add('obj.door.' + o.id.replace(/Door$/, ''));
+  if (o.forage) ['pick', 'none', 'season'].forEach(k => used.add(`obj.${o.forage}.${k}`));
   if (['noticeBoard', 'postBox', 'busStop', 'bench', 'hidamariTree'].includes(o.id)) used.add('obj.' + o.id);
 });
 Object.keys(D.items).forEach(i => used.add('item.' + i));
@@ -70,7 +87,7 @@ HM.MAP.areas.forEach(a => used.add('place.' + a.id));
 used.add('place.field');
 D.buildOrder.forEach(tl => { used.add('tile.' + tl); used.add('build.info.' + tl); });
 ['tooMany', 'money', 'late', 'needs.seedling'].forEach(p => used.add('build.p.' + p));
-const spriteNames = /^(ui|tile|critter)\.(alert|sun|cursor)$/;
+const spriteNames = /^(ui|tile|critter)\.(alert|sun|cursor|item)$/;
 [...used].filter(k => !spriteNames.test(k) && !(k in en)).forEach(k => fail(`the code uses "${k}", but it is not in the language files`));
 
 // No Japanese text in the code (it belongs in lang/ja.js). Comments are allowed.
@@ -126,7 +143,15 @@ for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) {
 Object.entries(map.spots).forEach(([name, s]) => ok(reach.has(`${s.x},${s.y}`), `the spot "${name}" cannot be reached`));
 map.objects.forEach(o => ok([[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => reach.has(`${o.x + dx},${o.y + dy}`)),
   `"${o.id}" cannot be reached to use it`));
-Object.values(D.residents).forEach(r => r.schedule.forEach(([, spot]) => ok(spot === 'inside' || spot === 'away' || map.spots[spot], `unknown spot "${spot}"`)));
+Object.entries(D.residents).forEach(([who, r]) => {
+  ok(map.spots[r.home], `${who}'s home "${r.home}" is not a spot`);
+  ok(D.friends.includes(r.friend), `${who} belongs to an unknown household "${r.friend}"`);
+  ok(!r.plans[r.plans.length - 1].when, `${who}'s last plan should fit every day`);
+  r.plans.forEach(p => p.at.forEach(([, spot]) => [].concat(spot).forEach(name =>
+    ok(name === 'inside' || map.spots[name], `${who} goes to an unknown spot "${name}"`))));
+  [...r.loved, ...r.liked, ...r.disliked].forEach(item => ok(D.items[item], `${who} likes an unknown item "${item}"`));
+});
+D.shop.items.forEach(item => ok(D.items[item] && D.items[item].price, `the shop sells "${item}" without a price`));
 const f = map.field;
 for (let y = f.y; y < f.y + f.h; y++) for (let x = f.x; x < f.x + f.w; x++) ok(map.rows[y][x] === 'F', `the home field should be soil (F) at ${x},${y}`);
 console.log(`  ${map.width} × ${map.height} tiles, ${reach.size} reachable`);
@@ -180,7 +205,20 @@ let last = null, allowances = 0;
 while (!s.finished) { last = R.endDay(s); if (last.allowance) allowances++; }
 ok(allowances === 3, `the allowance should arrive at the start of summer, autumn and winter (got ${allowances} times)`);
 ok(last.last && s.day === D.time.lastDay, 'the year should end after day 28');
-console.log('  friendship, gifts, building, money, days and saving checked');
+// The Mori family shares one heart meter; gifts follow each person's taste; the shop
+const m = R.newGame('Test');
+ok(Object.keys(m.friends).length === D.friends.length && R.friendOf('sora') === 'mori', "Aya, Ken and Sora should share the Mori family's hearts");
+R.talk(m, 'aya');
+ok(!R.talk(m, 'sora') && m.friends.mori.points === D.points.talk, 'one first chat per day for the whole family');
+m.bag.stone = 1;
+ok(R.giveGift(m, 'sora', 'stone') === 'loved' && m.friends.mori.points === D.points.talk + D.points.loved, "Sora loves shiny stones, and the points go to the family");
+ok(R.giveGift(m, 'ken', 'tea') === null, 'one gift per household per day');
+m.minutes = 10 * 60;
+const cash = m.money;
+ok(R.shopOpen(m) && R.buy(m, 'manju') && m.money === cash - D.items.manju.price && m.bag.manju === 1, 'buying at the shop should cost money and fill the bag');
+m.day = D.shop.closedDay;
+ok(!R.shopOpen(m), 'the shop should be closed on its closing day');
+console.log('  friendship, gifts, the shop, building, money, days and saving checked');
 
 // ---------- 5. Font ----------
 section('5. Font');

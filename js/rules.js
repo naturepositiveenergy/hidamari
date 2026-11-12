@@ -16,7 +16,7 @@
   function newGame(name) {
     const data = D();
     const friends = {};
-    Object.keys(data.residents).forEach(who => { friends[who] = { points: 0, talkDay: 0, giftDay: 0 }; });
+    data.friends.forEach(who => { friends[who] = { points: 0, talkDay: 0, giftDay: 0 }; });
     return {
       version: SAVE_VERSION,
       name: String(name || '').trim().slice(0, 10),
@@ -27,6 +27,7 @@
       field: Array(FIELD_SIZE).fill(null),
       friends,
       flags: {},
+      requests: {},          // the residents' requests: { friend: { status: 'asked' | 'done', tasks: [true/false...] } }
       diary: {},
       stats: { powerTotal: 0, incomeTotal: 0 },
       dayStart: { points: pointsOf(friends), diary: [] },
@@ -51,12 +52,15 @@
     return { before, after: heartsOf(f.points) };
   }
 
-  // The first chat of the day gives points. Returns true if it did.
+  // Whose heart meter a character belongs to (Aya, Ken and Sora share the Mori family's)
+  const friendOf = who => (D().residents[who] && D().residents[who].friend) || who;
+
+  // The first chat of the day with a household gives points. Returns true if it did.
   function talk(state, who) {
-    const f = state.friends[who];
+    const f = state.friends[friendOf(who)];
     if (f.talkDay === state.day) return false;
     f.talkDay = state.day;
-    addPoints(state, who, D().points.talk);
+    addPoints(state, friendOf(who), D().points.talk);
     return true;
   }
 
@@ -68,17 +72,35 @@
     return 'neutral';
   }
 
-  const canGift = (state, who) => state.friends[who].giftDay !== state.day;
+  // One gift per household per day
+  const canGift = (state, who) => state.friends[friendOf(who)].giftDay !== state.day;
 
-  // Give an item from the bag. Returns the reaction, or null if it isn't possible.
+  // Give an item from the bag to a character. Their own tastes decide the reaction;
+  // the points go to their household. Returns the reaction, or null if it isn't possible.
   function giveGift(state, who, item) {
     if (!canGift(state, who) || !(state.bag[item] > 0) || !D().items[item] || !D().items[item].gift) return null;
     const reaction = giftReaction(who, item);
     state.bag[item]--;
     if (!state.bag[item]) delete state.bag[item];
-    state.friends[who].giftDay = state.day;
-    addPoints(state, who, D().points[reaction]);
+    state.friends[friendOf(who)].giftDay = state.day;
+    addPoints(state, friendOf(who), D().points[reaction]);
     return reaction;
+  }
+
+  // ----- Hiro's shop -----
+  function shopOpen(state) {
+    const shop = D().shop;
+    const h = state.minutes / 60;
+    return dayInSeason(state.day) !== shop.closedDay && h >= shop.open && h < shop.close;
+  }
+
+  // Buy one item. Returns true if it worked.
+  function buy(state, item) {
+    const price = D().items[item] && D().items[item].price;
+    if (!price || !D().shop.items.includes(item) || state.money < price) return false;
+    state.money -= price;
+    addItem(state, item, 1);
+    return true;
   }
 
   function addItem(state, item, count) {
@@ -207,12 +229,15 @@
     if (!s || s.version !== SAVE_VERSION || typeof s.day !== 'number' || !Array.isArray(s.field) ||
         s.field.length !== FIELD_SIZE || !s.friends || !s.bag || !s.flags || !s.diary) return null;
     const fresh = newGame(s.name);
+    // Saves from before Milestone 2.2: add the new residents and their requests
     Object.keys(fresh.friends).forEach(who => { if (!s.friends[who]) s.friends[who] = fresh.friends[who]; });
+    if (!s.requests) s.requests = {};
+    Object.keys(fresh.friends).forEach(who => { if (!(who in s.dayStart.points)) s.dayStart.points[who] = s.friends[who].points; });
     return s;
   }
 
   HM.rules = {
-    newGame, heartsOf, addPoints, talk, giftReaction, canGift, giveGift, addItem,
+    newGame, heartsOf, addPoints, friendOf, talk, giftReaction, canGift, giveGift, addItem, shopOpen, buy,
     fieldStats, checkPlan, buildPlan, seasonOf, dayInSeason, weatherOf, dayPower, endDay, recordSpecies,
     serialize, deserialize, FIELD_SIZE
   };

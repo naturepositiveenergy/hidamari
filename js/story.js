@@ -20,9 +20,10 @@
   const received = (item, n) => narrate('got.item', { item: { key: 'item.' + item }, n });
 
   // ----- Heart events: is one waiting? (a small sun shows over the resident) -----
+  // (Only Gen-san and Midori have heart events so far; the others come in Phase 3.)
   function eventWaiting(state, who, spot) {
-    const f = state.friends[who];
-    if (R().heartsOf(f.points) < 1) return false;
+    if (who !== 'gen' && who !== 'midori') return false;
+    if (R().heartsOf(state.friends[who].points) < 1) return false;
     if (who === 'gen') return !state.flags.genEvent1 && spot === 'genPaddy' && hour(state) < 11;
     if (who === 'midori') return !state.flags.midoriEvent1 && state.flags.diary && spot === 'pondShore' && hour(state) < 9;
     return false;
@@ -159,10 +160,99 @@
     return [say('midori', key, vars)];
   }
 
+  // ----- Everyone else: conversations from js/talks.js -----
+  // Does a chat line's "when" fit now?
+  function chatFits(when, state, who, resident) {
+    if (!when) return true;
+    const spots = [].concat(when.spot || []);
+    if (spots.length && !spots.includes(resident.spot)) return false;
+    if (when.weather && !when.weather.includes(R().weatherOf(state.day))) return false;
+    if (when.seasons && !when.seasons.includes(R().seasonOf(state.day))) return false;
+    if (when.weekend !== undefined && when.weekend !== (R().dayInSeason(state.day) >= 6)) return false;
+    if (when.field === 'panels' && !(fieldHas(state, 'dense') || fieldHas(state, 'spaced'))) return false;
+    if (when.field && when.field !== 'panels' && !fieldHas(state, when.field)) return false;
+    if (when.hearts && R().heartsOf(state.friends[R().friendOf(who)].points) < when.hearts) return false;
+    return true;
+  }
+
+  // Pick an everyday line: the first that fits and that you haven't heard for two days
+  function pickChat(state, who, resident) {
+    const heard = state.flags.heard || (state.flags.heard = {});
+    const fitting = HM.TALKS[who].chats.filter(c => chatFits(c.when, state, who, resident));
+    if (!fitting.length) return HM.TALKS[who].again;
+    const fresh = fitting.find(c => !(heard[c.key] >= state.day - 2));
+    const pick = fresh || fitting.slice().sort((a, b) => (heard[a.key] || 0) - (heard[b.key] || 0))[0];
+    heard[pick.key] = state.day;
+    return pick.key;
+  }
+
+  // ----- Requests (js/talks.js, HM.REQUESTS) -----
+  const requestOf = (state, friend) => state.requests[friend];
+
+  // Rewards: items and money, as lines
+  function rewardSteps(reward) {
+    const steps = [run(g => {
+      Object.entries(reward.items || {}).forEach(([item, n]) => R().addItem(g.state, item, n));
+      if (reward.money) g.state.money += reward.money;
+    })];
+    Object.entries(reward.items || {}).forEach(([item, n]) => steps.push(received(item, n)));
+    if (reward.money) steps.push(narrate('got.money', { money: reward.money.toLocaleString('en') }));
+    return steps;
+  }
+
+  // A task of an active request that this thing or person completes (or null)
+  function openTask(state, match) {
+    for (const [friend, def] of Object.entries(HM.REQUESTS)) {
+      const req = requestOf(state, friend);
+      if (!req || req.status !== 'asked') continue;
+      const i = def.tasks.findIndex((task, n) => !req.tasks[n] && match(task));
+      if (i >= 0) return { friend, req, task: def.tasks[i], index: i };
+    }
+    return null;
+  }
+
+  function doTask(found, who) {
+    return found.task.say.map(k => (who ? say(who, k) : narrate(k)))
+      .concat([run(g => { found.req.tasks[found.index] = true; g.passTime(10); })]);
+  }
+
+  function talkOthers(game, who, first, resident) {
+    const state = game.state, flags = state.flags;
+    const friend = R().friendOf(who);
+    const met = flags.met || (flags.met = {});
+    if (!met[who]) {
+      met[who] = state.day;
+      return HM.TALKS[who].meet.map(k => say(who, k));
+    }
+    // Someone else's request that needs this person (for example Mr. Oda's stamp for Ms. Sato)
+    const task = openTask(state, t => t.talk === who);
+    if (task) return doTask(task, who);
+    const def = HM.REQUESTS[friend];
+    if (def && def.giver === who) {
+      const req = requestOf(state, friend);
+      if (!req && met[who] < state.day) {
+        return def.ask.map(k => say(who, k)).concat([run(g => { g.state.requests[friend] = { status: 'asked', tasks: def.tasks.map(() => false) }; })]);
+      }
+      if (req && req.status === 'asked') {
+        if (req.tasks.every(Boolean)) {
+          return def.done.map(k => say(who, k)).concat(rewardSteps(def.reward), [run(g => {
+            g.state.requests[friend].status = 'done';
+            R().addPoints(g.state, friend, HM.DATA.points.request);
+          })]);
+        }
+        if (first) return [say(who, def.remind)];
+      }
+    }
+    if (!first) return [say(who, HM.TALKS[who].again)];
+    return [say(who, pickChat(state, who, resident))];
+  }
+
   // Talking to a resident: their words, then the gift choice
   function talk(game, who, resident) {
     const first = R().talk(game.state, who);
-    const steps = who === 'gen' ? talkGen(game, first, resident) : talkMidori(game, first, resident);
+    const steps = who === 'gen' ? talkGen(game, first, resident)
+      : who === 'midori' ? talkMidori(game, first, resident)
+        : talkOthers(game, who, first, resident);
     return steps.concat([run(g => giftChoice(g, who))]);
   }
 
@@ -170,7 +260,36 @@
   // Returns dialogue steps, or { build: true } for the field sign.
   function useObject(game, id) {
     const state = game.state, flags = state.flags;
+    const obj = HM.MAP.objects.find(o => o.id === id) || {};
+    // A request's task?
+    const task = openTask(state, t => t.object === id);
+    if (task) {
+      const h = hour(state);
+      if (task.task.hours && !(h >= task.task.hours[0] && h < task.task.hours[1])) return [narrate(task.task.notNow)];
+      return doTask(task);
+    }
+    if (obj.request) return [];
+    // Something to pick?
+    if (obj.forage) {
+      const def = HM.DATA.forage[obj.forage];
+      const picked = flags.picked || (flags.picked = {});
+      if (!def.seasons.includes(R().seasonOf(state.day))) return [narrate(`obj.${obj.forage}.season`)];
+      if (picked[id] === state.day) return [narrate(`obj.${obj.forage}.none`)];
+      return [
+        narrate(`obj.${obj.forage}.pick`),
+        run(g => { picked[id] = g.state.day; R().addItem(g.state, def.item, 1); g.passTime(5); }),
+        received(def.item, 1)
+      ];
+    }
+    // A door with someone inside: they come to the door
+    if (obj.spots) {
+      const r = HM.world.residents.find(r => obj.spots.includes(r.spot) && !r.visible && r.arrived);
+      if (r) return { talkTo: r };
+    }
     switch (id) {
+      case 'shopDoor':
+        if (R().shopOpen(state)) return { shop: true };
+        return [narrate(R().dayInSeason(state.day) === HM.DATA.shop.closedDay ? 'shop.closedDay' : 'shop.closed')];
       case 'homeDoor':
         return [
           narrate(hour(state) < 17 ? 'obj.bed.early' : 'obj.bed.ask'),
@@ -202,19 +321,6 @@
       case 'leaves':
         if (flags.genRequest !== 'asked') return [narrate('obj.leaves.look')];
         return [narrate('obj.leaves.clear'), run(g => { g.state.flags.leavesCleared = true; g.passTime(15); })];
-      case 'berries1':
-      case 'berries2':
-      case 'berries3':
-      case 'berries4': {
-        const picked = flags.picked || (flags.picked = {});
-        if (!HM.DATA.berrySeasons.includes(R().seasonOf(state.day))) return [narrate('obj.berries.season')];
-        if (picked[id] === state.day) return [narrate('obj.berries.none')];
-        return [
-          narrate('obj.berries.pick'),
-          run(g => { picked[id] = g.state.day; R().addItem(g.state, 'strawberry', 1); g.passTime(5); }),
-          received('strawberry', 1)
-        ];
-      }
     }
     // Other doors: a short description of the building
     if (/Door$/.test(id)) return [narrate('obj.door.' + id.replace(/Door$/, ''))];
@@ -226,7 +332,11 @@
     if (!target) return null;
     if (target.type === 'talk') return 'action.talk';
     if (target.type === 'look') return 'action.look';
-    if (/^berries/.test(target.id)) return 'action.pick';
+    const obj = HM.MAP.objects.find(o => o.id === target.id) || {};
+    if (obj.forage) return 'action.pick';
+    if (target.id === 'sunriseView') return 'action.photo';
+    if (target.id === 'shopDoor' && R().shopOpen(state)) return 'action.shop';
+    if (obj.request) return 'action.check';
     return {
       homeDoor: 'action.sleep', genDoor: 'action.knock', letterbox: 'action.read', fieldSign: 'action.build',
       exitSign: 'action.read', noticeBoard: 'action.read', busStop: 'action.read', postBox: 'action.check',
@@ -246,5 +356,18 @@
     return steps;
   }
 
-  HM.story = { talk, useObject, actionLabel, eventWaiting, intro, morning };
+  // Should a thing sparkle? (things to pick in season, things a request needs)
+  function sparkles(state, obj) {
+    if (obj.forage) {
+      const def = HM.DATA.forage[obj.forage];
+      return def.seasons.includes(R().seasonOf(state.day)) && !((state.flags.picked || {})[obj.id] === state.day);
+    }
+    if (obj.request && !obj.noSparkle) return !!openTask(state, t => t.object === obj.id);
+    return false;
+  }
+
+  // Can a thing be used now? (things for requests only while the request needs them)
+  const available = (state, obj) => !obj.request || !!openTask(state, t => t.object === obj.id);
+
+  HM.story = { talk, useObject, actionLabel, eventWaiting, intro, morning, sparkles, available };
 })(globalThis);

@@ -84,6 +84,8 @@
     useObject(id) {
       const result = HM.story.useObject(this, id);
       if (result && result.build) HM.build.open();
+      else if (result && result.shop) HM.ui.showShop();
+      else if (result && result.talkTo) this.talkTo(result.talkTo);
       else if (result && result.length) this.play(result);
     },
 
@@ -118,7 +120,7 @@
       if (this.mode !== 'world') return;
       this.showControls = false;
       const state = this.state, w = HM.world, p = w.player;
-      let thing = w.thingAt(tile.x, tile.y);
+      let thing = w.thingAt(tile.x, tile.y, state);
       if (!thing && w.fieldIndex(tile.x, tile.y) >= 0) thing = { type: 'object', id: 'fieldSign' };
       const from = w.feetTile(p);
       if (thing) {

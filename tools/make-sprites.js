@@ -87,7 +87,7 @@ function render(grid, colours, soft, name) {
 
 // ----- Collect every frame: [name, grid, colours, soft] -----
 function collectFrames(data) {
-  const { PALETTE, ROLES, TILES, PEOPLE, LEGS, CRITTERS, SPECIES_ART, UI, SEASONS } = data;
+  const { PALETTE, ROLES, TILES, PEOPLE, LEGS, PETS, CRITTERS, SPECIES_ART, UI, SEASONS } = data;
   const frames = [];   // { name, grids: [frame0, frame1...], colours, soft }
   const tileColours = colourMap(ROLES.tile, PALETTE);
 
@@ -124,6 +124,19 @@ function collectFrames(data) {
       if (dir !== 'up') {
         frames.push({ name: `${who}.${dir}.blink`, grids: [blink(stand)], colours, soft: true });
         if (dir === 'right') frames.push({ name: `${who}.left.blink`, grids: [mirror(blink(stand))], colours, soft: true });
+      }
+    }
+  }
+
+  // Pets (Kotetsu the dog): two walking frames for each direction, named like people's frames
+  const petColours = colourMap(ROLES.pet, PALETTE);
+  for (const [pet, dirs] of Object.entries(PETS || {})) {
+    for (const [dir, [a, b]] of Object.entries(dirs)) {
+      const sets = { stand: a, stepA: b, stepB: b, blink: a };
+      for (const [pose, grid] of Object.entries(sets)) {
+        const name = dir === 'side' ? 'right' : dir;
+        frames.push({ name: `${pet}.${name}.${pose}`, grids: [grid], colours: petColours, soft: true });
+        if (dir === 'side') frames.push({ name: `${pet}.left.${pose}`, grids: [mirror(grid)], colours: petColours, soft: true });
       }
     }
   }

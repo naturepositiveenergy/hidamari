@@ -15,7 +15,7 @@
   const el = id => document.getElementById(id);
 
   function heartsText(who) {
-    const f = game.state.friends[who];
+    const f = game.state.friends[HM.rules.friendOf(who)];
     if (!f) return '';
     const h = HM.rules.heartsOf(f.points);
     return '♥'.repeat(h) + '♡'.repeat(HM.DATA.hearts.max - h);
@@ -30,7 +30,7 @@
     const hearts = heartsText(who);
     el('dlgHearts').textContent = hearts;
     el('dlgHearts').hidden = !hearts;
-    el('dlgHearts').setAttribute('aria-label', hearts ? t('ui.heartsLabel', { n: HM.rules.heartsOf(game.state.friends[who].points) }) : '');
+    el('dlgHearts').setAttribute('aria-label', hearts ? t('ui.heartsLabel', { n: HM.rules.heartsOf(game.state.friends[HM.rules.friendOf(who)].points) }) : '');
     el('dlgText').textContent = t(step.say, Object.assign({ name: game.state.name }, step.vars || {}));
     box.classList.toggle('narration', !named);
     box.dataset.who = who;

@@ -292,6 +292,11 @@ canvas.px {
 .setting-row { display: flex; align-items: center; gap: 10px; min-height: 44px; }
 .setting-row input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--accent); }
 
+/* Hiro's shop */
+.shop-list { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.shop-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0; border-bottom: 1px solid var(--paper-2); }
+.shop-message { min-height: 1.6em; margin: 4px 0 0; }
+
 /* Nature diary */
 .diary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
 .diary-card {

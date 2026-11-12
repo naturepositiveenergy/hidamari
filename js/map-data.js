@@ -37,7 +37,7 @@
     'TT....GGGGGGGGGGGGGG=......AAAA..AAAAA..=..BBBBBNB...AAAAA..T........~~~TTTTTTTT',
     'TT..................=......BBBB..BNBBB..=..WOWDWOW...BBBBB...........~~~TTTTTTTT',
     'TT..................=...T..ODWO..WWDMO..=.....=......OWDWO......T....~~~TTTTTTTT',
-    'TT..................=.......=.X....=....=.nkkkkkkkkZ...=.............~~~TTTTTTTT',
+    'TT..................=.......=.X....=.n..=.nkkkkkkkkZ...=.............~~~TTTTTTTT',
     'TT..................=.......=......=..S.=.=kkkkkkkk....=..Pn.........~~~TTTTTTST',
     'TT===================================================================###========',
     'TT........T.............................=..................==........~~~TTTTTTTT',
@@ -115,15 +115,15 @@
     { id: 'fieldSign', x: 6, y: 48 },
     { id: 'genDoor', x: 24, y: 35 },
     { id: 'leaves', x: 32, y: 37 },
-    { id: 'berries1', x: 5, y: 54 },
-    { id: 'berries2', x: 13, y: 55 },
-    { id: 'berries3', x: 47, y: 48 },
-    { id: 'berries4', x: 60, y: 53 },
+    { id: 'berries1', x: 5, y: 54, forage: 'berries' },
+    { id: 'berries2', x: 13, y: 55, forage: 'berries' },
+    { id: 'berries3', x: 47, y: 48, forage: 'berries' },
+    { id: 'berries4', x: 60, y: 53, forage: 'berries' },
     { id: 'shopDoor', x: 35, y: 27 },
-    { id: 'hallDoor', x: 46, y: 26 },
-    { id: 'postDoor', x: 28, y: 27 },
+    { id: 'hallDoor', x: 46, y: 26, spots: ['hall', 'hallMeeting'] },
+    { id: 'postDoor', x: 28, y: 27, spots: ['post'] },
     { id: 'postBox', x: 30, y: 28 },
-    { id: 'officeDoor', x: 55, y: 27 },
+    { id: 'officeDoor', x: 55, y: 27, spots: ['office'] },
     { id: 'shrineDoor', x: 39, y: 7 },
     { id: 'midoriDoor', x: 48, y: 17 },
     { id: 'kumaDoor', x: 21, y: 8 },
@@ -135,20 +135,98 @@
     { id: 'bench', x: 59, y: 29 },
     { id: 'bench', x: 42, y: 28 },
     { id: 'hidamariTree', x: 51, y: 28 },
-    { id: 'exitSign', x: 78, y: 29 }
+    { id: 'exitSign', x: 78, y: 29 },
+    { id: 'bench', x: 37, y: 28 },
+    // Only there while a request needs them (they sparkle)
+    { id: 'bellRope', x: 42, y: 10, request: true },
+    { id: 'soraCap', x: 55, y: 50, request: true },
+    { id: 'sluiceLeaves', x: 11, y: 13, request: true },
+    { id: 'sunriseView', x: 40, y: 12, request: true, noSparkle: true },
+    // Things to pick (forage: see js/game-data.js), once a day each in their season
+    { id: 'stone1', x: 67, y: 45, forage: 'stone' },
+    { id: 'stone2', x: 66, y: 33, forage: 'stone' },
+    { id: 'chestnut1', x: 24, y: 27, forage: 'chestnut' },
+    { id: 'chestnut2', x: 31, y: 23, forage: 'chestnut' },
+    { id: 'camellia1', x: 25, y: 21, forage: 'camellia' },
+    { id: 'camellia2', x: 46, y: 21, forage: 'camellia' }
   ];
 
   // Named spots where residents spend their time (x, y in tiles, which way they face).
-  // inside: the resident goes indoors there and can't be seen.
+  // inside: the resident goes indoors there and can't be seen (you can knock on the door to talk).
   const SPOTS = {
+    // Gen-san
     genPaddy: { x: 32, y: 40, dir: 'down' },
     genHome: { x: 24, y: 36, dir: 'down' },
-    genTree: { x: 24, y: 28, dir: 'down' },
+    shopBenchA: { x: 36, y: 28, dir: 'right' },
+    // Midori
     pondShore: { x: 16, y: 13, dir: 'up' },
     post: { x: 28, y: 28, dir: 'up', inside: true },
     streamside: { x: 65, y: 22, dir: 'right' },
     terraces: { x: 21, y: 22, dir: 'left' },
-    midoriHome: { x: 48, y: 18, dir: 'up' }
+    midoriHome: { x: 48, y: 18, dir: 'up' },
+    surveyA: { x: 50, y: 50, dir: 'down' },
+    surveyB: { x: 12, y: 54, dir: 'down' },
+    hallMeeting: { x: 46, y: 27, dir: 'up', inside: true },
+    // Fumiko-san (and Rin, who stays with her)
+    fumikoHome: { x: 15, y: 44, dir: 'down' },
+    fumikoGarden: { x: 12, y: 44, dir: 'left' },
+    fumikoPorch: { x: 16, y: 44, dir: 'down' },
+    shrineSweep: { x: 38, y: 9, dir: 'left' },
+    // The Mori family
+    moriHome: { x: 49, y: 41, dir: 'down' },
+    moriGarden: { x: 47, y: 42, dir: 'down' },
+    moriGarden2: { x: 48, y: 42, dir: 'down' },
+    busWait: { x: 57, y: 29, dir: 'down' },
+    bus: { x: 58, y: 30, dir: 'down', inside: true },
+    soraPlay: { x: 46, y: 46, dir: 'down' },
+    riverside: { x: 66, y: 26, dir: 'right' },
+    riverside2: { x: 66, y: 27, dir: 'right' },
+    riverside3: { x: 65, y: 26, dir: 'right' },
+    shrineFamily: { x: 39, y: 9, dir: 'up' },
+    shrineFamily2: { x: 40, y: 9, dir: 'up' },
+    shrineFamily3: { x: 41, y: 9, dir: 'up' },
+    // Mr. Oda and Kotetsu
+    odaHome: { x: 43, y: 41, dir: 'down' },
+    walkA: { x: 40, y: 44, dir: 'down' },
+    walkB: { x: 40, y: 31, dir: 'down' },
+    walkC: { x: 40, y: 20, dir: 'up' },
+    hall: { x: 46, y: 27, dir: 'up', inside: true },
+    visitGen: { x: 25, y: 36, dir: 'up' },
+    visitFumiko: { x: 16, y: 45, dir: 'up' },
+    visitHome: { x: 5, y: 47, dir: 'up' },
+    visitMori: { x: 50, y: 41, dir: 'up' },
+    // Hiro
+    shopFront: { x: 34, y: 28, dir: 'down' },
+    shopBenchC: { x: 37, y: 29, dir: 'up' },
+    riverside4: { x: 67, y: 44, dir: 'right' },
+    visitGen2: { x: 23, y: 36, dir: 'up' },
+    visitFumiko2: { x: 14, y: 45, dir: 'up' },
+    visitKuma: { x: 21, y: 10, dir: 'up' },
+    // Kuma-san
+    kumaHome: { x: 21, y: 9, dir: 'down' },
+    sluice: { x: 13, y: 13, dir: 'left' },
+    terraceA: { x: 20, y: 16, dir: 'left' },
+    terraceB: { x: 20, y: 25, dir: 'left' },
+    shopBenchB: { x: 38, y: 28, dir: 'left' },
+    // Rin
+    rinA: { x: 30, y: 30, dir: 'right' },
+    rinB: { x: 60, y: 30, dir: 'right' },
+    rinC: { x: 40, y: 50, dir: 'down' },
+    rinD: { x: 10, y: 30, dir: 'left' },
+    rinShop: { x: 33, y: 29, dir: 'up' },
+    // Ms. Sato
+    town: { x: 77, y: 30, dir: 'left', inside: true },
+    office: { x: 55, y: 28, dir: 'up', inside: true },
+    lunch: { x: 44, y: 29, dir: 'down' },
+    siteFactory: { x: 59, y: 31, dir: 'down' },
+    siteField: { x: 20, y: 41, dir: 'left' },
+    hikeA: { x: 40, y: 19, dir: 'up' },
+    hikeB: { x: 41, y: 10, dir: 'up' },
+    // Mr. Kurokawa
+    slopeTrack: { x: 58, y: 18, dir: 'up' },
+    busBench: { x: 60, y: 29, dir: 'down' },
+    kuroShop: { x: 34, y: 29, dir: 'up' },
+    plaza: { x: 48, y: 29, dir: 'down' }
   };
 
   // The six plots for power gardens (design.md section 7.1). Only your home field can be built on so far.

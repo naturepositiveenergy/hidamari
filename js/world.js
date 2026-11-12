@@ -12,6 +12,7 @@
   const world = {
     player: null,
     residents: [],
+    pets: [],
     critters: [],
     look: null,               // "look closely" in progress: { critter, progress, x, y }
     lastSpawn: -1
@@ -180,13 +181,27 @@
   }
 
   // ----- Residents and their daily routine -----
-  function scheduledSpot(who, minutes) {
-    const plan = HM.DATA.residents[who].schedule;
-    const hour = minutes / 60;
+  // Does a plan's "when" fit today? (see js/game-data.js)
+  function planFits(when, state) {
+    if (!when) return true;
+    const R = HM.rules;
+    const dayIn = R.dayInSeason(state.day);
+    if (when.weather && !when.weather.includes(R.weatherOf(state.day))) return false;
+    if (when.weekend !== undefined && when.weekend !== (dayIn >= 6)) return false;
+    if (when.days && !when.days.includes(dayIn)) return false;
+    if (when.fromDay && state.day < when.fromDay) return false;
+    return true;
+  }
+
+  // Where a resident wants to be now: a spot name, or a list of spots (a walk)
+  function scheduledSpot(who, state) {
+    const plan = HM.DATA.residents[who].plans.find(p => planFits(p.when, state));
+    const hour = state.minutes / 60;
     let spot = 'inside';
-    plan.forEach(([from, name]) => { if (hour >= from) spot = name; });
+    plan.at.forEach(([from, name]) => { if (hour >= from) spot = name; });
     return spot;
   }
+  const spotKey = spot => (Array.isArray(spot) ? spot.join('>') : spot);
 
   // Where a resident goes: a named spot, or their front door for "inside"
   function spotTile(who, spot) {
@@ -199,38 +214,92 @@
 
   function placeResidents(state) {
     world.residents = Object.keys(HM.DATA.residents).map(who => {
-      const spot = scheduledSpot(who, state.minutes);
-      const t = spotTile(who, spot);
+      const want = scheduledSpot(who, state);
+      const name = Array.isArray(want) ? want[0] : want;
+      const t = spotTile(who, name);
       const r = makePerson(who, t.x, t.y, t.dir);
-      r.spot = spot;
-      r.visible = !indoors(spot);
+      Object.assign(r, { want, key: spotKey(want), stop: 0, spot: name, wait: 0, arrived: true, visible: !indoors(name) });
       return r;
     });
+    placePets();
+  }
+
+  // Send a resident to a spot (out of a building first, if they are inside one)
+  function headTo(r, name) {
+    const from = spotTile(r.who, r.spot);
+    r.spot = name;
+    r.wait = 0;
+    r.arrived = false;
+    const t = spotTile(r.who, name);
+    if (!r.visible) {
+      r.x = from.x * T; r.y = from.y * T;
+      r.visible = true;
+    }
+    r.path = findPath(feetTile(r), { x: t.x, y: t.y }, null) || [];
+    if (!r.path.length) r.path = null;
+    r.onArrive = () => {
+      r.dir = t.dir;
+      r.arrived = true;
+      if (indoors(name)) r.visible = false;
+    };
+    if (!r.path) r.onArrive();
   }
 
   function updateResidents(dt, state, busyWith) {
     world.residents.forEach(r => {
-      const want = scheduledSpot(r.who, state.minutes);
-      if (want !== r.spot) {
-        const from = spotTile(r.who, r.spot);
-        r.spot = want;
-        const t = spotTile(r.who, want);
-        if (!r.visible) {
-          // Coming out of a building: appear at its door
-          r.x = from.x * T; r.y = from.y * T;
-          r.visible = true;
+      const want = scheduledSpot(r.who, state);
+      const key = spotKey(want);
+      if (key !== r.key) {
+        r.want = want; r.key = key; r.stop = 0;
+        headTo(r, Array.isArray(want) ? want[0] : want);
+      } else if (Array.isArray(r.want) && r.arrived && r.who !== busyWith) {
+        // On a walk: stay a moment at each stop, then go on to the next
+        r.wait += dt;
+        if (r.wait > 2.5) {
+          r.stop = (r.stop + 1) % r.want.length;
+          headTo(r, r.want[r.stop]);
         }
-        r.path = findPath(feetTile(r), { x: t.x, y: t.y }, null) || [];
-        if (!r.path.length) r.path = null;
-        r.onArrive = () => {
-          r.dir = t.dir;
-          if (indoors(want)) r.visible = false;
-        };
-        if (!r.path) r.onArrive();
       }
       if (r.who === busyWith) { r.moving = false; return; }
       r.moving = followPath(r, HM.DATA.residents[r.who].speed, dt);
       r.walkTime = r.moving ? r.walkTime + dt : 0;
+    });
+    updatePets(dt);
+  }
+
+  // ----- Pets: Kotetsu walks with Mr. Oda on his morning walk -----
+  function placePets() {
+    world.pets = Object.entries(HM.DATA.residents).filter(([, info]) => info.pet).map(([owner, info]) => {
+      const o = world.residents.find(r => r.who === owner);
+      const p = makePerson(info.pet, 0, 0, 'down');
+      Object.assign(p, { owner, route: info.petRoute, x: o.x, y: o.y, visible: false });
+      return p;
+    });
+  }
+
+  function updatePets(dt) {
+    world.pets.forEach(p => {
+      const o = world.residents.find(r => r.who === p.owner);
+      const walking = o.visible && Array.isArray(o.want) && o.want.includes(p.route);
+      if (!walking) { p.visible = false; p.x = o.x; p.y = o.y; p.moving = false; return; }
+      p.visible = true;
+      // Trot a little behind the owner
+      const back = { up: [0, 12], down: [0, -12], left: [12, 0], right: [-12, 0] }[o.dir];
+      const tx = o.x + back[0], ty = o.y + back[1];
+      const dx = tx - p.x, dy = ty - p.y, dist = Math.hypot(dx, dy);
+      const step = HM.DATA.residents[p.owner].speed * 1.4 * dt;
+      if (dist > 3) {
+        p.x += dx / dist * Math.min(step, dist);
+        p.y += dy / dist * Math.min(step, dist);
+        if (Math.abs(dx) > Math.abs(dy)) p.dir = dx > 0 ? 'right' : 'left';
+        else p.dir = dy > 0 ? 'down' : 'up';
+        p.moving = true;
+        p.walkTime += dt;
+      } else {
+        p.moving = false;
+        p.walkTime = 0;
+        p.dir = o.dir;
+      }
     });
   }
 
@@ -357,7 +426,7 @@
     const ft = { x: Math.floor(front.x / T), y: Math.floor(front.y / T) };
     const own = feetTile(p);
     for (const t of [ft, own]) {
-      const obj = HM.MAP.objects.find(o => o.x === t.x && o.y === t.y);
+      const obj = HM.MAP.objects.find(o => o.x === t.x && o.y === t.y && HM.story.available(state, o));
       if (obj && !(obj.id === 'leaves' && state.flags.leavesCleared)) return { type: 'object', id: obj.id };
       if (fieldIndex(t.x, t.y) >= 0) return { type: 'object', id: 'fieldSign' };
     }
@@ -365,12 +434,12 @@
   }
 
   // What is at a tapped tile: a resident, an animal or a thing to use
-  function thingAt(tx, ty) {
+  function thingAt(tx, ty, state) {
     const r = world.residents.find(r => r.visible && feetTile(r).x === tx && feetTile(r).y === ty);
     if (r) return { type: 'talk', who: r.who, resident: r };
     const c = world.critters.find(c => c.tx === tx && c.ty === ty);
     if (c) return { type: 'look', critter: c };
-    const obj = HM.MAP.objects.find(o => o.x === tx && o.y === ty);
+    const obj = HM.MAP.objects.find(o => o.x === tx && o.y === ty && HM.story.available(state, o));
     if (obj) return { type: 'object', id: obj.id };
     return null;
   }

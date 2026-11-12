@@ -146,8 +146,14 @@
       }
     }
 
+    // Sparkles on things to pick or find
+    map.objects.forEach(o => {
+      if (HM.story.sparkles(state, o)) sprite('ui.item', anim, o.x * T, o.y * T - 3 - anim);
+    });
+
     // People and animals, from back to front
     const things = [];
+    w.pets.forEach(p => { if (p.visible) things.push({ y: p.y, draw: () => sprite(personFrame(p, time), 0, p.x, p.y) }); });
     w.critters.forEach(c => things.push({ y: c.y, draw: () => sprite('critter.' + c.species, anim + c.phase, c.x, c.y + c.bob(time)) }));
     w.residents.forEach(r => { if (r.visible) things.push({ y: r.y, draw: () => sprite(personFrame(r, time), 0, r.x, r.y) }); });
     things.push({ y: w.player.y, draw: () => sprite(personFrame(w.player, time), 0, w.player.x, w.player.y) });

@@ -59,30 +59,153 @@
     points: { talk: 10, loved: 50, liked: 25, neutral: 10, disliked: -20, request: 40, event: 30, wrongAnswer: 10 },
 
     // ----- Your bag -----
+    // gift: can be given · price: what it costs at Hiro's shop (if he sells it)
     items: {
-      onigiri: { gift: true },
-      tea: { gift: true },
+      onigiri: { gift: true, price: 200 },
+      tea: { gift: true, price: 150 },
       persimmon: { gift: true },
       strawberry: { gift: true },
-      seedling: { gift: false }
+      manju: { gift: true, price: 250 },
+      coffee: { gift: true, price: 130 },
+      ramune: { gift: true, price: 120 },
+      senbei: { gift: true, price: 300 },
+      soySnack: { gift: true },
+      camelliaSeedling: { gift: true, price: 1500 },
+      stone: { gift: true },
+      chestnut: { gift: true },
+      camellia: { gift: true },
+      seedling: { gift: false, price: 500 }
     },
     startBag: { onigiri: 2, tea: 2, persimmon: 1, seedling: 4 },
+    // What Hiro's shop sells, in this order. It is open 9:00–17:00, except on the closing day.
+    shop: { items: ['onigiri', 'tea', 'manju', 'senbei', 'coffee', 'ramune', 'camelliaSeedling', 'seedling'], open: 9, close: 17, closedDay: 3 },
+    // Things to pick around the village, once a day each, in their seasons (the places are in js/map-data.js)
+    forage: {
+      berries: { item: 'strawberry', seasons: ['spring', 'summer'] },
+      stone: { item: 'stone', seasons: ['spring', 'summer', 'autumn', 'winter'] },
+      chestnut: { item: 'chestnut', seasons: ['autumn'] },
+      camellia: { item: 'camellia', seasons: ['winter'] }
+    },
     berrySeasons: ['spring', 'summer'],   // when the wild strawberries are ripe
 
-    // ----- Residents -----
-    // Where they are: from this hour on, at this spot (js/map-data.js). "inside" = at home, unseen.
+    // ----- Residents (design.md section 5) -----
+    // friend: whose heart meter they share (the Mori family shares one) · home: their front door ·
+    // plans: their daily routine. The first plan whose "when" fits today is used:
+    //   weather: only in this weather · weekend: days 6 and 7 of each season · days: these days of the season ·
+    //   fromDay: from this day of the year on.
+    // at: [from this hour, at this spot]. A list of spots is a walk from spot to spot.
+    // "inside" = indoors at home, unseen. Spots are in js/map-data.js.
+    friends: ['gen', 'midori', 'fumiko', 'mori', 'oda', 'hiro', 'kuma', 'rin', 'sato', 'kurokawa'],
     residents: {
       gen: {
-        legs: 'wide', speed: 30,
-        schedule: [[6, 'genPaddy'], [11, 'genHome'], [14, 'genTree'], [17, 'genHome'], [20, 'inside']],
-        home: 'genHome',
-        loved: ['persimmon', 'onigiri'], liked: ['tea', 'strawberry'], disliked: []
+        friend: 'gen', legs: 'wide', speed: 30, home: 'genHome',
+        plans: [
+          { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
+          { when: { weather: ['rain'] }, at: [[6, 'genHome'], [20, 'inside']] },     // repairing tools by his barn
+          { at: [[6, 'genPaddy'], [11, 'genHome'], [14, 'shopBenchA'], [17, 'genHome'], [20, 'inside']] }
+        ],
+        loved: ['persimmon', 'onigiri'], liked: ['tea', 'strawberry', 'chestnut', 'senbei'], disliked: []
       },
       midori: {
-        legs: 'normal', speed: 38,
-        schedule: [[6, 'pondShore'], [9, 'post'], [15, 'streamside'], [18, 'terraces'], [20, 'inside']],
-        home: 'midoriHome',
-        loved: [], liked: ['strawberry', 'onigiri', 'tea'], disliked: []
+        friend: 'midori', legs: 'normal', speed: 38, home: 'midoriHome',
+        plans: [
+          { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
+          { when: { weekend: true }, at: [[6, 'pondShore'], [9, ['surveyA', 'surveyB']], [15, 'streamside'], [18, 'terraces'], [20, 'inside']] },
+          { when: { days: [3] }, at: [[6, 'pondShore'], [9, 'post'], [15, 'streamside'], [18, 'hallMeeting'], [21, 'inside']] },
+          { at: [[6, 'pondShore'], [9, 'post'], [15, 'streamside'], [18, 'terraces'], [20, 'inside']] }
+        ],
+        loved: [], liked: ['strawberry', 'onigiri', 'tea', 'chestnut'], disliked: []
+      },
+      fumiko: {
+        friend: 'fumiko', legs: 'wide', speed: 26, home: 'fumikoHome',
+        plans: [
+          { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
+          { when: { weather: ['rain', 'snow'] }, at: [[0, 'inside'], [12, 'fumikoPorch'], [15, 'inside']] },
+          { at: [[6, 'fumikoGarden'], [9, 'shrineSweep'], [12, 'fumikoPorch'], [17, 'inside']] }
+        ],
+        loved: ['camelliaSeedling', 'manju'], liked: ['strawberry', 'tea', 'camellia', 'chestnut'], disliked: ['coffee']
+      },
+      aya: {
+        friend: 'mori', legs: 'normal', speed: 38, home: 'moriHome',
+        plans: [
+          { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
+          { when: { weekend: true }, at: [[0, 'inside'], [9, 'riverside'], [12, 'shrineFamily'], [15, 'moriGarden'], [17, 'inside']] },
+          { at: [[0, 'inside'], [7.5, 'busWait'], [8.25, 'inside'], [14.75, 'busWait'], [15.5, 'moriGarden'], [17, 'inside']] }
+        ],
+        loved: ['coffee'], liked: ['tea', 'strawberry', 'manju'], disliked: []
+      },
+      ken: {
+        friend: 'mori', legs: 'normal', speed: 40, home: 'moriHome',
+        plans: [
+          { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
+          { when: { weekend: true }, at: [[0, 'inside'], [9, 'riverside2'], [12, 'shrineFamily2'], [15, 'moriGarden2'], [17, 'inside']] },
+          { at: [[0, 'inside'], [7.5, 'bus'], [18, 'moriGarden2'], [19, 'inside']] }
+        ],
+        loved: ['tea'], liked: ['senbei', 'onigiri', 'coffee'], disliked: []
+      },
+      sora: {
+        friend: 'mori', legs: 'child', speed: 34, home: 'moriHome',
+        plans: [
+          { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
+          { when: { weekend: true }, at: [[0, 'inside'], [9, 'riverside3'], [12, 'shrineFamily3'], [15, 'soraPlay'], [17, 'inside']] },
+          { when: { weather: ['rain', 'snow'] }, at: [[0, 'inside'], [7.5, 'bus'], [15, 'inside']] },
+          { at: [[0, 'inside'], [7.5, 'bus'], [15, 'soraPlay'], [17, 'inside']] }
+        ],
+        loved: ['stone', 'ramune'], liked: ['strawberry', 'manju', 'chestnut'], disliked: ['coffee']
+      },
+      oda: {
+        friend: 'oda', legs: 'normal', speed: 32, home: 'odaHome', pet: 'kotetsu', petRoute: 'walkA',
+        plans: [
+          { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
+          { at: [[6, ['walkA', 'walkB', 'walkC', 'walkB']], [9, 'hall'], [14, ['visitGen', 'visitFumiko', 'visitHome', 'visitMori']], [17, 'inside']] }
+        ],
+        loved: ['senbei'], liked: ['tea', 'manju', 'persimmon'], disliked: []
+      },
+      hiro: {
+        friend: 'hiro', legs: 'wide', speed: 34, home: 'shopFront',
+        plans: [
+          { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
+          { when: { days: [3] }, at: [[0, 'inside'], [10, 'riverside4'], [15, 'shopBenchC'], [18, 'inside']] },   // closing day: fishing
+          { at: [[6, ['visitFumiko2', 'visitGen2', 'visitKuma']], [9, 'shopFront'], [17, 'inside']] }
+        ],
+        loved: ['coffee'], liked: ['onigiri', 'strawberry', 'chestnut'], disliked: []
+      },
+      kuma: {
+        friend: 'kuma', legs: 'wide', speed: 28, home: 'kumaHome',
+        plans: [
+          { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
+          { at: [[6, 'sluice'], [8, ['terraceA', 'terraceB']], [15, 'shopBenchB'], [18, 'sluice'], [19, 'inside']] }
+        ],
+        loved: [], liked: ['tea', 'onigiri', 'senbei', 'chestnut'], disliked: ['ramune']
+      },
+      rin: {
+        friend: 'rin', legs: 'normal', speed: 46, home: 'fumikoHome',
+        plans: [
+          { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
+          { when: { weekend: true }, at: [[0, 'inside'], [10, ['rinA', 'rinB', 'rinC', 'rinD']], [17, 'rinShop'], [19, 'inside']] },
+          { at: [[0, 'inside'], [8, 'hall'], [12, ['rinA', 'rinB', 'rinC', 'rinD']], [17, 'rinShop'], [19, 'inside']] }
+        ],
+        loved: ['soySnack'], liked: ['strawberry', 'ramune', 'stone'], disliked: ['coffee']
+      },
+      sato: {
+        friend: 'sato', legs: 'normal', speed: 38, home: 'town',
+        plans: [
+          { when: { weather: ['typhoon'] }, at: [[0, 'inside']] },
+          { when: { days: [6] }, at: [[0, 'inside'], [9, ['hikeA', 'hikeB']], [15, 'inside']] },
+          { when: { days: [7] }, at: [[0, 'inside']] },
+          { when: { days: [2] }, at: [[0, 'inside'], [8.5, 'office'], [10, ['siteFactory', 'siteField']], [13, 'lunch'], [14, 'office'], [17.25, 'inside']] },
+          { at: [[0, 'inside'], [8.5, 'office'], [12, 'lunch'], [13, 'office'], [17.25, 'inside']] }
+        ],
+        loved: ['manju'], liked: ['coffee', 'tea', 'chestnut'], disliked: []
+      },
+      kurokawa: {
+        friend: 'kurokawa', legs: 'normal', speed: 44, home: 'town',
+        plans: [
+          { when: { fromDay: 3, days: [1, 3, 5], weather: ['sunny', 'cloudy', 'rain', 'snow'] },
+            at: [[0, 'inside'], [10, 'slopeTrack'], [12, 'busBench'], [14, 'kuroShop'], [16, 'plaza'], [17, 'inside']] },
+          { at: [[0, 'inside']] }
+        ],
+        loved: ['onigiri'], liked: ['coffee', 'manju'], disliked: []
       }
     },
 
