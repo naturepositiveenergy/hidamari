@@ -52,6 +52,11 @@
     people: {
       base: { K: 'outline', e: 'skin1', f: 'skin0', 9: 'outline', W: 'white' },
       player: { H: 'earth0', I: 'earth1', C: 'teal1', D: 'teal0', E: 'yellow', G: 'orange', L: 'panel1', M: 'earth0' },
+      // The other three player looks (Phase 3): spiky hair and an orange hoodie · a ponytail and a green top ·
+      // a straw sun hat and a blue dress
+      player2: { H: 'earth1', I: 'earth2', C: 'orange', D: 'earth1', L: 'panel0', M: 'white' },
+      player3: { H: 'earth0', I: 'earth1', C: 'green2', D: 'panel1', E: 'white', G: 'yellow', L: 'panel0', M: 'earth0' },
+      player4: { H: 'earth1', I: 'earth2', B: 'earth2', G: 'red', C: 'panel1', D: 'panel0', L: 'skin1', M: 'red' },
       gen: { E: 'white', G: 'panel1', H: 'grey', I: 'grey', C: 'earth1', D: 'earth0', L: 'metal0', M: 'panel0' },
       midori: { E: 'green2', G: 'green1', H: 'earth0', I: 'earth1', C: 'earth2', D: 'white', B: 'metal0', L: 'green1', M: 'earth0' },
       fumiko: { H: 'grey', I: 'white', C: 'lilac', D: 'panel1', E: 'white', G: 'grey', L: 'panel0', M: 'earth0' },
@@ -66,11 +71,17 @@
       kurokawa: { H: 'outline', I: 'metal0', C: 'metal0', D: 'outline', E: 'white', G: 'panel1', B: 'earth0', L: 'metal0', M: 'outline' }
     },
     // Animals: K outline · W wings or belly · M grey · G D greens · N navy · R red throat
-    critter: { K: 'outline', W: 'white', M: 'metal1', G: 'green4', D: 'green2', N: 'panel0', R: 'orange' },
+    //   (Milestone 2.5) A F E songbird crown, wings and face · B b L T browns (mid, dark, light, tan) ·
+    //   Y yellow · O orange · Z red · U blue · u pale wings and ripples · H dark grey · S dark green
+    critter: {
+      K: 'outline', W: 'white', M: 'metal1', G: 'green4', D: 'green2', N: 'panel0', R: 'orange',
+      A: 'grey', F: 'metal0', E: 'white', B: 'earth1', b: 'earth0', L: 'earth3', T: 'earth2',
+      Y: 'yellow', O: 'orange', Z: 'red', U: 'water0', u: 'water2', H: 'metal0', S: 'green1'
+    },
     // Kotetsu, Mr. Oda's shiba dog: K outline · O fur · W white chest · 9 eyes
     pet: { K: 'outline', O: 'orange', W: 'white', 9: 'outline' },
     // Small signs above people and animals, and the build mode cursor
-    ui: { K: 'outline', W: 'white', Y: 'yellow', O: 'orange' }
+    ui: { K: 'outline', W: 'white', Y: 'yellow', O: 'orange', Z: 'red', B: 'earth1', M: 'metal1', P: 'panel1' }
   };
 
   // ----- Tiles (the ground, plants, panels and houses) -----
@@ -709,6 +720,25 @@
       'feedfeedfeedfeed',
       'dddddddddddddddd'
     ],
+    // Hiro's rooftop panels (his 3-heart event): a row of panels on the shop roof
+    roofPanel: [
+      'dddddddddddddddd',
+      'ffffffffffffffff',
+      'feedfeedfeedfeed',
+      'RRRRRRRRRRRRRRRR',
+      'PggQPPPQPPPQPPPQ',
+      'PgPQPPPQPPPQPPPQ',
+      'QQQQQQQQQQQQQQQQ',
+      'PPPQPPPQPPPQPPPQ',
+      'PPPQPPPQPPPQPPPQ',
+      'QQQQQQQQQQQQQQQQ',
+      'PPPQPPPQPPPQPPPQ',
+      'PPPQPPPQPPPQPPPQ',
+      'TTTTTTTTTTTTTTTT',
+      'feedfeedfeedfeed',
+      'feedfeedfeedfeed',
+      'dddddddddddddddd'
+    ],
     eave: [
       'feedfeedfeedfeed',
       'feedfeedfeedfeed',
@@ -799,6 +829,139 @@
       'nrnqqqqnnqqqqnrr',
       'nrnqqqqnnqqqqnrr',
       'nrnqqqqnnqqqqnrr'
+    ],
+
+    // ----- Milestone 2.4: the forest slope and the community hall room -----
+    // A drainage ditch on the forest slope: stones on both sides, water in the middle
+    drain: [
+      'qqpqqqqqqpqqqqqq',
+      'qqqqqnqqqqqqqnqq',
+      'qpqqqqqqqpqqqqqq',
+      'eeFeeeFFeeeFeeFe',
+      'xxxxxxxxxxxxxxxx',
+      'wwwwwwgwwwwwwwww',
+      'wwwxwwwwwwwwxwww',
+      'wwwwwwwwwwgwwwww',
+      'xxxxxxxxxxxxxxxx',
+      'eFeeeFeeFeeeeFee',
+      'qqqqqqqqqqqqqqqq',
+      'qpqqqqnqqqqpqqqq',
+      'qqqqqqqqqqqqqqqq',
+      'qqqnqqqqqpqqqqnq',
+      'qpqqqqqqqqqqqqqq',
+      'qqqqqqqqnqqqqqqq'
+    ],
+    // Bare earth with tree stumps, where the forest on the slope was cleared
+    cleared: [
+      'qqqqpqqqqqqqqqqq',
+      'qqqqqqqqqnqqqpqq',
+      'qpqqqqqqqqqqqqqq',
+      'qqqqqnnnnqqqqqqq',
+      'qqqqnrpprnqqqqqq',
+      'qqqqnprrpnqqqqqq',
+      'qqqqnrpprnqqqqqq',
+      'qqqqqnnnnqqqqpqq',
+      'qqqqqqqqqqqqqqqq',
+      'qqpqqqqqqqqqqqqq',
+      'qqqqqqqqqqnnqqqq',
+      'qqqqqqqqqnrpnqqq',
+      'qqqqqqqqqqnnqqqq',
+      'qpqqqqqqqqqqqqqq',
+      'qqqqqqqnqqqqqpqq',
+      'qqqqqqqqqqqqqqqq'
+    ],
+    // The community hall room: wooden floor, plastered walls with wooden panels below
+    hallFloor: [
+      'prpppppqpppprppp',
+      'pppppppqpppppppp',
+      'pppppppqpppppppp',
+      'qqqqqqqqqqqqqqqq',
+      'ppprpppppppqpppp',
+      'pppppppppppqpppp',
+      'pppppppppppqpprp',
+      'qqqqqqqqqqqqqqqq',
+      'pppqpppprppppppp',
+      'pppqpppppppppppp',
+      'pppqpppppppppppp',
+      'qqqqqqqqqqqqqqqq',
+      'pppppppppqpppprp',
+      'pppppppppqpppppp',
+      'pppppppppqpppppp',
+      'qqqqqqqqqqqqqqqq'
+    ],
+    hallWall: [
+      'rrrrrrrrrrrrrrrr',
+      'rrrrrrrrrrrrrrrr',
+      'rrrrrprrrrrrrrrr',
+      'rrrrrrrrrrrrrrrr',
+      'rrrrrrrrrrrrprrr',
+      'rrrrrrrrrrrrrrrr',
+      'rrprrrrrrrrrrrrr',
+      'rrrrrrrrrrrrrrrr',
+      'rrrrrrrrrprrrrrr',
+      'rrrrrrrrrrrrrrrr',
+      'nnnnnnnnnnnnnnnn',
+      'qqqnqqqnqqqnqqqn',
+      'qpqnqpqnqpqnqpqn',
+      'qqqnqqqnqqqnqqqn',
+      'qqqnqqqnqqqnqqqn',
+      'nnnnnnnnnnnnnnnn'
+    ],
+    hallWindow: [
+      'rrrrrrrrrrrrrrrr',
+      'rrnnnnnnnnnnnnrr',
+      'rrnwwwgnnwwwgnrr',
+      'rrnwwgwnnwwgwnrr',
+      'rrnwwwwnnwwwwnrr',
+      'rrnnnnnnnnnnnnrr',
+      'rrnwwwwnnwwwwnrr',
+      'rrnwwwwnnwwwwnrr',
+      'rrnnnnnnnnnnnnrr',
+      'rrrrrrrrrrrrrrrr',
+      'nnnnnnnnnnnnnnnn',
+      'qqqnqqqnqqqnqqqn',
+      'qpqnqpqnqpqnqpqn',
+      'qqqnqqqnqqqnqqqn',
+      'qqqnqqqnqqqnqqqn',
+      'nnnnnnnnnnnnnnnn'
+    ],
+    // The hall's notice board, with a poster of the sun
+    hallBoard: [
+      'rrrrrrrrrrrrrrrr',
+      'rnnnnnnnnnnnnnnr',
+      'rnoooooooooooonr',
+      'rnoggggoogggggnr',
+      'rnogOOgoogPPgonr',
+      'rnogOOgoogggggnr',
+      'rnoggggoogPPgonr',
+      'rnoooooooggggonr',
+      'rnnnnnnnnnnnnnnr',
+      'rrrrrrrrrrrrrrrr',
+      'nnnnnnnnnnnnnnnn',
+      'qqqnqqqnqqqnqqqn',
+      'qpqnqpqnqpqnqpqn',
+      'qqqnqqqnqqqnqqqn',
+      'qqqnqqqnqqqnqqqn',
+      'nnnnnnnnnnnnnnnn'
+    ],
+    // A long, low table (drawn in front of people sitting behind it)
+    hallTable: [
+      '................',
+      '................',
+      '................',
+      '................',
+      '................',
+      'nnnnnnnnnnnnnnnn',
+      'rrrrrrrrrrrrrrrr',
+      'pppppppppppppppp',
+      'pppppppppppppppp',
+      'qqqqqqqqqqqqqqqq',
+      'nnnnnnnnnnnnnnnn',
+      '.nn..........nn.',
+      '.nn..........nn.',
+      '.nn..........nn.',
+      '................',
+      '................'
     ]
   };
 
@@ -852,6 +1015,153 @@
         '.....KEEEEK.....',
         '.....KCCEGK.....',
         '.....KCDCCK.....',
+        '.....KCeCCK.....'
+      ]
+    },
+    // Look 2: spiky light-brown hair, an orange hoodie with white drawstrings
+    player2: {
+      legs: 'normal',
+      down: [
+        '.....K.KK.K.....',
+        '....KHKHHKHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHIHHIHHK...',
+        '...KHeeeeeeHK...',
+        '...KHe9ee9eHK...',
+        '....KeeeeeeK....',
+        '....KCKffKCK....',
+        '...KCCWCCWCCK...',
+        '...KCCWCCWCCK...',
+        '..KCKCCCCCCKCK..',
+        '..KeKCDDDDCKeK..'
+      ],
+      up: [
+        '.....K.KK.K.....',
+        '....KHKHHKHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHIHHIHHK...',
+        '....KHHHHHHK....',
+        '....KCCCCCCK....',
+        '...KCDDDDDDCK...',
+        '...KCCDDDDCCK...',
+        '..KCKCCCCCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '.....K.KK.K.....',
+        '....KHKHHKHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHIHK...',
+        '...KHHHHHeeeK...',
+        '...KHHHHee9eK...',
+        '....KHHHeeeK....',
+        '....KCCKffK.....',
+        '....KCCCWCK.....',
+        '.....KCCWCK.....',
+        '.....KCDCCK.....',
+        '.....KCeCCK.....'
+      ]
+    },
+    // Look 3: long dark hair in a ponytail with a yellow hair tie, a green top
+    player3: {
+      legs: 'normal',
+      down: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHIHHHHIHK...',
+        '...KHHeeeeHHK...',
+        '...KHe9ee9eHK...',
+        '...KHeeeeeeHK...',
+        '...KHKKffKKHK...',
+        '....KCCCCCCK....',
+        '...KCCEEEECCK...',
+        '..KCKCCCCCCKCK..',
+        '..KeKDDDDDDKeK..'
+      ],
+      up: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHGGHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHKKHHKKHK...',
+        '....KCCHHCCK....',
+        '...KCCCKKCCCK...',
+        '..KCKCCCCCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '................',
+        '.....KKKKKK.....',
+        '....KHHHHHHK....',
+        '..KKHHHHHHHHK...',
+        '.KGKHHHHHHIHK...',
+        '.KHKHHHHHeeeK...',
+        '.KHHKHHHee9eK...',
+        '..KHKKHHeeeK....',
+        '...KK.KKffK.....',
+        '.....KCCCCK.....',
+        '.....KCEECK.....',
+        '.....KCCCCK.....',
+        '.....KDeDDK.....'
+      ]
+    },
+    // Look 4: a straw sun hat with a red band, shoulder-length hair, a blue dress with a white collar
+    player4: {
+      legs: 'normal',
+      down: [
+        '.....KKKKKK.....',
+        '....KBBBBBBK....',
+        '...KBBBBBBBBK...',
+        '.KKGGGGGGGGGGKK.',
+        'KBBBBBBBBBBBBBBK',
+        '...KHeeeeeeHK...',
+        '...KHe9ee9eHK...',
+        '...KHeeeeeeHK...',
+        '...KHHKffKHHK...',
+        '....KCWWWWCK....',
+        '...KCCCCCCCCK...',
+        '..KCKCCCCCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      up: [
+        '.....KKKKKK.....',
+        '....KBBBBBBK....',
+        '...KBBBBBBBBK...',
+        '.KKGGGGGGGGGGKK.',
+        'KBBBBBBBBBBBBBBK',
+        '...KHHHHHHHHK...',
+        '...KHHHHHHHHK...',
+        '...KHHHIIHHHK...',
+        '...KHHHHHHHHK...',
+        '....KCCCCCCK....',
+        '...KCCCDDCCCK...',
+        '..KCKCCCCCCKCK..',
+        '..KeKCCCCCCKeK..'
+      ],
+      side: [
+        '.....KKKKKK.....',
+        '....KBBBBBBK....',
+        '...KBBBBBBBBK...',
+        '..KGGGGGGGGGGK..',
+        '.KBBBBBBBBBBBBBK',
+        '...KHHHHIeeeK...',
+        '...KHHHHee9eK...',
+        '...KHHHHeeeK....',
+        '...KHHHKffK.....',
+        '.....KWWWCK.....',
+        '.....KCCCCK.....',
+        '.....KCCCCK.....',
         '.....KCeCCK.....'
       ]
     },
@@ -1596,6 +1906,539 @@
         '......N..N......',
         '.....N....N.....'
       ])
+    ],
+
+    // ----- Milestone 2.5: the rest of the nature diary -----
+    // A yellow swallowtail (wings open, then half closed)
+    swallowtail: [
+      pad(4, [
+        '..KKK......KKK..',
+        '.KYYYK....KYYYK.',
+        'KYKYYYK..KYYYKYK',
+        'KYYKYYYKKYYYKYYK',
+        '.KYYYYKbbKYYYYK.',
+        '..KYUYKbbKYUYK..',
+        '...KKYKbbKYKK...',
+        '....KYKbbKYK....',
+        '....KK.KK.KK....',
+        '....K......K....'
+      ]),
+      pad(5, [
+        '....KKK..KKK....',
+        '...KYYYKKYYYK...',
+        '...KYKYbbYKYK...',
+        '....KYYbbYYK....',
+        '....KYUbbUYK....',
+        '.....KKbbKK.....',
+        '......KbbK......',
+        '......K..K......'
+      ])
+    ],
+    // A honeybee, wings up and down
+    bee: [
+      pad(6, [
+        '.....KKK.KKK....',
+        '....KuuuKuuuK...',
+        '.....KKKKKKK....',
+        '....KbTTbTTbK...',
+        '...KbbTTbTTbKbK.',
+        '....KbTTbTTbKKK.',
+        '.....KKKKKKK....',
+        '......K..K......'
+      ]),
+      pad(6, [
+        '................',
+        '................',
+        '.....KKKKKKK....',
+        '....KbTTbTTbK...',
+        '...KbbTTbTTbKbK.',
+        '....KbuuKuubKKK.',
+        '....KuuuKuuuK...',
+        '.....KK..KK.....'
+      ])
+    ],
+    // A grasshopper with a pointed head
+    grasshopper: [
+      pad(6, [
+        '................',
+        '..KKK...........',
+        '.KGGGKKKKKKKK...',
+        'KWGGGGGGDDDDGKK.',
+        '.KGGGGGGGGGGGGGK',
+        '..KKKKKKKKKKKKK.',
+        '...K..K.K..K.K..',
+        '..K..K...K..K...'
+      ]),
+      pad(6, [
+        '................',
+        '..KKK...........',
+        '.KGGGKKKKKKKK...',
+        'KWGGGGGGDDDDGKK.',
+        '.KGGGGGGGGGGGGGK',
+        '..KKKKKKKKKKKKK.',
+        '...K.K..K.K..K..',
+        '..K.K..K.K..K...'
+      ])
+    ],
+    // A bell cricket with long feelers
+    cricket: [
+      pad(5, [
+        'K..........K....',
+        '.K........K.....',
+        '..K......K......',
+        '...KKKKKK.......',
+        '..KbbbbbbK......',
+        '.KbLLbbLLbK.....',
+        '.KbLLbbLLbKKK...',
+        '.KbbbbbbbbbbbK..',
+        '..KKKKKKKKKKK...',
+        '...K..K..K..K...'
+      ]),
+      pad(5, [
+        '.K.........K....',
+        '..K.......K.....',
+        '..K......K......',
+        '...KKKKKK.......',
+        '..KbbbbbbK......',
+        '.KbLLbbLLbK.....',
+        '.KbLLbbLLbKKK...',
+        '.KbbbbbbbbbbbK..',
+        '..KKKKKKKKKKK...',
+        '...K..K..K..K...'
+      ])
+    ],
+    // A dragonfly from above (U: the body colour)
+    dragonfly: [
+      pad(4, [
+        '.......KK.......',
+        '......KUUK......',
+        'KKKKK.KUUK.KKKKK',
+        'KuuuuKKUUKKuuuuK',
+        '.KKKKKKUUKKKKKK.',
+        'KuuuuKKUUKKuuuuK',
+        'KKKKK.KUUK.KKKKK',
+        '.......UU.......',
+        '.......UU.......',
+        '.......UU.......',
+        '.......KK.......'
+      ]),
+      pad(4, [
+        '.......KK.......',
+        '......KUUK......',
+        '.KKKK.KUUK.KKKK.',
+        'KuuuuKKUUKKuuuuK',
+        'KKKKKKKUUKKKKKKK',
+        '.KuuuKKUUKKuuuK.',
+        '..KKK.KUUK.KKK..',
+        '.......UU.......',
+        '.......UU.......',
+        '.......UU.......',
+        '.......KK.......'
+      ])
+    ],
+    // A water strider on the water, with ripples
+    strider: [
+      pad(4, [
+        '.K............K.',
+        '..K..........K..',
+        '...K...KK...K...',
+        '....KKKHHKKK....',
+        '.......HH.......',
+        '....KKKHHKKK....',
+        '...K...HH...K...',
+        '..K....KK....K..',
+        '.K............K.',
+        '................',
+        '...uuu....uuu...'
+      ]),
+      pad(4, [
+        '.K............K.',
+        '..K..........K..',
+        '...K...KK...K...',
+        '....KKKHHKKK....',
+        '.......HH.......',
+        '....KKKHHKKK....',
+        '...K...HH...K...',
+        '..K....KK....K..',
+        '.K............K.',
+        '................',
+        '..uu..uuuu..uu..'
+      ])
+    ],
+    // A small fish (Japanese rice fish), flicking its tail
+    fish: [
+      pad(6, [
+        '................',
+        '.....KKKKK......',
+        '...KKLLLLLKK.K..',
+        '..KWKLLTLLLLKTK.',
+        '...KKLLLLLKK.K..',
+        '.....KKKKK......'
+      ]),
+      pad(6, [
+        '................',
+        '.....KKKKK......',
+        '...KKLLLLLKKK...',
+        '..KWKLLTLLLLKK..',
+        '...KKLLLLLKKK...',
+        '.....KKKKK......'
+      ])
+    ],
+    // A diving beetle: dark green with a yellow rim, paddling
+    beetle: [
+      pad(2, [
+        '......KKKK......',
+        '.....KYSSYK.....',
+        '....KYSSSSYK....',
+        '...KYSSSSSSYK...',
+        '..KYSSSSSSSSYK..',
+        '..KYSSSKKSSSYK..',
+        '..KYSSSKKSSSYK..',
+        '..KYSSSSSSSSYK..',
+        '...KYSSSSSSYK...',
+        '....KYSSSSYK....',
+        '.....KYYYYK.....',
+        '......KKKK......'
+      ]),
+      pad(2, [
+        '......KKKK......',
+        '.....KYSSYK.....',
+        '....KYSSSSYK....',
+        '...KYSSSSSSYK...',
+        '..KYSSSSSSSSYK..',
+        'KKKYSSSKKSSSYKKK',
+        '..KYSSSKKSSSYK..',
+        '..KYSSSSSSSSYK..',
+        '...KYSSSSSSYK...',
+        '....KYSSSSYK....',
+        '.....KYYYYK.....',
+        '......KKKK......'
+      ])
+    ],
+    // A small songbird (A crown and back, F wings, W belly, E face, H beak), recoloured for each species
+    songbird: [
+      pad(6, [
+        '.........KKK....',
+        '........KAAAK...',
+        '....KKKKAEKAHH..',
+        '...KFFFAAAAAK...',
+        '..KFFFFFAWWWK...',
+        '...KFFFWWWWK....',
+        '....KKKKKKK.....',
+        '.....K...K......'
+      ]),
+      pad(6, [
+        '.........KKK....',
+        '........KAAAK...',
+        '.KK.KKKKAEKAHH..',
+        '.KFKFFFAAAAAK...',
+        '..KFFFFFAWWWK...',
+        '...KFFFWWWWK....',
+        '....KKKKKKK.....',
+        '.....K...K......'
+      ])
+    ],
+    // A grey heron standing in the shallows
+    heron: [
+      [
+        '......KKKK......',
+        '.....KWWWKKK....',
+        '.....KWKWWYYK...',
+        '......KWWWKKK...',
+        '.......KWK......',
+        '.......KWK......',
+        '......KWWK......',
+        '....KKMMMWK.....',
+        '...KHMMMMMWK....',
+        '..KHHMMMMMMK....',
+        '..KHHHMMMMMK....',
+        '...KKHHMMMK.....',
+        '.....KKKKK......',
+        '.......K.K......',
+        '.......K.K......',
+        '......KK.KK.....'
+      ],
+      [
+        '......KKKK......',
+        '.....KWWWKKK....',
+        '.....KWKWWYK....',
+        '......KWWWKKK...',
+        '.......KWK......',
+        '.......KWK......',
+        '......KWWK......',
+        '....KKMMMWK.....',
+        '...KHMMMMMWK....',
+        '..KHHMMMMMMK....',
+        '..KHHHMMMMMK....',
+        '...KKHHMMMK.....',
+        '.....KKKKK......',
+        '.......K.K......',
+        '.......K.K......',
+        '......KK.KK.....'
+      ]
+    ],
+    // A kingfisher: blue back, orange belly, long beak
+    kingfisher: [
+      pad(5, [
+        '.......KKKK.....',
+        '......KUUUUK....',
+        '.....KUUOWKHHHH.',
+        '.....KUUOOKKKK..',
+        '...KKUUUUOOK....',
+        '..KUUUUUOOOK....',
+        '...KUUUUOOK.....',
+        '....KKKKKK......',
+        '.....K..K.......'
+      ]),
+      pad(5, [
+        '.......KKKK.....',
+        '......KUUUUK....',
+        '.....KUUOWKHH...',
+        '.....KUUOOKKHH..',
+        '...KKUUUUOOK....',
+        '..KUUUUUOOOK....',
+        '...KUUUUOOK.....',
+        '....KKKKKK......',
+        '.....K..K.......'
+      ])
+    ],
+    // A Genji firefly: red neck shield, glowing tail
+    firefly: [
+      pad(4, [
+        '................',
+        '......K..K......',
+        '.......KK.......',
+        '......KZZK......',
+        '.....KKZZKK.....',
+        '....KbbKKbbK....',
+        '....KbbKKbbK....',
+        '.....KbKKbK.....',
+        '.....KYYYYK.....',
+        '......KYYK......',
+        '.......KK.......'
+      ]),
+      pad(4, [
+        '................',
+        '......K..K......',
+        '.......KK.......',
+        '......KZZK......',
+        '.....KKZZKK.....',
+        '....KbbKKbbK....',
+        '....KbbKKbbK....',
+        '.....KbKKbK.....',
+        '....YKYYYYKY....',
+        '.....YKYYKY.....',
+        '......YKKY......'
+      ])
+    ],
+    // A raccoon dog (tanuki) with its dark mask
+    tanuki: [
+      pad(4, [
+        '..KK.KK.........',
+        '.KBBKBBK........',
+        'KBLLBLLBK.......',
+        'KbKbLbKbK.......',
+        '.KbLLLbKKKKKK...',
+        '..KKLLKBBBBBBKK.',
+        '...KBBBBBBBBBBbK',
+        '...KBBBBBBBBBKbK',
+        '...KbbKKKKKbbKK.',
+        '...KbbK...KbbK..',
+        '....KK.....KK...'
+      ]),
+      pad(4, [
+        '..KK.KK.........',
+        '.KBBKBBK........',
+        'KBLLBLLBK.......',
+        'KbKbLbKbK.......',
+        '.KbLLLbKKKKKK...',
+        '..KKLLKBBBBBBKK.',
+        '...KBBBBBBBBBBbK',
+        '...KBBBBBBBBBKbK',
+        '...KbbKKKKKbbKK.',
+        '..KbbK.....KbbK.',
+        '...KK.......KK..'
+      ])
+    ],
+    // A Japanese weasel: long and slim
+    weasel: [
+      pad(7, [
+        '............KK..',
+        '...........KTTK.',
+        '.KKKKKKKKKKTTWKK',
+        'KTTTTTTTTTTTTTK.',
+        '.KKTTTTTTTTTTK..',
+        '...KTK..KTK.....',
+        '...KK....KK.....'
+      ]),
+      pad(7, [
+        '............KK..',
+        '...........KTTK.',
+        '.KKKKKKKKKKTTWKK',
+        'KTTTTTTTTTTTTTK.',
+        '.KKTTTTTTTTTTK..',
+        '....KTK..KTK....',
+        '....KK....KK....'
+      ])
+    ],
+    // A hare's tracks in the snow (big hind feet in front, small front feet behind)
+    tracks: [
+      pad(1, [
+        '........HH..HH..',
+        '........HH..HH..',
+        '..........H.....',
+        '...........H....',
+        '..........H.....',
+        '................',
+        '..HH..HH........',
+        '..HH..HH........',
+        '....H...........',
+        '.....H..........',
+        '....H...........',
+        '................'
+      ]),
+      pad(1, [
+        '........HH..HH..',
+        '........HH..HH..',
+        '..........H.....',
+        '...........H....',
+        '..........H.....',
+        '................',
+        '..HH..HH........',
+        '..HH..HH........',
+        '....H...........',
+        '.....H..........',
+        '....H...........',
+        '................'
+      ])
+    ],
+    // A Japanese squirrel sitting up, with its bushy tail
+    squirrel: [
+      pad(3, [
+        '..K.K.....KKK...',
+        '.KBKBK...KBBBK..',
+        '.KBBBK..KBBBBBK.',
+        'KBKBBK..KBBKBBK.',
+        'KBBBBK...KK.KBK.',
+        '.KKBBBK.....KBK.',
+        '..KLLBBK...KBBK.',
+        '..KLLBBBKKKBBK..',
+        '..KLLBBBBBBBK...',
+        '...KLBBBBBBK....',
+        '...KBKKKKBK.....',
+        '..KKK...KKK.....'
+      ]),
+      pad(3, [
+        '..K.K......KK...',
+        '.KBKBK....KBBK..',
+        '.KBBBK...KBBBBK.',
+        'KBKBBK..KBBKBBK.',
+        'KBBBBK...KK.KBK.',
+        '.KKBBBK.....KBK.',
+        '..KLLBBK...KBBK.',
+        '..KLLBBBKKKBBK..',
+        '..KLLBBBBBBBK...',
+        '...KLBBBBBBK....',
+        '...KBKKKKBK.....',
+        '..KKK...KKK.....'
+      ])
+    ],
+    // A rhinoceros beetle with its horn, from above
+    rhinoBeetle: [
+      pad(1, [
+        '........KK......',
+        '.......KbbK.....',
+        '.......KbbK.....',
+        '......KKbbKK....',
+        '.....KbbbbbbK...',
+        '..K..KbLbbLbK..K',
+        '...KKKbbbbbbKKK.',
+        '.....KKKKKKKK...',
+        '...KbbbbKKbbbbK.',
+        '...KbLbbKKbbLbK.',
+        '.KKKbbbbKKbbbbKK',
+        '...KbbbbKKbbbbK.',
+        '....KbbbKKbbbK..',
+        '.....KKKKKKKK...'
+      ]),
+      pad(1, [
+        '........KK......',
+        '.......KbbK.....',
+        '.......KbbK.....',
+        '......KKbbKK....',
+        '.....KbbbbbbK...',
+        '.K...KbLbbLbK.K.',
+        '...KKKbbbbbbKKK.',
+        '.....KKKKKKKK...',
+        '...KbbbbKKbbbbK.',
+        '...KbLbbKKbbLbK.',
+        'KK.KbbbbKKbbbbK.',
+        '...KbbbbKKbbbbK.',
+        '....KbbbKKbbbK..',
+        '.....KKKKKKKK...'
+      ])
+    ],
+    // A cicada with clear wings folded like a tent, from above
+    cicada: [
+      pad(2, [
+        '......KKKK......',
+        '....KKSbbSKK....',
+        '....KbbbbbbK....',
+        '...KuKbbbbKuK...',
+        '..KuuKbSSbKuuK..',
+        '..KuuuKbbKuuuK..',
+        '..KuuuKbbKuuuK..',
+        '..KuuuuKKuuuuK..',
+        '..KuuuuKKuuuuK..',
+        '...KuuuKKuuuK...',
+        '...KuuuKKuuuK...',
+        '....KuuKKuuK....',
+        '.....KKKKKK.....'
+      ]),
+      pad(2, [
+        '......KKKK......',
+        '....KKSbbSKK....',
+        '....KbbbbbbK....',
+        '...KuKbbbbKuK...',
+        '..KuuKbSSbKuuK..',
+        '..KuuuKbbKuuuK..',
+        '..KuuuKbbKuuuK..',
+        '..KuuuuKKuuuuK..',
+        '..KuuuuKKuuuuK..',
+        '...KuuuKKuuuK...',
+        '...KuuuKKuuuK...',
+        '....KuuKKuuK....',
+        '......KKKK......'
+      ])
+    ],
+    // A green pheasant: red face, green body, long tail
+    pheasant: [
+      pad(4, [
+        '..KK............',
+        '.KZZK...........',
+        'KHZWKK..........',
+        '.KSSSK..........',
+        '..KSSSKKKK......',
+        '..KSSSSBBBKKKK..',
+        '...KSSSBBBBBBBKK',
+        '...KSSSSBBBKKKK.',
+        '....KKKKKKK.....',
+        '.....K..K.......',
+        '....KK.KK.......'
+      ]),
+      pad(4, [
+        '..KK............',
+        '.KZZK...........',
+        'KHZWKK..........',
+        '.KSSSK..........',
+        '..KSSSKKKK......',
+        '..KSSSSBBBKKKK..',
+        '...KSSSBBBBBBBKK',
+        '...KSSSSBBBKKKK.',
+        '....KKKKKKK.....',
+        '......K.K.......',
+        '.....KK.KK......'
+      ])
     ]
   };
 
@@ -1605,7 +2448,35 @@
     grassBlue: { shape: 'butterfly', recolor: { W: 'lilac' } },
     tit: { shape: 'tit', recolor: {} },
     treeFrog: { shape: 'frog', recolor: {} },
-    swallow: { shape: 'swallow', recolor: {} }
+    swallow: { shape: 'swallow', recolor: {} },
+    // Milestone 2.5
+    smallCopper: { shape: 'butterfly', recolor: { W: 'orange' } },
+    swallowtail: { shape: 'swallowtail', recolor: {} },
+    honeybee: { shape: 'bee', recolor: {} },
+    grasshopper: { shape: 'grasshopper', recolor: {} },
+    bellCricket: { shape: 'cricket', recolor: {} },
+    brownFrog: { shape: 'frog', recolor: { G: 'orange', D: 'earth1' } },
+    greenTreeFrog: { shape: 'frog', recolor: { G: 'green2', D: 'green1', W: 'orange' } },
+    skimmer: { shape: 'dragonfly', recolor: { U: 'panel1' } },
+    redDragonfly: { shape: 'dragonfly', recolor: { U: 'red' } },
+    waterStrider: { shape: 'strider', recolor: {} },
+    medaka: { shape: 'fish', recolor: {} },
+    divingBeetle: { shape: 'beetle', recolor: {} },
+    whiteEye: { shape: 'songbird', recolor: { A: 'green2', F: 'green1', W: 'yellow', E: 'white' } },
+    bushWarbler: { shape: 'songbird', recolor: { A: 'green1', F: 'earth1', W: 'grey', E: 'earth3' } },
+    shrike: { shape: 'songbird', recolor: { A: 'earth1', F: 'metal0', W: 'earth3', E: 'outline' } },
+    redstart: { shape: 'songbird', recolor: { A: 'grey', F: 'outline', W: 'orange', E: 'outline' } },
+    heron: { shape: 'heron', recolor: {} },
+    kingfisher: { shape: 'kingfisher', recolor: {} },
+    firefly: { shape: 'firefly', recolor: {} },
+    tanuki: { shape: 'tanuki', recolor: {} },
+    weasel: { shape: 'weasel', recolor: { T: 'orange' } },
+    hare: { shape: 'tracks', recolor: {} },
+    squirrel: { shape: 'squirrel', recolor: {} },
+    rhinoBeetle: { shape: 'rhinoBeetle', recolor: {} },
+    cicada: { shape: 'cicada', recolor: {} },
+    pheasant: { shape: 'pheasant', recolor: { S: 'teal0' } },
+    sparrow: { shape: 'songbird', recolor: { A: 'earth1', F: 'earth0', W: 'earth3', E: 'white' } }
   };
 
   // ----- Small signs -----
@@ -1642,6 +2513,48 @@
       '....YYWWWYY.....',
       '......YWY.......',
       '.......Y........'
+    ]),
+    // A red-and-white paper lantern for the festivals (a gift to the village)
+    lantern: pad(1, [
+      '.......KK.......',
+      '......KZZK......',
+      '.....KWWWWK.....',
+      '.....KZZZZK.....',
+      '.....KWWWWK.....',
+      '.....KZZZZK.....',
+      '......KZZK......',
+      '.......KK.......'
+    ]),
+    // A small solar lamp on the school route (a gift to the village)
+    lamp: [
+      '....KKKKKKKK....',
+      '....KPPPPPPK....',
+      '.....KKKKKK.....',
+      '.......KK.......',
+      '......KYYK......',
+      '.......KK.......',
+      '.......MM.......',
+      '.......MM.......',
+      '.......MM.......',
+      '.......MM.......',
+      '.......MM.......',
+      '.......MM.......',
+      '.......MM.......',
+      '......KMMK......',
+      '.....KKKKKK.....',
+      EMPTY
+    ],
+    // The village's donation box on the community hall wall
+    donation: pad(5, [
+      '...KKKKKKKKKK...',
+      '...KBBBBBBBBK...',
+      '...KBKKKKKKBK...',
+      '...KBBBBBBBBK...',
+      '...KBBWWWWBBK...',
+      '...KBBWZZWBBK...',
+      '...KBBWWWWBBK...',
+      '...KBBBBBBBBK...',
+      '...KKKKKKKKKK...'
     ]),
     // The build mode cursor
     cursor: [

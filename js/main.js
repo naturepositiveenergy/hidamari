@@ -4,7 +4,8 @@
 //   world     walking around (the clock runs)
 //   dialogue  someone is talking (the clock stops)
 //   panel     a window is open: bag, diary, menu, summary (the clock stops)
-//   build     build mode on your home field (the clock stops)
+//   build     build mode on a plot (the clock stops)
+// A scene in the community hall (js/scenes.js) is a conversation with the hall room drawn instead of the village.
 
 (function (root) {
   'use strict';
@@ -14,17 +15,18 @@
   const game = {
     state: null,
     mode: 'title',
-    settings: { relaxed: false, motion: true, plainFont: false },
+    settings: { relaxed: false, motion: true, plainFont: false, textSize: 1, furigana: false, music: 0.4, sounds: 0.6, soundOn: true },
     showControls: true,       // the controls hint, until you first move or tap
     talkingWith: null,
+    scene: null,              // a scene in the community hall (js/scenes.js), or null
     pendingEnd: false,
     told: {},                 // hints already shown today (evening chime, late)
 
     setMode(m) { this.mode = m; },
 
     // ----- Starting and stopping -----
-    newGame(name) {
-      const state = HM.rules.newGame(name);
+    newGame(name, look) {
+      const state = HM.rules.newGame(name, look);
       HM.save.write(state);
       this.start(state);
     },
@@ -33,11 +35,23 @@
       const state = HM.save.read();
       if (!state) { HM.ui.refreshTitle(); return; }
       this.start(state);
-      if (state.finished) HM.ui.showEnd();
+      if (state.finished) { if (HM.festivals.storyYear(state)) HM.ui.showEnd(); else HM.ui.showFreeEnd(); }
+    },
+
+    // After the ending: one more year without new story (design.md section 12)
+    startFreeYear() {
+      const state = this.state;
+      if (!HM.festivals.startFreeYear(state)) return;
+      HM.save.write(state);
+      HM.world.reset(state);
+      this.setMode('world');
+      this.play([{ say: 'free.start', who: 'narrator' }].concat(HM.story.morning(state)));
     },
 
     start(state) {
       this.state = state;
+      this.scene = null;
+      this.heartsSeen = null;
       this.told = {};
       this.pendingEnd = false;
       HM.world.reset(state);
@@ -82,6 +96,7 @@
     },
 
     useObject(id) {
+      if (/Door$/.test(id) && id !== 'homeDoor' && id !== 'shopDoor') HM.sound.play('knock');
       const result = HM.story.useObject(this, id);
       if (result && result.build) HM.build.open(result.build === true ? 'home' : result.build);
       else if (result && result.shop) HM.ui.showShop();
@@ -173,16 +188,24 @@
       sum.saved = HM.save.write(state);
       this.told = {};
       HM.ui.showSummary(sum, () => {
-        if (state.finished) { HM.ui.showEnd(); return; }
+        // The last evening of the year: the village gathers in the community hall, then the ending.
+        // After the free year: a short goodbye.
+        if (state.finished && HM.festivals.storyYear(state)) { HM.scenes.startEnding(this, () => HM.ui.showEnd()); return; }
+        if (state.finished) {
+          HM.scenes.start(this, 'ending', [{ say: 'free.goodbye.1', who: 'oda' }, { say: 'free.goodbye.2', who: 'oda' }], () => HM.ui.showFreeEnd());
+          return;
+        }
         HM.world.reset(state);
         this.play(HM.story.morning(state));
       });
     },
 
     afterBuild(check) {
+      HM.sound.play('build');
       HM.world.settle(this.state);
       HM.world.unstick(this.state);
-      HM.ui.say('build.done', { minutes: check.minutes });
+      if (check.grant) HM.ui.say('build.grant', { amount: check.grant.toLocaleString('en') }, 6);
+      else HM.ui.say('build.done', { minutes: check.minutes });
     },
 
     onLooked(critter) {
@@ -205,8 +228,17 @@
     return a ? a.id : 'village';
   }
 
+  // The text sizes (design.md section 15): normal, large, extra large
+  const TEXT_SCALE = { 1: 1, 2: 1.15, 3: 1.3 };
   function applySettings() {
     document.body.classList.toggle('plain-font', !!game.settings.plainFont);
+    document.documentElement.style.setProperty('--text-scale', TEXT_SCALE[game.settings.textSize] || 1);
+    if (game.state) HM.render.resize();
+    // Furigana: only for the Japanese texts (design.md section 15)
+    HM.furigana.set(!!game.settings.furigana && I18n.getLanguage() === 'ja');
+    // Music and sounds (design.md section 16): two volumes, and the on/off button on the title screen
+    HM.sound.setVolume('music', game.settings.soundOn ? game.settings.music : 0);
+    HM.sound.setVolume('sounds', game.settings.soundOn ? game.settings.sounds : 0);
   }
 
   // ----- Every frame -----
@@ -215,18 +247,26 @@
     const time = HM.DATA.time;
     if (game.mode === 'world' && !s.finished) {
       s.minutes += dt * time.minutesPerSecond * (game.settings.relaxed ? 0.5 : 1);
-      if (s.minutes >= time.eveningChime && !game.told.chime) { game.told.chime = true; HM.ui.say('hint.chime'); }
+      if (s.minutes >= time.eveningChime && !game.told.chime) { game.told.chime = true; HM.ui.say('hint.chime'); HM.sound.play('chime'); }
       if (s.minutes >= 22 * 60 && !game.told.late) { game.told.late = true; HM.ui.say('hint.late', null, 6); }
       if (s.minutes >= time.dayEnd) {
         s.minutes = time.dayEnd;
         game.play([{ say: 'hint.midnight', who: 'narrator' }], () => game.endDay());
-      }
+      } else if (!HM.scenes.check(game)) HM.festivals.check(game);     // meetings, workshops, festivals
+      // New notes in the village notebook (js/notebook.js)
+      const notes = game.mode === 'world' ? HM.notebook.check(s) : [];
+      if (notes.length === 1) HM.ui.say('nb.new', { title: { key: `nb.${notes[0]}.title` } }, 5);
+      else if (notes.length > 1) HM.ui.say('nb.newMany', { n: notes.length }, 5);
     }
     HM.world.updatePlayer(dt, s, game.mode === 'world');
     HM.world.updateResidents(dt, s, game.talkingWith);
     const looked = HM.world.updateCritters(dt, s, !!s.flags.diary);
     if (looked && game.mode === 'world') game.onLooked(looked);
-    HM.world.residents.forEach(r => { r.eventWaiting = r.visible && HM.story.eventWaiting(s, r.who, r.spot); });
+    HM.world.residents.forEach(r => { r.eventWaiting = r.visible && HM.events.waiting(s, r.who, r.spot); });
+    // A new heart with someone: a little sound
+    const hearts = HM.DATA.friends.map(f => HM.rules.heartsWith(s, f)).join();
+    if (game.heartsSeen && hearts !== game.heartsSeen && hearts.split(',').some((h, i) => Number(h) > Number(game.heartsSeen.split(',')[i]))) HM.sound.play('heart');
+    game.heartsSeen = hearts;
     HM.render.draw(HM.world, game, now);
     HM.ui.updateHud();
   }
@@ -236,19 +276,24 @@
     const dt = Math.min(0.1, last ? (now - last) / 1000 : 0);
     last = now;
     if (game.state && game.mode !== 'title') update(dt, now);
+    HM.soundscape.update(game, now);       // the music and sounds of nature that fit the moment
     requestAnimationFrame(frame);
   }
 
   // ----- Start -----
   function boot() {
     const reduced = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    game.settings = Object.assign({ relaxed: false, motion: !reduced, plainFont: false }, HM.save.readSettings());
+    game.settings = Object.assign({ relaxed: false, motion: !reduced, plainFont: false, textSize: 1, furigana: false, music: 0.4, sounds: 0.6, soundOn: true },
+      HM.save.readSettings());
+    // Browsers allow sound only after a tap or a key press (js/sound.js)
+    ['pointerdown', 'keydown'].forEach(type => document.addEventListener(type, () => HM.sound.unlock(), true));
     applySettings();
-    I18n.onChange(() => { HM.ui.onLanguage(); HM.build.refresh(); });
+    I18n.onChange(() => { HM.ui.onLanguage(); HM.build.refresh(); applySettings(); });
     I18n.init();
     HM.dialogue.init();
     HM.build.init(game);
     HM.ui.initTitle(game);
+    applySettings();       // (again, now that the language is known: furigana)
     HM.input.init({
       action: e => game.action(e),
       back: () => game.back(),

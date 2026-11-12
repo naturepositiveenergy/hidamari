@@ -18,15 +18,32 @@
       <div class="title-buttons">
         <button type="button" id="continueBtn" class="btn btn-primary" hidden></button>
         <button type="button" id="newGameBtn" class="btn" data-i18n="title.newGame"></button>
+        <button type="button" id="notebookBtn" class="btn" data-i18n="title.notebook" hidden></button>
       </div>
+      <!-- Sound on or off (text set by js/ui.js) -->
+      <button type="button" id="soundBtn" class="btn btn-small sound-btn" aria-pressed="true"></button>
       <form id="nameForm" class="name-form" hidden>
         <label for="nameInput" data-i18n="title.nameLabel"></label>
         <input id="nameInput" maxlength="10" autocomplete="off" spellcheck="false">
+        <fieldset class="look-pick">
+          <legend data-i18n="title.lookLabel"></legend>
+          <!-- The four looks, added by js/ui.js -->
+          <div id="lookChoices" class="look-choices"></div>
+        </fieldset>
         <p id="overwriteNote" class="muted" data-i18n="title.overwrite" hidden></p>
         <button type="submit" class="btn btn-primary" data-i18n="title.start"></button>
       </form>
       <!-- One button per language file, added by js/ui.js -->
       <nav class="lang-switch" id="langSwitch" data-i18n-aria-label="lang.switchLabel"></nav>
+    </div>
+
+    <!-- The village notebook from the title screen: every note found in any game -->
+    <div id="titlePanel" class="panel" hidden role="dialog" aria-modal="true" aria-labelledby="titlePanelTitle">
+      <div class="panel-box">
+        <h2 id="titlePanelTitle" data-i18n="notebook.title"></h2>
+        <div id="titlePanelBody" class="panel-body"></div>
+        <div class="panel-actions"><button type="button" id="titlePanelClose" class="btn btn-primary" data-i18n="ui.close"></button></div>
+      </div>
     </div>
   </section>
 
@@ -42,6 +59,7 @@
         <button type="button" id="menuBtn" class="btn btn-small" data-i18n="ui.menu"></button></div>
     </header>
 
+    <p id="sceneInfo" class="scene-info" aria-live="polite" hidden></p>
     <p id="hint" class="hint" aria-live="polite" hidden></p>
     <button type="button" id="actionBtn" class="action-btn" hidden></button>
 
@@ -79,10 +97,19 @@
   <script src="js/i18n.js"></script>
   <script src="lang/en.js"></script>
   <script src="lang/ja.js"></script>
+  <script src="lang/ja-readings.js"></script>
+  <script src="js/furigana.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/sound.js"></script>
   <script src="js/sprite-sheet.js"></script>
   <script src="js/map-data.js"></script>
   <script src="js/game-data.js"></script>
   <script src="js/rules.js"></script>
+  <script src="js/community.js"></script>
+  <script src="js/festivals.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/notebook.js"></script>
+  <script src="js/soundscape.js"></script>
   <script src="js/save.js"></script>
   <script src="js/render.js"></script>
   <script src="js/input.js"></script>
@@ -90,6 +117,7 @@
   <script src="js/dialogue.js"></script>
   <script src="js/talks.js"></script>
   <script src="js/story.js"></script>
+  <script src="js/scenes.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/build.js"></script>
   <script src="js/main.js"></script>

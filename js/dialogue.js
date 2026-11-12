@@ -11,7 +11,7 @@
   'use strict';
   const HM = root.HM = root.HM || {};
 
-  let queue = [], onEnd = null, active = false, choosing = false, game = null;
+  let queue = [], onEnd = null, active = false, choosing = false, game = null, speaking = null;
   const el = id => document.getElementById(id);
 
   function heartsText(who) {
@@ -24,6 +24,7 @@
   function show(step) {
     const box = el('dialogue');
     const who = step.who || 'narrator';
+    speaking = who;
     const named = who !== 'narrator';
     el('dlgName').textContent = named ? t('who.' + who, { name: game.state.name }) : '';
     el('dlgName').hidden = !named;
@@ -32,6 +33,9 @@
     el('dlgHearts').hidden = !hearts;
     el('dlgHearts').setAttribute('aria-label', hearts ? t('ui.heartsLabel', { n: HM.rules.heartsOf(game.state.friends[HM.rules.friendOf(who)].points) }) : '');
     el('dlgText').textContent = t(step.say, Object.assign({ name: game.state.name }, step.vars || {}));
+    // A little sound: the morning chime, receiving something, or someone speaking (js/sound.js)
+    HM.sound.play(step.say === 'announce.chime' ? 'chime' : step.say === 'got.money' ? 'coin'
+      : step.say === 'got.item' || step.say === 'got.keepsake' ? 'pickup' : named ? 'talk' : null);
     box.classList.toggle('narration', !named);
     box.dataset.who = who;
     el('dlgChoices').innerHTML = '';
@@ -51,6 +55,7 @@
       b.textContent = t(c.key, Object.assign({ name: game.state.name }, c.vars || {}));
       b.addEventListener('click', ev => {
         ev.stopPropagation();
+        HM.sound.play('choose');
         choosing = false;
         wrap.innerHTML = '';
         queue = (c.then || []).concat(queue);
@@ -82,6 +87,7 @@
 
   function finish() {
     active = false;
+    speaking = null;
     choosing = false;
     el('dialogue').hidden = true;
     const done = onEnd;
@@ -91,6 +97,7 @@
 
   function play(g, steps, whenDone) {
     game = g;
+    choosing = false;
     queue = steps.slice();
     onEnd = whenDone || null;
     active = true;
@@ -117,5 +124,6 @@
     el('dialogue').addEventListener('click', e => { if (!e.target.closest('button')) advance(); });
   }
 
-  HM.dialogue = { init, play, advance, pick, isActive: () => active, isChoosing: () => choosing };
+  // speaker: who is talking right now (in the community hall, they stand up)
+  HM.dialogue = { init, play, advance, pick, isActive: () => active, isChoosing: () => choosing, speaker: () => speaking };
 })(globalThis);

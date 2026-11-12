@@ -203,8 +203,11 @@
     return true;
   }
 
-  // Where a resident wants to be now: a spot name, or a list of spots (a walk)
+  // Where a resident wants to be now: a spot name, or a list of spots (a walk).
+  // During a festival, everyone gathers at the festival's place (js/festivals.js).
   function scheduledSpot(who, state) {
+    const festival = HM.festivals && HM.festivals.gatheringSpot(state, who);
+    if (festival) return festival;
     const plan = HM.DATA.residents[who].plans.find(p => planFits(p.when, state));
     const hour = state.minutes / 60;
     let spot = 'inside';
@@ -314,47 +317,113 @@
   }
 
   // ----- Animals -----
-  function habitatTiles(habitat, state) {
-    const map = HM.MAP;
-    const tiles = [];
-    // Tiles of one type built on any plot
-    const fieldTiles = type => map.plots.flatMap(p => state.plots[p.id].tiles
-      .map((t, i) => (t === type ? { x: p.x + i % p.w, y: p.y + Math.floor(i / p.w) } : null)).filter(Boolean));
-    const wet = (x, y) => ['water', 'paddy'].includes((map.legend[tileAt(x, y)] || {}).habitat) || builtAt(x, y, state) === 'pond';
-    if (habitat === 'gardenMeadow') return fieldTiles('meadow');
-    for (let y = 0; y < map.height; y++) {
-      for (let x = 0; x < map.width; x++) {
-        const ch = map.rows[y][x];
-        const h = map.legend[ch].habitat;
-        if (habitat === 'meadow' && h === 'meadow') tiles.push({ x, y });
-        if (habitat === 'hedge' && h === 'hedge') tiles.push({ x, y });
-        if (habitat === 'waterEdge' && walkable(x, y, state) && fieldIndex(x, y) < 0 &&
-            [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => wet(x + dx, y + dy))) tiles.push({ x, y });
-        if (habitat === 'nest' && walkable(x, y, state)) {
-          for (let ny = y - 3; ny <= y; ny++) for (let nx = x - 2; nx <= x + 2; nx++) {
-            if (tileAt(nx, ny) === 'N' && !tiles.some(t => t.x === x && t.y === y)) tiles.push({ x, y });
-          }
-        }
+  // Where each habitat is (see js/game-data.js). The map's own tiles never change, so they are worked
+  // out once; your gardens, the weather and the mud are added each time.
+  const NEAR = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const near = (x, y, test) => NEAR.some(([dx, dy]) => test(x + dx, y + dy));
+  const areaOf = id => HM.MAP.areas.find(a => a.id === id);
+  const inArea = (a, x, y) => x >= a.x && y >= a.y && x < a.x + a.w && y < a.y + a.h;
+  const mapCache = {};
+  function mapTiles(habitat) {
+    if (mapCache[habitat]) return mapCache[habitat];
+    const map = HM.MAP, pond = areaOf('pond'), stream = areaOf('stream');
+    const at = (x, y) => tileAt(x, y);
+    const walk = (x, y) => walkable(x, y, null) && fieldIndex(x, y) < 0;
+    const water = (x, y) => at(x, y) === '~';
+    const paddy = (x, y) => at(x, y) === '"';
+    const pondWater = (x, y) => water(x, y) && inArea(pond, x, y);
+    const house = (x, y) => ['A', 'B', 'N', 'W'].includes(at(x, y));
+    const tests = {
+      meadow: (x, y) => map.legend[at(x, y)].habitat === 'meadow',
+      hedge: (x, y) => map.legend[at(x, y)].habitat === 'hedge',
+      waterEdge: (x, y) => walk(x, y) && near(x, y, (a, b) => water(a, b) || paddy(a, b)),
+      paddyEdge: (x, y) => walk(x, y) && near(x, y, paddy),
+      pondEdge: (x, y) => walk(x, y) && near(x, y, pondWater),
+      stillWater: (x, y) => (pondWater(x, y) || paddy(x, y)) && near(x, y, walk),
+      paddyWater: (x, y) => paddy(x, y) && near(x, y, walk),
+      riverbank: (x, y) => walk(x, y) && near(x, y, (a, b) => water(a, b) && !inArea(pond, a, b)),
+      stream: (x, y) => walk(x, y) && near(x, y, (a, b) => water(a, b) && inArea(stream, a, b)),
+      forestEdge: (x, y) => walk(x, y) && near(x, y, (a, b) => at(a, b) === 'T'),
+      village: (x, y) => {
+        if (!walk(x, y)) return false;
+        for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (house(x + dx, y + dy)) return true;
+        return false;
+      },
+      nest: (x, y) => {
+        if (!walk(x, y)) return false;
+        for (let ny = y - 3; ny <= y; ny++) for (let nx = x - 2; nx <= x + 2; nx++) if (at(nx, ny) === 'N') return true;
+        return false;
       }
+    };
+    const out = [];
+    const test = tests[habitat];
+    if (test) for (let y = 0; y < map.height; y++) for (let x = 0; x < map.width; x++) if (test(x, y)) out.push({ x, y });
+    mapCache[habitat] = out;
+    return out;
+  }
+
+  // Tiles of the habitat right now. info: the species (some need a garden with a high nature score).
+  function habitatTiles(habitat, state, info) {
+    const map = HM.MAP, D = HM.DATA;
+    // Tiles of one type built in your gardens (not in Quick Solar Co.'s parks), optionally only in some gardens
+    const fieldTiles = (type, plotOk) => map.plots.flatMap(p => {
+      const plot = state.plots[p.id];
+      if (plot.owner === 'quick' || (plotOk && !plotOk(p.id, plot))) return [];
+      return plot.tiles.map((t, i) => (t === type ? { x: p.x + i % p.w, y: p.y + Math.floor(i / p.w) } : null)).filter(Boolean);
+    });
+    const besidePonds = () => fieldTiles('pond').flatMap(t => NEAR.map(([dx, dy]) => ({ x: t.x + dx, y: t.y + dy })))
+      .filter(t => walkable(t.x, t.y, state) && fieldIndex(t.x, t.y) < 0);
+    let tiles;
+    switch (habitat) {
+      case 'gardenMeadow': return fieldTiles('meadow');
+      case 'gardenPond': return fieldTiles('pond', id => HM.rules.plotStats(state, id).nature >= ((info && info.minScore) || 0));
+      case 'corridor': return map.plots.flatMap(p => {
+        const plot = state.plots[p.id];
+        if (plot.owner === 'quick') return [];
+        return [...HM.rules.connectedCorridors(p.id, plot.tiles)].map(i => ({ x: p.x + i % p.w, y: p.y + Math.floor(i / p.w) }));
+      });
+      case 'meadow':
+        tiles = mapTiles('meadow').filter(t => { const b = builtAt(t.x, t.y, state); return !b || b === 'meadow'; }).concat(fieldTiles('meadow'));
+        break;
+      case 'hedge':
+        tiles = mapTiles('hedge').concat(fieldTiles('hedge', (id, plot) => plot.tiles.filter(t => t === 'hedge').length >= D.gardenHedges));
+        break;
+      case 'stillWater': case 'paddyWater':
+        tiles = mapTiles(habitat).concat(fieldTiles('pond'));
+        break;
+      case 'waterEdge': case 'pondEdge':
+        tiles = mapTiles(habitat).filter(t => walkable(t.x, t.y, state)).concat(besidePonds());
+        break;
+      default:
+        tiles = mapTiles(habitat).filter(t => walkable(t.x, t.y, state));
     }
-    if (habitat === 'meadow') tiles.push(...fieldTiles('meadow'));
-    if (habitat === 'hedge') tiles.push(...fieldTiles('hedge'));
+    // After the mudflow, frogs and dragonflies leave the stream for the rest of the summer
+    if (muddy(state) && ['waterEdge', 'riverbank'].includes(habitat)) {
+      const stream = areaOf('stream');
+      tiles = tiles.filter(t => !inArea(stream, t.x, t.y));
+    }
     return tiles;
   }
+  const muddy = state => !!state.flags.mudflow && !state.flags.cleanUp && HM.rules.seasonOf(state.day) === 'summer';
 
   function speciesActive(sp, state) {
     const info = HM.DATA.species[sp];
     const weather = HM.rules.weatherOf(state.day);
     if (!info.seasons.includes(HM.rules.seasonOf(state.day))) return false;
     if (info.notIn && info.notIn.includes(weather)) return false;
+    if (info.fromDay && state.day < info.fromDay) return false;
     const hours = weather === 'rain' && info.rainHours ? info.rainHours : info.hours;
     const h = state.minutes / 60;
     if (!hours.some(([a, b]) => h >= a && h < b)) return false;
-    if (info.minGarden && habitatTiles(info.habitat, state).length < info.minGarden) return false;
+    if (info.minGarden && habitatTiles(info.habitat, state, info).length < info.minGarden) return false;
     return true;
   }
 
-  const BOB = { cabbageWhite: [300, 2], grassBlue: [260, 2], swallow: [480, 3] };
+  // Flying animals bob up and down: [speed, height]
+  const BOB = {
+    cabbageWhite: [300, 2], grassBlue: [260, 2], smallCopper: [280, 2], swallowtail: [340, 2], honeybee: [200, 1],
+    skimmer: [420, 1], redDragonfly: [420, 1], firefly: [520, 2], swallow: [480, 3]
+  };
 
   function spawnCritters(state) {
     const half = Math.floor(state.minutes / 30);
@@ -366,13 +435,15 @@
     HM.DATA.speciesOrder.forEach(sp => {
       const info = HM.DATA.species[sp];
       if (!speciesActive(sp, state)) return;
-      if (world.critters.filter(c => c.species === sp).length >= info.max) return;
+      const max = muddy(state) && info.mudMax ? info.mudMax : info.max;
+      if (world.critters.filter(c => c.species === sp).length >= max) return;
       if (Math.random() < 0.35) return;   // not every half hour
+      if (info.rare && Math.random() < 0.7) return;   // rare species seldom show themselves
       // Not on a tile that already has an animal, and not right on top of you
-      let tiles = habitatTiles(info.habitat, state).filter(t => !world.critters.some(c => c.tx === t.x && c.ty === t.y) &&
+      let tiles = habitatTiles(info.habitat, state, info).filter(t => !world.critters.some(c => c.tx === t.x && c.ty === t.y) &&
         (Math.abs(t.x - p.x) > 1 || Math.abs(t.y - p.y) > 1));
-      const near = tiles.filter(t => Math.abs(t.x - p.x) <= 12 && Math.abs(t.y - p.y) <= 9);
-      if (near.length) tiles = near;
+      const close = tiles.filter(t => Math.abs(t.x - p.x) <= 12 && Math.abs(t.y - p.y) <= 9);
+      if (close.length) tiles = close;
       if (!tiles.length) return;
       const t = tiles[Math.floor(Math.random() * tiles.length)];
       const [period, size] = BOB[sp] || [1, 0];
@@ -475,7 +546,8 @@
 
   Object.assign(world, {
     reset, settle, updatePlayer, updateResidents, updateCritters, startLook,
-    actionTarget, thingAt, walkTo, besideTile, faceTowards, feetTile, unstick, walkable, fieldIndex, plotAt, builtAt
+    actionTarget, thingAt, walkTo, besideTile, faceTowards, feetTile, unstick, walkable, fieldIndex, plotAt, builtAt,
+    habitatTiles, speciesActive
   });
   HM.world = world;
 })(globalThis);

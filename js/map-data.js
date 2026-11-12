@@ -24,7 +24,7 @@
     'TTTTTTT.~~~~~~~~~~..=......T.....TTTTTTIJTTTTTT....TTTTTTTTTTTTTTTTTTT~~~TTTTTTT',
     'TT................S.=................QTHHTQ.........TTTTTTTTTTTTTTTTTT~~~TTTTTTT',
     'TT."""""""""""""""""=.........T......TTHHTT.........TTTTTT=TT~~TTTTTTT~~~TTTTTTT',
-    'TT."""""""""""""""""=...............QTTHHTTQ...AAAA.TTTTTT=TTT~~TTTTTT~~~TTTTTTT',
+    'TT."""""""""""""""""=...............QTTHHTTQ...AAAA.TTTTTS=TTT~~TTTTTT~~~TTTTTTT',
     'TT.GGGGGGGGGGGGGGGGG=...T............TTHHTT....BBBB.TTTTTT=TTTT~~TTTTT~~~TTTTTTT',
     'TT..""""""""""""""""=................TTHHTT....WDWO.......=.....~~TTTT~~~TTTTTTT',
     'TT..""""""""""""""""=................TTHHTT.....=.........=......~~TTT~~~TTTTTTT',
@@ -117,6 +117,7 @@
     { id: 'signGen', x: 21, y: 48, plot: 'gen' },
     { id: 'signPond', x: 18, y: 13, plot: 'pond' },
     { id: 'signFactory', x: 62, y: 31, plot: 'factory' },
+    { id: 'signSlope', x: 57, y: 15, plot: 'slope' },
     { id: 'genDoor', x: 24, y: 35 },
     { id: 'leaves', x: 32, y: 37 },
     { id: 'berries1', x: 5, y: 54, forage: 'berries' },
@@ -125,6 +126,7 @@
     { id: 'berries4', x: 60, y: 53, forage: 'berries' },
     { id: 'shopDoor', x: 35, y: 27 },
     { id: 'hallDoor', x: 46, y: 26, spots: ['hall', 'hallMeeting'] },
+    { id: 'donationBox', x: 47, y: 26, sprite: 'ui.donation' },      // gifts to the village (Milestone 2.5)
     { id: 'postDoor', x: 28, y: 27, spots: ['post'] },
     { id: 'postBox', x: 30, y: 28 },
     { id: 'officeDoor', x: 55, y: 27, spots: ['office'] },
@@ -146,6 +148,13 @@
     { id: 'soraCap', x: 55, y: 50, request: true },
     { id: 'sluiceLeaves', x: 11, y: 13, request: true },
     { id: 'sunriseView', x: 40, y: 12, request: true, noSparkle: true },
+    // The second requests (Milestone 3.1)
+    { id: 'sickle', x: 21, y: 38, request: true },        // in the grass east of Gen-san's paddy
+    { id: 'riverLitter', x: 68, y: 36, request: true },   // on the riverbank south of the bridge
+    { id: 'compost', x: 27, y: 34, request: true },       // Gen-san's compost heap, east of his house
+    { id: 'swing', x: 51, y: 24, request: true },         // behind the community hall, east side
+    { id: 'hallStore', x: 50, y: 27, request: true },     // the hall's storeroom door, east side
+    { id: 'waterGauge', x: 18, y: 8, request: true },     // the water gauge on the pond's east shore
     // Things to pick (forage: see js/game-data.js), once a day each in their season
     { id: 'stone1', x: 67, y: 45, forage: 'stone' },
     { id: 'stone2', x: 66, y: 33, forage: 'stone' },
@@ -233,7 +242,7 @@
     plaza: { x: 48, y: 29, dir: 'down' }
   };
 
-  // The six plots for power gardens (design.md section 7.1). Only your home field can be built on so far.
+  // The six plots for power gardens (design.md section 7.1)
   const PLOTS = [
     { id: 'home', x: 7, y: 48, w: 4, h: 4 },
     { id: 'fumiko', x: 12, y: 34, w: 8, h: 6 },
@@ -263,9 +272,26 @@
     { id: 'village', x: 0, y: 0, w: 80, h: 60 }
   ];
 
+  // The community hall room (Milestone 2.4), for the town meeting, the zoning workshop and the
+  // year's-end gathering: W wall, w window, b notice board, . wooden floor. Where people sit is in js/scenes.js.
+  const HALL = {
+    rows: [
+      'WWwWWbWWwWW',
+      '...........',
+      '...........',
+      '...........',
+      '...........',
+      '...........',
+      '...........',
+      '...........'
+    ],
+    legend: { W: 'hallWall', w: 'hallWindow', b: 'hallBoard', '.': 'hallFloor' },
+    door: { x: 46, y: 27, dir: 'down' }     // where you stand in the village afterwards
+  };
+
   HM.MAP = {
     width: ROWS[0].length, height: ROWS.length, rows: ROWS, legend: LEGEND,
-    objects: OBJECTS, spots: SPOTS, plots: PLOTS, areas: AREAS,
+    objects: OBJECTS, spots: SPOTS, plots: PLOTS, areas: AREAS, hall: HALL,
     start: { x: 4, y: 46, dir: 'down' }         // in front of your door
   };
 })(globalThis);

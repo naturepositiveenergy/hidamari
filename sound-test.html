@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The listening page for the music and sounds (Milestone 3.3). All texts come from lang/en.js and lang/ja.js -->
+<title data-i18n="sound.pageTitle"></title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/game.css">
+<style>
+  html, body { overflow: auto; height: auto; background: var(--paper-2); }
+  .sound-page { max-width: 760px; margin: 0 auto; padding: 16px; }
+  .sound-page h1 { margin: 0 0 4px; }
+  .sound-page h2 { margin: 18px 0 6px; font-size: 1.1rem; }
+  .sound-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sound-grid .btn[aria-pressed="true"] { background: var(--accent); }
+  .volume { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+  .volume input { flex: 1; max-width: 260px; }
+  .muted-note { color: var(--ink-soft); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+  <main class="sound-page">
+    <nav class="lang-switch" id="langSwitch" data-i18n-aria-label="lang.switchLabel"></nav>
+    <h1 data-i18n="sound.title"></h1>
+    <p data-i18n="sound.intro"></p>
+    <p class="muted-note" data-i18n="sound.tap"></p>
+
+    <div class="volume"><label for="musicVol" data-i18n="settings.musicVolume"></label><input id="musicVol" type="range" min="0" max="100" value="40"></div>
+    <div class="volume"><label for="soundVol" data-i18n="settings.soundVolume"></label><input id="soundVol" type="range" min="0" max="100" value="60"></div>
+
+    <h2 data-i18n="sound.music"></h2>
+    <!-- One button per tune, added by js/sound-test.js -->
+    <div class="sound-grid" id="tunes"></div>
+
+    <h2 data-i18n="sound.nature"></h2>
+    <div class="sound-grid" id="nature"></div>
+
+    <h2 data-i18n="sound.effects"></h2>
+    <div class="sound-grid" id="effects"></div>
+  </main>
+
+  <script src="js/i18n.js"></script>
+  <script src="lang/en.js"></script>
+  <script src="lang/ja.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/sound-test.js"></script>
+</body>
+</html>

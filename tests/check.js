@@ -9,7 +9,9 @@
 // 3. Map: every row has the same length, every letter is known, every walkable place can be
 //    reached from your door, and every spot and thing to use can be reached.
 // 4. Rules: a new game, gifts, build mode limits, nature points, money at the end of the day,
-//    the end of the test after 3 days, and saving then loading gives the same game.
+//    the end of the year, and saving then loading gives the same game. Then the village's decisions
+//    (Milestone 2.4): worries, the town meeting, the farmland permit, the citizen fund, Mr. Kurokawa's
+//    offers, the slope's water and the mudflow, the promotion zone, the meters and the endings.
 // 5. Font: every character the game uses is in the font files in fonts/
 //    (otherwise run: node tools/make-fonts.js).
 //
@@ -26,7 +28,7 @@ const section = name => console.log('\n' + name);
 
 // Load the game's data and rules the same way the page does (without the screen)
 const ctx = vm.createContext({ console });
-for (const f of ['js/i18n.js', 'lang/en.js', 'lang/ja.js', 'js/sprites-data.js', 'js/map-data.js', 'js/game-data.js', 'js/rules.js', 'js/talks.js']) {
+for (const f of ['js/i18n.js', 'lang/en.js', 'lang/ja.js', 'lang/ja-readings.js', 'js/furigana.js', 'js/sprites-data.js', 'js/map-data.js', 'js/game-data.js', 'js/rules.js', 'js/community.js', 'js/festivals.js', 'js/events.js', 'js/notebook.js', 'js/talks.js', 'js/music.js', 'js/soundscape.js']) {
   vm.runInContext(read(f), ctx, { filename: f });
 }
 const HM = ctx.HM, LANG = ctx.HM_LANG;
@@ -44,12 +46,14 @@ Object.keys(ja).forEach(k => { if (!(k in en)) fail(`"${k}" is missing in lang/e
 // Text codes written in the code and in the pages
 // (js/sprite-sheet.js is made by a tool and only has picture names)
 const codeFiles = fs.readdirSync(path.join(ROOT, 'js')).filter(f => f.endsWith('.js') && f !== 'sprite-sheet.js').map(f => 'js/' + f);
-const PREFIXES = 'title|ui|weather|hint|action|who|talk|got|item|bag|intro|letter|announce|obj|gen|midori|diary|look|species|place|menu|settings|summary|end|build|tile|game|app|name|art|style|lang';
+const PREFIXES = 'title|ui|weather|hint|action|who|talk|got|item|bag|intro|letter|announce|obj|gen|midori|diary|look|species|place|menu|settings|summary|end|build|tile|game|app|name|art|style|lang|' +
+  'plot|view|workday|farm|meeting|worry|worries|nema|fund|kuro|slope|zone|notebook|meter|ending|' +
+  'fest|party|shelter|gift|survey|free|ev|keep|nb|sound';
 const used = new Set();
 codeFiles.forEach(f => {
   for (const m of read(f).matchAll(new RegExp(`['\`"]((?:${PREFIXES})\\.[A-Za-z0-9.]+[A-Za-z0-9])['\`"]`, 'g'))) used.add(m[1]);
 });
-['index.html', 'art-test.html'].forEach(f => {
+['index.html', 'art-test.html', 'sound-test.html'].forEach(f => {
   for (const m of read(f).matchAll(/data-i18n(?:-aria-label)?="([^"]+)"/g)) used.add(m[1]);
 });
 // Text codes the code builds from parts
@@ -59,11 +63,17 @@ D.friends.forEach(who => used.add('who.' + who));
 Object.entries(HM.TALKS).forEach(([who, talk]) => {
   [...talk.meet, talk.again, ...talk.chats.map(c => c.key)].forEach(k => used.add(k));
   ok(D.residents[who], `js/talks.js has lines for "${who}", who is not a resident`);
+  // Only conditions js/story.js knows, and only heart events that exist
+  const WHEN = ['spot', 'weather', 'seasons', 'weekend', 'field', 'hearts', 'hours', 'flag', 'notFlag', 'event', 'fund'];
+  talk.chats.forEach(c => Object.keys(c.when || {}).forEach(k => ok(WHEN.includes(k), `the line "${c.key}" has an unknown condition "${k}"`)));
+  talk.chats.forEach(c => { if (c.when && c.when.event) ok(HM.events.byId(c.when.event), `the line "${c.key}" waits for an unknown event`); });
 });
 Object.entries(HM.REQUESTS).forEach(([friend, req]) => {
   [...req.ask, req.remind, ...req.done].forEach(k => used.add(k));
+  ok(D.friends.includes(req.friend || friend), `the request "${friend}" belongs to an unknown household`);
   req.tasks.forEach(task => {
-    task.say.forEach(k => used.add(k));
+    (task.say || []).forEach(k => used.add(k));
+    Object.keys(task.bring || {}).forEach(item => ok(D.items[item], `the request "${friend}" asks for an unknown thing "${item}"`));
     if (task.notNow) used.add(task.notNow);
     if (task.object) ok(HM.MAP.objects.some(o => o.id === task.object), `the request of "${friend}" needs "${task.object}", which is not on the map`);
     if (task.talk) ok(D.residents[task.talk], `the request of "${friend}" needs to talk to "${task.talk}", who is not a resident`);
@@ -82,21 +92,94 @@ HM.MAP.objects.forEach(o => {
   if (['noticeBoard', 'postBox', 'busStop', 'bench', 'hidamariTree'].includes(o.id)) used.add('obj.' + o.id);
 });
 Object.keys(D.items).forEach(i => used.add('item.' + i));
-D.speciesOrder.forEach(sp => { used.add('species.' + sp); used.add('species.' + sp + '.fact'); used.add('hint.' + D.species[sp].habitat); });
+D.speciesOrder.forEach(sp => ['', '.fact', '.hint'].forEach(k => used.add('species.' + sp + k)));
 HM.MAP.areas.forEach(a => used.add('place.' + a.id));
 used.add('place.field');
 D.buildOrder.forEach(tl => { used.add('tile.' + tl); used.add('build.info.' + tl); });
-['money', 'late', 'needs.seedling', 'notHere', 'rubble', 'maxPanels', 'naturalEdge', 'parts', 'helpers', 'workDayLate', 'rubbleHelpers', 'repair']
-  .forEach(p => used.add('build.p.' + p));
+['money', 'late', 'needs.seedling', 'notHere', 'rubble', 'maxPanels', 'naturalEdge', 'parts', 'helpers', 'workDayLate', 'rubbleHelpers', 'repair',
+  'meeting', 'meetingWorries', 'condition', 'permit', 'quick', 'ordinance'].forEach(p => used.add('build.p.' + p));
 D.plotOrder.forEach(id => {
   used.add('plot.' + id);
   const rule = D.plots[id].open;
   if (rule && !rule.later) ['plot.closed.' + id, `plot.open.${id}.1`, `plot.open.${id}.2`].forEach(k => used.add(k));
 });
-['wind', 'wildlife', 'light'].forEach(v => { used.add('view.' + v); used.add(`view.${v}.hint`); });
+['wind', 'wildlife', 'light', 'water'].forEach(v => { used.add('view.' + v); used.add(`view.${v}.hint`); });
+used.add('view.water.hintFlat');
+// The village's decisions (Milestone 2.4): texts the code builds from parts
+Object.entries(D.worries).forEach(([who, w]) => {
+  ['need', 'ask', 'honestGood', 'good', 'honestBad', 'bad', 'thanks', 'nemaOk', 'nemaNo', w.fixable ? 'change' : 'promise']
+    .forEach(k => used.add(`worry.${who}.${k}`));
+});
+D.friends.filter(f => f !== 'kurokawa').forEach(f => used.add('meeting.support.' + f));
+['told', 'notTold', 'zone', 'mudflow', 'blame', 'ordinance'].forEach(n => used.add('meeting.note.' + n));
+['village', 'nature', 'money'].forEach(l => { used.add('meeting.lead.' + l); used.add(`meeting.lead.${l}.say`); });
+['factory.green', 'gen.green', 'gen.yellow', 'fumiko.green', 'fumiko.yellow', 'pond.green', 'pond.yellow', 'slope.red', 'slope.redMud']
+  .forEach(v => used.add('zone.vote.' + v));
+['gen', 'fumiko', 'pond'].forEach(id => used.add('zone.agree.' + id));
+Object.entries(D.letters).forEach(([name, n]) => { for (let i = 1; i <= n; i++) used.add(`letter.${name}.${i}`); });
+D.endings.forEach(e => ['title', 'name', '1', '2', '3', '4'].forEach(k => used.add(`ending.${e}.${k}`)));
+D.friends.forEach(f => ['high', 'mid', 'low', 'five'].forEach(l => used.add(`ending.epi.${f}.${l}`)));
+// The ending scene's words: every friend, and the variants (js/community.js)
+D.friends.forEach(f => used.add('ending.word.' + f));
+['gen.paddy', 'midori.site', 'hiro.roof', 'kurokawa.quit'].forEach(v => used.add('ending.word.' + v));
+['forest', 'restored', 'scar', 'park'].forEach(k => used.add('ending.slope.' + k));
+['partner', 'quick', 'harmless'].forEach(k => used.add('summary.mudflow.' + k));
+['partner', 'quick'].forEach(k => { used.add('summary.slope.' + k); used.add('announce.slope.' + k); });
+['sun', 'nature', 'community'].forEach(k => { used.add('meter.' + k); used.add(`meter.${k}.about`); });
+// Festivals, gifts and Midori's survey (Milestone 2.5)
+const FEST_PEOPLE = ['oda', 'gen', 'fumiko', 'midori', 'aya', 'ken', 'sora', 'hiro', 'kuma', 'rin', 'sato', 'kurokawa'];
+D.festivalOrder.forEach(id => {
+  const f = D.festivals[id];
+  used.add(`fest.${id}.done`);
+  if (id !== 'shelter') used.add('announce.fest.' + id);
+  if (f.place) { ['join', 'now'].forEach(k => used.add(`fest.${id}.${k}`)); FEST_PEOPLE.forEach(who => { used.add(`fest.${id}.${who}`); used.add(`fest.${id}.${who}.y2`); }); }
+  if (f.hall) { used.add(`fest.${id}.time`); used.add('obj.bed.' + id); }
+});
+D.giftOrder.forEach(id => { used.add('gift.' + id); used.add(`gift.${id}.done`); });
+['site', 'good', 'low'].forEach(v => used.add('survey.' + v));
+['hedge', 'pond', 'meadow', 'corridor', 'more'].forEach(v => used.add('survey.tip.' + v));
 ['good', 'poor'].forEach(h => used.add('summary.harvest.' + h));
-const spriteNames = /^(ui|tile|critter)\.(alert|sun|cursor|item|concrete|spacedTop)$/;
+// Heart events (Milestone 3.1): every line, choice, answer, hint and keepsake
+HM.events.keys().forEach(k => used.add(k));
+// The listening page (Milestone 3.3): one text for each tune, sound of nature and short sound
+Object.keys(HM.MUSIC).forEach(n => used.add('sound.tune.' + n));
+['frogs', 'cicadas', 'crickets', 'chimes', 'birds', 'rain', 'storm'].forEach(n => used.add('sound.nature.' + n));
+['talk', 'choose', 'pickup', 'build', 'coin', 'species', 'heart', 'knock', 'chime'].forEach(n => used.add('sound.fx.' + n));
+// Morning news in the free year (Milestone 3.2)
+D.freeYearNews.forEach(day => used.add(`announce.news.${day}.y2`));
+// The village notebook (Milestone 3.2)
+HM.notebook.ORDER.forEach(id => { used.add(`nb.${id}.title`); used.add(`nb.${id}.text`); });
+const spriteNames = /^(ui|tile|critter)\.(alert|sun|cursor|item|concrete|spacedTop|cleared|hallTable|lantern|lamp|donation|roofPanel)$/;
 [...used].filter(k => !spriteNames.test(k) && !(k in en)).forEach(k => fail(`the code uses "${k}", but it is not in the language files`));
+
+// Furigana (Milestone 3.3): every kanji in the Japanese texts has a reading in lang/ja-readings.js
+{
+  const noReading = new Map();
+  Object.entries(LANG.ja).forEach(([key, text]) => {
+    // (numbers stand in for the placeholders, as in the game)
+    HM.furigana.parse(text.replace(/\{[^}]+\}/g, '3')).forEach(p => {
+      const loose = p.text !== undefined ? p.text : (p.reading ? '' : p.base);
+      [...loose].filter(c => /[一-鿿々]/.test(c)).forEach(c => noReading.set(c, key));
+    });
+  });
+  noReading.forEach((key, c) => fail(`the kanji ${c} (in "${key}") has no reading in lang/ja-readings.js`));
+  // A word of two or more kanji must be in the list as a whole, not read kanji by kanji
+  // (a number with its counter, like 3日 in 3日目, may split a word)
+  const split = new Map();
+  Object.entries(LANG.ja).forEach(([key, text]) => {
+    const plainText = text.replace(/\{[^}]+\}/g, '3');
+    const owner = [];
+    HM.furigana.parse(plainText).forEach((p, n) => [...(p.text !== undefined ? p.text : p.base)].forEach(() => owner.push(p.text !== undefined ? -1 : n)));
+    const starts = HM.furigana.parse(plainText).map(p => (p.base || '')[0] || '');
+    for (const m of plainText.matchAll(/[一-鿿々]{2,}/g)) {
+      const pieces = new Set(owner.slice(m.index, m.index + m[0].length));
+      if (pieces.size > 1 && ![...pieces].some(n => /[0-9]/.test(starts[n]))) split.set(m[0], key);
+    }
+  });
+  split.forEach((key, word) => fail(`the word ${word} (in "${key}") is not in lang/ja-readings.js as a whole`));
+  ok(HM.furigana.parse('3人と1人').map(p => p.reading || p.text).join() === '3,にん,と,ひとり', 'counters after numbers have their own readings');
+  ok(HM.furigana.parse('生け垣').map(p => p.reading || p.text).join() === 'い,け,がき', 'a word with kana inside gets a reading for each kanji');
+}
 
 // No Japanese text in the code (it belongs in lang/ja.js). Comments are allowed.
 codeFiles.forEach(f => {
@@ -125,6 +208,8 @@ try {
   D.buildOrder.forEach(tl => ok(sheet.frames['tile.' + tl], `build tile "${tl}" has no drawing`));
   Object.keys(HM.SPRITE_DATA.PEOPLE).forEach(who => ['down', 'up', 'left', 'right'].forEach(dir => ['stand', 'stepA', 'stepB'].forEach(pose =>
     ok(sheet.frames[`${who}.${dir}.${pose}`], `${who} has no "${dir} ${pose}" drawing`))));
+  // The player's four looks (Phase 3) are drawn
+  D.looks.forEach(look => ok(HM.SPRITE_DATA.PEOPLE[look], `the player's look "${look}" has no drawing`));
   console.log(`  ${out.frames} drawings`);
 } catch (e) { fail('the pixel art has a problem: ' + e.message); }
 
@@ -175,6 +260,9 @@ const R = HM.rules;
 const s = R.newGame('Test');
 ok(s.money === D.money.start + D.money.allowance, 'a new game should start with the starting money plus the allowance');
 ok(s.day === 1 && s.minutes === D.time.firstDayStart, 'a new game should start on day 1 at 9:00');
+// The player's look (Phase 3): one of four, each with its drawings; old saved games get the first
+ok(R.lookOf(s) === D.looks[0] && R.lookOf(R.newGame('A', 'player3')) === 'player3', 'a new game should keep the chosen look');
+ok(R.lookOf(R.newGame('A', 'nobody')) === D.looks[0] && R.lookOf({}) === D.looks[0], 'an unknown or missing look should be the first look');
 // Friendship
 ok(R.talk(s, 'gen') && !R.talk(s, 'gen'), 'only the first chat of the day should give points');
 ok(R.giveGift(s, 'gen', 'persimmon') === 'loved' && s.friends.gen.points === D.points.talk + D.points.loved, 'a loved gift should give its points');
@@ -296,6 +384,371 @@ ok(R.shopOpen(m) && R.buy(m, 'manju') && m.money === cash - D.items.manju.price 
 m.day = D.shop.closedDay;
 ok(!R.shopOpen(m), 'the shop should be closed on its closing day');
 console.log('  friendship, gifts, the shop, plots, building, work days, vegetables, the typhoon, money, days and saving checked');
+
+// ---------- 4b. The village's decisions (Milestone 2.4) ----------
+const V = HM.community;
+const hearts = (st, list) => Object.entries(list).forEach(([f, h]) => { st.friends[f].points = h * 100; });
+const fpG = map.plots.find(p => p.id === 'fumiko');
+// Worries on Fumiko-san's field
+const w = R.newGame('Test');
+const empty = w.plots.fumiko.tiles.slice();
+const okOf = (st, plan) => Object.fromEntries(V.worries(st, 'fumiko', plan).map(x => [x.who, x.ok]));
+let ok0 = okOf(w, empty);
+ok(ok0.gen && !ok0.fumiko && !ok0.mori && !ok0.midori && ok0.hiro && !('kuma' in ok0), 'an empty plan on Fumiko-san\'s field answers Gen-san and Hiro only');
+const ringPlan = empty.map((t, i) => { const x = i % fpG.w, y = Math.floor(i / fpG.w); return x === 0 || y === 0 || x === fpG.w - 1 || y === fpG.h - 1 ? 'hedge' : 'spaced'; });
+ok0 = okOf(w, ringPlan);
+ok(ok0.gen && ok0.fumiko && ok0.mori && ok0.midori, 'a hedge all round with spaced panels inside answers Gen-san, Fumiko-san, the Mori family and Midori');
+const densePlan = ringPlan.slice(); densePlan[fpG.w + 1] = 'dense';
+ok(!okOf(w, densePlan).gen, 'dense panels on farmland worry Gen-san');
+ok(V.worries(w, 'factory', empty.slice(0, 80)).find(x => x.who === 'mori').ok, 'the old factory fence answers the Mori family');
+// A plan waits for a town meeting; nemawashi; the room's warmth
+hearts(w, { fumiko: 4 });
+w.plots.fumiko.open = true;
+w.plots.fumiko.plan = ringPlan.slice();
+ok(V.pendingPlots(w).includes('fumiko') && R.checkPlan(w, 'fumiko', ringPlan).problems[0] === 'meeting', 'a plan on Fumiko-san\'s field waits for a town meeting');
+ok(V.meetingStart(w, 'fumiko').warmth === D.meeting.start, 'before nemawashi, the meeting starts at the normal warmth');
+w.flags.nemawashi = true;
+ok(V.nemawashiPlot(w, 'gen') === 'fumiko' && V.nemawashiPlot(w, 'sato') === null, 'after nemawashi, residents with a worry can hear about the plan');
+ok(V.meetingStart(w, 'fumiko').warmth === D.meeting.start - 1, 'without telling everyone, the meeting starts colder');
+V.worries(w, 'fumiko').forEach(x => V.tell(w, 'fumiko', x.who));
+ok(V.toldAll(w, 'fumiko') && V.meetingStart(w, 'fumiko').warmth === D.meeting.start + 1, 'telling everyone first warms the meeting');
+ok(V.answerEffect('honest', true) > 0 && V.answerEffect('honest', false) < 0 && V.answerEffect('vague') < V.answerEffect('change'), 'honest answers with a real answer warm the room, vague answers cool it');
+V.scheduleMeeting(w, 'fumiko');
+ok(w.meeting.day === w.day + 1 && !V.meetingToday(w), 'a town meeting is the next evening');
+// The meeting agrees with a promise: Fumiko-san's hedge; the farmland permit for dense panels
+const noHedge = ringPlan.map((t, i) => (i >= fpG.w * (fpG.h - 1) ? null : t));
+V.approve(w, 'fumiko', ['fumiko']);
+ok(w.plots.fumiko.approved && w.meeting === null && w.stats.meetings === 1, 'a meeting that agrees approves the plot');
+const c1 = R.checkPlan(w, 'fumiko', noHedge);
+ok(c1.problems.includes('condition') && c1.unmet[0] === 'fumiko', 'a plan without the promised hedge cannot be built');
+ok(!R.checkPlan(w, 'fumiko', ringPlan).problems.includes('condition'), 'keeping the promise lets you build');
+const dense2 = ringPlan.slice(); dense2[fpG.w + 2] = 'dense';
+ok(R.checkPlan(w, 'fumiko', dense2).problems.includes('permit') && !R.checkPlan(w, 'fumiko', ringPlan).problems.includes('permit'),
+  'dense panels on farmland wait for the permit; spaced panels over crops do not');
+w.day += D.plots.fumiko.permit;
+ok(!R.checkPlan(w, 'fumiko', dense2).problems.includes('permit'), 'after 2 days the permit has arrived');
+// The citizen fund: friends with 3 hearts or more invest (the Mori family from 4)
+const f = R.newGame('Fund');
+hearts(f, { gen: 3, midori: 5, mori: 3, hiro: 4 });
+V.startFund(f, 'fumiko');
+const cash0 = f.money;
+let fsum = R.endDay(f);
+ok(fsum.fund && fsum.fund.fresh.includes('gen') && fsum.fund.fresh.includes('midori') && !fsum.fund.fresh.includes('mori') &&
+  f.funds[0].investors.gen === D.fund.amounts[3] && f.funds[0].investors.midori === D.fund.amounts[5],
+  'friends with 3 or more hearts invest; the Mori family waits for 4 hearts');
+ok(f.money >= cash0 + D.fund.amounts[3] + D.fund.amounts[5] + D.fund.amounts[4], 'the fund\'s money goes into your purse');
+R.endDay(f); fsum = R.endDay(f);
+ok(fsum.fund.closed && !V.openFund(f), 'the fund closes after 3 days');
+const q = R.newGame('Quick');
+hearts(q, { hiro: 4 });
+q.flags.quickDeal = true;
+ok(V.investment(q, 'hiro') === 0 && !V.canSuggestFund(q), 'Hiro does not invest after a deal with Quick Solar Co.');
+// Mr. Kurokawa: leasing your home field
+const l = R.newGame('Lease');
+const cash1 = l.money;
+V.kurokawaDeal(l, 'lease');
+ok(l.money === cash1 + D.kurokawa.lease && l.plots.home.owner === 'quick' && !l.plots.home.open &&
+  R.checkPlan(l, 'home', l.plots.home.tiles.map(() => 'meadow')).problems.includes('quick') && R.powerShare(l, 'home') === 0,
+  'leasing your home field gives money now, but the field and its power are Quick Solar\'s');
+// Partner on the slope: built overnight, no drainage, a share of the power, and the mudflow in the rainy season
+const pt = R.newGame('Partner');
+pt.day = 3;
+V.kurokawaDeal(pt, 'partner');
+R.endDay(pt);
+const sl = pt.plots.slope;
+ok(sl.owner === 'partner' && sl.open && sl.approved && sl.tiles.filter(Boolean).length === 24, 'his crew builds the partner garden overnight');
+ok(V.runoff('slope', sl.tiles).loose.length === 24 && V.runoff('home', pt.plots.home.tiles).flat, 'without drainage, all the rain runs off the slope; flat plots keep it');
+const powerOnly = R.plotStats(pt, 'slope').power;
+ok(Math.abs(R.dayPower(Object.assign({}, pt, { day: 1 })) - Math.round(powerOnly * D.kurokawa.share)) <= 1, 'you get your share of the partner garden\'s power');
+const pts = { kuma: pt.friends.kuma.points, midori: pt.friends.midori.points };
+hearts(pt, { kuma: 2, midori: 2 });
+pt.day = D.kurokawa.mudflowDay;
+const ms = R.endDay(pt);
+ok(ms.mudflow === 'partner' && pt.flags.mudflow && pt.flags.ordinance && pt.friends.kuma.points === 200 + D.kurokawa.blame.kuma &&
+  pt.letters.includes('ordinance'), 'the mudflow from your garden costs hearts and brings the ordinance');
+ok(R.checkPlan(pt, 'slope', sl.tiles.map((t, i) => (i === 0 ? 'dense' : t))).problems.includes('ordinance'), 'after the ordinance, no new panels on the slope');
+ok(V.meetingNeed(pt) === D.meeting.needOrdinance && V.meetingStart(pt, 'fumiko').notes.includes('blame'), 'after your mudflow, meetings are harder');
+ok(V.distrust(pt) && V.investment(Object.assign(pt, {}), 'hiro') === 0, 'Hiro does not trust you after your mudflow');
+// Ditches catch the runoff: with drainage there is only a small, harmless runoff
+const dr = R.newGame('Drained');
+dr.day = 3; V.kurokawaDeal(dr, 'partner'); R.endDay(dr);
+const drained = dr.plots.slope.tiles.map((t, i) => (Math.floor(i / 8) === 7 ? 'drain' : t));
+ok(!V.runoff('slope', drained).loose.length && V.runoff('slope', drained).caught.length === 24, 'a ditch at the bottom catches every column');
+dr.plots.slope.tiles = drained;
+dr.day = D.kurokawa.mudflowDay;
+const ctxMath = vm.runInContext('Math', ctx), realRandom = ctxMath.random;
+ctxMath.random = () => 0.01;
+const hs = R.endDay(dr);
+ctxMath.random = realRandom;
+ok(hs.mudflow === 'harmless' && !dr.flags.mudflow, 'with drainage, the rainy season does no harm');
+// Saying no: he builds his own park at the start of summer, unless Mr. Oda wrote to the owner
+const no = R.newGame('No');
+V.kurokawaDeal(no, 'no');
+no.day = D.kurokawa.parkDay - 1;
+const ns = R.endDay(no);
+ok(ns.slopeBuilt === 'quick' && no.plots.slope.owner === 'quick' && R.powerShare(no, 'slope') === 0, 'if you say no, he builds his own park in summer');
+const saved = R.newGame('Saved');
+hearts(saved, { oda: 3 });
+saved.flags.kuroMet = true;
+ok(V.canAskOda(saved), 'with 3 hearts, Mr. Oda can write to the slope\'s owner');
+saved.flags.slopeSaved = true;
+saved.day = D.kurokawa.parkDay - 1;
+R.endDay(saved);
+ok(!V.slopeBuilt(saved), 'after Mr. Oda\'s letter, the slope stays a forest');
+// Mud from his park: no blame for you; clean up and restore
+hearts(no, { kuma: 2, midori: 2, gen: 2 });
+no.day = D.kurokawa.mudflowDay;
+const ns2 = R.endDay(no);
+ok(ns2.mudflow === 'quick' && no.friends.kuma.points === 200, 'mud from Quick Solar\'s park is not blamed on you');
+no.minutes = 9 * 60;
+ok(V.canCleanUp(no) && V.cleanUp(no) && no.flags.cleanUp && no.friends.kuma.points === 200 + D.kurokawa.cleanUp.kuma, 'cleaning up the mud brings hearts back');
+hearts(no, { kurokawa: 4 });
+V.restoreSlope(no);
+ok(no.flags.slopeRestored && !no.plots.slope.tiles.some(t => t && D.buildTiles[t].panel) && V.slopeEnding(no) === 'restored', 'with Mr. Kurokawa, the slope can be restored');
+// His autumn offer to buy your garden
+const b = R.newGame('Buy');
+b.plots.home.tiles = b.plots.home.tiles.map((t, i) => (i < 4 ? 'dense' : i < 8 ? 'hedge' : null));
+b.day = D.kurokawa.buyFromDay;
+const offer = V.buyOffer(b);
+ok(offer && offer.plot === 'home' && offer.price === Math.round((4 * 20000 + 4 * 2000) * D.kurokawa.buyFactor), 'he offers 1.5 times what the garden cost');
+hearts(b, { midori: 2 });
+V.sellGarden(b, 'home');
+ok(b.plots.home.owner === 'quick' && !b.plots.home.tiles.includes('hedge') && b.friends.midori.points === 200 + D.kurokawa.soldPoints,
+  'if you sell, the hedges are cut and Midori is hurt');
+// The promotion zone
+const z = R.newGame('Zone');
+hearts(z, { gen: 4, sato: 3 });
+const votes = V.zoneVotes(z);
+ok(votes.factory === 'green' && votes.slope === 'red' && votes.gen === 'green' && votes.fumiko === 'yellow', 'the village votes by its friendships and worries');
+const spoken = V.speakFor(V.speakFor(votes, 'fumiko'), 'slope');
+ok(spoken.fumiko === 'green' && spoken.slope === 'red', 'speaking for a yellow place turns it green; the slope stays red');
+z.day = D.zoning.day;
+ok(V.zoningToday(z), 'the workshop is on autumn day 1 when Ms. Sato has 3 hearts');
+z.plots.fumiko.permitDay = z.day + 2;
+V.finishZoning(z, spoken);
+ok(z.zone.fumiko === 'green' && !z.plots.fumiko.permitDay && V.meetingStart(z, 'fumiko').notes.includes('zone'), 'the zone needs no farmland permit and warms meetings');
+hearts(z, { sato: 4 });
+z.events = Object.assign(z.events || {}, { 'sato.4': 1 });
+ok(V.grantFor(z, 'fumiko', { newPanels: 2 }) === D.zoning.grant && V.grantFor(z, 'fumiko', { newPanels: 2 }) === 0, 'the support grant comes once');
+// Letters
+const lt = R.newGame('Letters');
+lt.day = D.kurokawa.fromDay - 1;
+R.endDay(lt);
+ok(lt.letters.includes('kuroFlyer') && V.letterLines('kuroFlyer').length === D.letters.kuroFlyer, 'Quick Solar Co.\'s flyer arrives on spring day 3');
+// The meters and the endings
+const e = R.newGame('Ending');
+ok(V.ending(e) === 'firstStep', 'a year with little done ends with "A small first step"');
+D.friends.forEach(fr => { e.friends[fr].points = 500; });
+e.plots.factory.tiles = e.plots.factory.tiles.map((t, i) => (i % 2 ? 'dense' : 'meadow'));
+e.plots.fumiko.tiles = e.plots.fumiko.tiles.map((t, i) => ['hedge', 'meadow', 'pond', 'corridor'][i % 4]);
+const mm = V.meters(e);
+ok(mm.sun >= 60 && mm.nature >= 60 && mm.community >= 60 && V.ending(e) === 'sunVillage', 'all three meters high: "A village in the sun"');
+ok(V.epilogue(e, 'gen') === 'high' && V.slopeEnding(e) === 'forest', 'epilogues follow the hearts; an untouched slope stays a forest');
+// Saves from Milestone 2.3 (version 3) are brought up to date
+const v3 = JSON.parse(R.serialize(R.newGame('Old3')));
+v3.version = 3; delete v3.letters; delete v3.meeting; delete v3.funds; delete v3.zone; delete v3.stats.meetings;
+const up3 = R.deserialize(JSON.stringify(v3));
+ok(up3 && up3.version === 4 && Array.isArray(up3.letters) && Array.isArray(up3.funds) && up3.stats.meetings === 0, 'a save from Milestone 2.3 should still load');
+console.log('  worries, nemawashi, the town meeting, the permit, the fund, Mr. Kurokawa, the slope, the zone, letters, meters and endings checked');
+
+// ---------- 4c. Nature, festivals and the free year (Milestone 2.5) ----------
+const F = HM.festivals;
+ok(D.speciesOrder.length === 32 && D.speciesOrder.every(sp => D.species[sp]), 'the nature diary has 32 species, each with its habitat');
+// Every festival on the map has a spot for everyone, on ground you can walk to
+D.festivalOrder.filter(id => D.festivals[id].place).forEach(id => FEST_PEOPLE.forEach(who =>
+  ok(map.spots[`fest.${id}.${who}`], `nobody knows where ${who} stands at the ${id} festival`)));
+const fe = R.newGame('Festival');
+fe.day = D.festivals.hanami.day; fe.minutes = (D.festivals.hanami.from + 1) * 60;
+ok(F.activeFestival(fe) === 'hanami' && F.gatheringSpot(fe, 'gen') === 'fest.hanami.gen' && F.gatheringSpot(fe, 'kurokawa') === null,
+  'during the cherry-blossom picnic, everyone gathers at the shrine (Mr. Kurokawa once you have met him)');
+fe.minutes = (D.festivals.hanami.to) * 60;
+ok(!F.activeFestival(fe), 'a festival ends at its hour');
+const before5 = fe.friends.gen.points;
+ok(F.join(fe, 'hanami') && !F.join(fe, 'hanami') && fe.friends.gen.points === before5 + D.festivalPoints && fe.stats.festivals === 1,
+  'joining a festival gives friendship with everyone there, once');
+ok(F.hallFestival(Object.assign({}, fe, { day: D.festivals.welcome.day })) === 'welcome', 'the welcome party is in the community hall');
+// The firefly count follows the stream
+const ff = R.newGame('Fireflies');
+ok(F.fireflies(ff) === D.fireflies.clear, 'a clean stream: many fireflies');
+ff.flags.mudflow = { day: 10, by: 'quick' };
+ok(F.fireflies(ff) === D.fireflies.muddy, 'after the mudflow: few fireflies');
+ff.flags.cleanUp = true;
+ok(F.fireflies(ff) === D.fireflies.restored, 'after the clean-up, they start to come back');
+// Gifts to the village
+const gv = R.newGame('Gift');
+const cash5 = gv.money, mori5 = gv.friends.mori.points;
+ok(F.donate(gv, 'lanterns') && gv.money === cash5 - D.gifts.lanterns && gv.friends.mori.points === mori5 + D.giftPoints && !F.donate(gv, 'lanterns'),
+  'a gift to the village costs money and gives friendship with everyone, once');
+gv.money = 0;
+ok(!F.donate(gv, 'battery'), 'a gift needs enough money');
+gv.money = 100000;
+F.donate(gv, 'battery');
+ok(!F.shelterLit(gv), 'the battery alone does not light the shelter');
+gv.plots.home.tiles[0] = 'dense';
+ok(F.shelterLit(gv), 'with the battery and a garden with panels, the shelter stays lit');
+// Midori's survey
+const sv = R.newGame('Survey');
+sv.plots.home.tiles = sv.plots.home.tiles.map((t, i) => ['hedge', 'meadow', 'pond', null][i % 4]);
+ok(!F.surveyGardens(sv).length, 'the survey needs 4 hearts with Midori');
+sv.friends.midori.points = 400;
+ok(F.surveyGardens(sv).includes('home'), 'with 4 hearts, Midori offers to survey your gardens');
+const sr = F.survey(sv, 'home');
+ok(sr.score === R.plotStats(sv, 'home').nature && sr.verdict === (sr.score >= D.survey.site ? 'site' : sr.score >= D.survey.good ? 'good' : 'low') &&
+  !F.surveyGardens(sv).includes('home'),
+  'the survey shows the nature score, once a season');
+// Snow on the panels
+const sn = R.newGame('Snow');
+sn.plots.home.tiles = sn.plots.home.tiles.map((t, i) => (i < 4 ? 'dense' : null));
+sn.day = D.days.indexOf('snow') + 1;
+const snowPower = R.dayPower(sn);
+const sc = R.sweepCost(sn, 'home');
+ok(sc.n === 4 && sc.minutes === 4 * D.snow.minutesPerPanel && R.sweep(sn, 'home') && R.dayPower(sn) === Math.round(40 * D.snow.swept) && snowPower === Math.round(40 * D.weatherPower.snow),
+  'sweeping the snow off the panels gives half power instead of a tenth');
+ok(!R.sweepCost(sn, 'home').n, 'swept panels need no more sweeping today');
+// The free year
+const fy = R.newGame('Free');
+while (!fy.finished) R.endDay(fy);
+const ending1 = HM.community.ending(fy);
+ok(F.startFreeYear(fy) && fy.year === 2 && fy.day === 1 && !fy.finished && fy.ending === ending1, 'after the ending, the free year begins in spring');
+ok(!F.storyYear(fy) && !HM.community.zoningToday(Object.assign({}, fy, { day: D.zoning.day })), 'the free year has no new story');
+fy.day = D.kurokawa.fromDay - 1;
+fy.letters = [];
+R.endDay(fy);
+ok(!fy.letters.includes('kuroFlyer'), 'no Quick Solar Co. flyer in the free year');
+while (!fy.finished) R.endDay(fy);
+ok(fy.finished && fy.year === 2, 'the free year ends after 28 days');
+// The meters count festivals and gifts
+const mt = R.newGame('Meters');
+const c0 = HM.community.meters(mt).community;
+mt.stats.festivals = 2; mt.stats.gifts = 1;
+ok(HM.community.meters(mt).community === c0 + 2 * D.meters.festival + D.meters.gift, 'festivals and gifts raise the Community meter');
+console.log('  species, festivals, gifts, the survey, snow and the free year checked');
+
+// Heart events (Milestone 3.1, js/events.js)
+const E = HM.events;
+// Play an event's lines like the dialogue box does (always the first choice), and return the text codes
+function playAll(game, steps) {
+  const said = [], queue = steps.slice();
+  while (queue.length) {
+    const st = queue.shift();
+    if (st.run) { const more = st.run(game); if (Array.isArray(more)) queue.unshift(...more); }
+    else if (st.choice) queue.unshift(...st.choice[0].then);
+    else said.push(st.say);
+  }
+  return said;
+}
+const gameOf = st => ({ state: st, passTime(m) { st.minutes += m; } });
+const at = (st, day, hour) => { st.day = day; st.minutes = hour * 60; };
+const setHearts = (st, f, h) => { st.friends[f].points = h * D.hearts.pointsPerHeart; };
+// Every event belongs to the right household, at places that exist, and every keepsake is described
+Object.entries(HM.EVENTS).forEach(([friend, list]) => {
+  ok(list.length === 5 && list.every((ev, i) => ev.hearts === i + 1), `${friend} should have five heart events, one for each heart`);
+  list.filter(ev => ev.script).forEach(ev => {
+    ok(ev.door ? HM.MAP.objects.some(o => o.id === ev.door) : R.friendOf(ev.who) === friend, `event ${ev.id} happens with someone of another household`);
+    [].concat(ev.spot || []).forEach(sp => ok(HM.MAP.spots[sp], `event ${ev.id} happens at an unknown spot "${sp}"`));
+  });
+});
+ok(E.KEEPSAKES.length === D.friends.length, 'every household gives a keepsake at 5 hearts');
+const ev = R.newGame('Events');
+at(ev, 2, 7);
+ok(!E.waiting(ev, 'gen', 'genPaddy'), 'no heart event before the first heart');
+setHearts(ev, 'gen', 1);
+ok(E.waiting(ev, 'gen', 'genPaddy') && !E.waiting(ev, 'gen', 'shopBenchA'), "Gen-san's first event waits at his paddy in the morning");
+at(ev, 2, 12);
+ok(!E.waiting(ev, 'gen', 'genPaddy'), "Gen-san's first event is a morning event");
+ok(E.hint(ev, 'gen') === 'ev.gen.1.hint' && E.hint(ev, 'gen') === null, 'a resident hints at an event that cannot happen here, once a day at most');
+at(ev, 5, 7);
+const gp = ev.friends.gen.points;
+const said = playAll(gameOf(ev), E.talk(gameOf(ev), 'gen', { spot: 'genPaddy' }));
+ok(said[0] === 'gen.ev1.1' && E.done(ev, 'gen.1') && ev.friends.gen.points === gp + D.points.event && ev.minutes > 7 * 60,
+  'a heart event plays its lines, then counts as done, gives its points and takes time');
+// Order: the next event waits for the earlier one; events whose need isn't met don't hold the others back
+setHearts(ev, 'gen', 3);
+ok(E.next(ev, 'gen').id === 'gen.2', 'events come in order');
+ev.events['gen.2'] = 1;
+ok(E.next(ev, 'gen') === null, "Gen-san's 3-heart event needs crops under spaced panels");
+setHearts(ev, 'gen', 4);
+ok(E.next(ev, 'gen').id === 'gen.4', 'an event whose need is not met does not hold the later ones back');
+delete ev.events['gen.2'];
+ok(E.next(ev, 'gen').id === 'gen.4', 'an event that opens a plot does not wait for the earlier events');
+playAll(gameOf(ev), E.talk(gameOf(ev), 'gen', { spot: 'shopBenchA' }));
+ok(ev.plots.gen.open && E.opens('gen') === 'gen.4', "Gen-san's 4-heart event opens his paddy");
+// The season fallback: Midori's summer event can happen in summer, or later
+['midori.1', 'midori.2', 'midori.3'].forEach(id => { ev.events[id] = 1; });
+setHearts(ev, 'midori', 4);
+at(ev, 3, 19);
+ok(!E.waiting(ev, 'midori', 'terraces'), 'a summer event does not happen in spring');
+at(ev, 9, 19);
+ok(E.waiting(ev, 'midori', 'terraces'), 'a summer event happens in summer');
+at(ev, 17, 19);
+ok(E.waiting(ev, 'midori', 'terraces'), 'a summer event can still happen in autumn (the fallback)');
+// Fumiko-san's dinner: behind her door, and Rin's 3-heart event too
+['fumiko.1', 'fumiko.2', 'fumiko.3', 'rin.1', 'rin.2'].forEach(id => { ev.events[id] = 1; });
+setHearts(ev, 'fumiko', 4);
+at(ev, 10, 18);
+ok(!E.doorWaiting(ev, 'fumikoDoor'), "the dinner needs Rin's 3 hearts too");
+setHearts(ev, 'rin', 3);
+ok(E.doorWaiting(ev, 'fumikoDoor') && !E.doorWaiting(ev, 'genDoor'), "the dinner waits behind Fumiko-san's door in the evening");
+const rp = ev.friends.rin.points;
+playAll(gameOf(ev), E.door(gameOf(ev), 'fumikoDoor'));
+ok(E.done(ev, 'fumiko.4') && E.done(ev, 'rin.3') && ev.friends.rin.points === rp + D.points.event, "the dinner is Fumiko-san's and Rin's event");
+// Keepsakes, the support grant and Rin's students
+['gen.2', 'gen.3'].forEach(id => { ev.events[id] = 1; });
+setHearts(ev, 'gen', 5);
+at(ev, 16, 7);
+playAll(gameOf(ev), E.talk(gameOf(ev), 'gen', { spot: 'genPaddy' }));
+ok(E.done(ev, 'gen.5') && E.keepsakes(ev).includes('strawHat'), "Gen-san's 5-heart event gives his straw hat");
+ok(E.done(ev, 'sato.3') === !!ev.flags.zoningDone, "Ms. Sato's 3-heart event is the zoning workshop");
+const helpersBefore = R.crew(ev);
+ev.flags.rinStudents = true;
+ok(R.crew(ev) === helpersBefore + 1, "after Rin's 4-heart event, her student friends help on work days");
+// Saved games from before Phase 3: their events count as done
+const oldSave = R.newGame('Old');
+delete oldSave.events;
+oldSave.flags.genEvent1 = true; oldSave.flags.nemawashi = true;
+ok(E.done(oldSave, 'gen.1') && E.done(oldSave, 'oda.3'), 'events from older saved games count as done');
+console.log('  heart events, hints, the season fallback, keepsakes and the dinner checked');
+
+// The village notebook (Milestone 3.2, js/notebook.js)
+const NB = HM.notebook;
+const nb = R.newGame('Notebook');
+ok(NB.ORDER.length === 20, 'the village notebook has 20 notes (design.md section 13)');
+const first = NB.check(nb);
+ok(first.join() === 'cooperator,akiya' && NB.check(nb).length === 0, 'two notes unlock at the start, each only once');
+nb.flags.workDay = true;
+nb.plots.home.tiles[0] = 'meadow';
+ok(NB.check(nb).join() === 'yui,meadow', 'a work day and a meadow tile unlock their notes');
+ok(NB.isNew(nb, 'yui') && (NB.markRead(nb), !NB.isNew(nb, 'yui')), 'notes are new until you read the notebook');
+nb.day = D.festivals.shelter.day + 1;
+ok(NB.check(nb).join() === 'hedge,shelter', 'after the typhoon, the notes about hedges and shelters unlock');
+console.log('  the village notebook checked');
+
+// The ending (Milestone 3.2): the year in numbers, words from close friends, epilogues after 5-heart events
+const en2 = R.newGame('Ending');
+ok(V.words(en2).length === 0 && V.review(en2).gardens === 0, 'without close friends nobody speaks, and there are no gardens yet');
+en2.friends.gen.points = 300; en2.friends.kurokawa.points = 500;
+ok(V.words(en2).map(w => w.key).join() === 'ending.word.gen', 'friends with 3 hearts speak; Mr. Kurokawa only once you have met him');
+en2.plots.gen.tiles[0] = 'spaced'; en2.flags.kuroMet = true; en2.events['kurokawa.5'] = 1;
+ok(V.words(en2).map(w => w.key).join() === 'ending.word.gen.paddy,ending.word.kurokawa.quit', 'some words depend on what happened');
+ok(V.epilogue(en2, 'kurokawa') === 'five' && V.epilogue(en2, 'gen') === 'mid', "after a 5-heart event, the epilogue tells what came of it");
+console.log('  the ending checked');
+
+// Music and sounds of nature for the moment (Milestone 3.3, js/soundscape.js)
+const SC = HM.soundscape;
+const sg = { mode: 'world', scene: null, state: R.newGame('Sound') };
+const dayOf = (season, weather) => { for (let d = 1; d <= 28; d++) if (R.seasonOf(d) === season && R.weatherOf(d) === weather) return d; return 0; };
+sg.state.day = dayOf('summer', 'sunny'); sg.state.minutes = 12 * 60;
+ok(SC.musicFor(sg) === 'day' && SC.natureFor(sg).join() === 'cicadas,chimes', 'a summer noon: the day tune, cicadas and wind chimes');
+sg.state.minutes = 20 * 60;
+ok(SC.musicFor(sg) === 'night' && SC.natureFor(sg).join() === 'frogs', 'a summer night: the night tune and frogs');
+sg.state.day = dayOf('autumn', 'typhoon');
+ok(SC.musicFor(sg) === null && SC.natureFor(sg).join() === 'storm', 'the typhoon: no music, only the storm');
+sg.state.day = dayOf('winter', 'snow'); sg.state.minutes = 10 * 60;
+ok(SC.natureFor(sg).length === 0, 'snow is quiet');
+sg.scene = { kind: 'meeting' };
+ok(SC.musicFor(sg) === 'hall' && (sg.scene = { kind: 'ending' }, SC.musicFor(sg) === 'ending'), 'the hall and the ending have their own tunes');
+ok(Object.keys(HM.MUSIC).every(n => HM.MUSIC[n].layers.length), 'every tune has notes');
+console.log('  music and sounds for the moment checked');
 
 // ---------- 5. Font ----------
 section('5. Font');

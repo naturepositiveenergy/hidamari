@@ -27,7 +27,8 @@ html, body {
   background: var(--grass);
   color: var(--ink);
   font-family: var(--pixel-font);
-  font-size: 16px;
+  /* The text size setting (normal, large, extra large) scales all text through --text-scale */
+  font-size: calc(16px * var(--text-scale, 1));
   line-height: 1.6;
   -webkit-text-size-adjust: 100%;
 }
@@ -93,8 +94,34 @@ button:focus-visible, input:focus-visible, .dialogue:focus-visible {
   background: #fff;
   color: var(--ink);
 }
+/* The four looks: small pictures to choose from (the radio buttons stay usable with the keyboard) */
+.look-pick { border: 0; margin: 4px 0 0; padding: 0; }
+.look-pick legend { padding: 0; margin-bottom: 8px; }
+.look-choices { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.look-btn { position: relative; display: block; cursor: pointer; }
+.look-btn input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.look-btn canvas {
+  display: block;
+  width: 64px;
+  height: 64px;
+  padding: 4px;
+  box-sizing: content-box;
+  border: 3px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  image-rendering: pixelated;
+}
+.look-btn input:checked + canvas { border-color: var(--accent-ink); background: var(--accent); }
+.look-btn input:focus-visible + canvas { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+@media (max-width: 420px) {
+  .look-choices { gap: 8px; }
+  .look-btn canvas { width: 48px; height: 48px; }
+}
 .lang-switch { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-.lang-btn[aria-pressed="true"] { background: var(--accent); }
+.lang-btn[aria-pressed="true"], .size-btn[aria-pressed="true"] { background: var(--accent); }
+.size-switch { display: flex; gap: 8px; flex-wrap: wrap; }
+.volume-row input { flex: 1; min-width: 120px; }
+.sound-btn { display: block; margin: 0 auto 12px; }
 
 /* ----- The game ----- */
 .game-screen { background: var(--grass); }
@@ -154,6 +181,24 @@ canvas.px {
   border-radius: 999px;
   text-align: center;
   font-size: 0.95rem;
+  pointer-events: none;
+}
+
+/* In the community hall: the room's warmth, or what the zoning stickers mean */
+.scene-info {
+  position: absolute;
+  left: 50%;
+  top: calc(56px + var(--safe-top));
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(92%, 640px);
+  margin: 0;
+  padding: 2px 14px;
+  background: rgba(255, 253, 245, 0.92);
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  text-align: center;
+  font-size: 0.9rem;
   pointer-events: none;
 }
 
@@ -287,6 +332,26 @@ canvas.px {
 .panel-box h2 { margin: 0 0 8px; font-size: 1.3rem; }
 .panel-body p { margin: 6px 0; }
 .panel-list { margin: 4px 0 8px; padding-left: 1.2em; }
+.keepsakes li { margin-bottom: 6px; }
+/* Furigana: small readings above the kanji (js/furigana.js); lines need a little more room */
+body.furigana { line-height: 2; }
+rt { font-size: 0.5em; line-height: 1; letter-spacing: 0; }
+.plain-font rt { font-size: 0.55em; }
+/* The village notebook's notes */
+.notes { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 10px; }
+.note h4 { margin: 0 0 2px; font-size: 1rem; }
+.note p { margin: 0; }
+.note-new {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.8rem;
+  vertical-align: middle;
+}
+.keepsakes strong { display: block; }
 .panel-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 12px; }
 .settings { display: flex; flex-direction: column; gap: 10px; }
 .setting-row { display: flex; align-items: center; gap: 10px; min-height: 44px; }
@@ -324,7 +389,7 @@ canvas.px {
 .new-species .sketch { width: 96px; height: 96px; margin: 0 auto 8px; }
 
 @media (min-width: 900px) {
-  html, body { font-size: 17px; }
+  html, body { font-size: calc(17px * var(--text-scale, 1)); }
 }
 @media (max-width: 420px) {
   .dialogue { font-size: 1rem; padding: 8px 12px 12px; }
@@ -336,3 +401,16 @@ canvas.px {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* ----- Village decisions (Milestone 2.4) ----- */
+/* The worries list: a circle or a cross as well as the words */
+.worry-list { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.worry { display: flex; gap: 8px; align-items: baseline; }
+.worry-mark { flex: none; width: 1.4em; text-align: center; font-weight: 700; color: #A3361E; }
+.worry.ok .worry-mark { color: var(--grass); }
+/* The village notebook: the three meters */
+.notebook h3, .ending h3 { margin: 12px 0 4px; font-size: 1rem; }
+.meter { height: 16px; background: var(--paper-2); border: 2px solid var(--line); border-radius: 8px; overflow: hidden; }
+.meter-fill { display: block; height: 100%; background: var(--accent); }
+.meter-nature .meter-fill { background: var(--grass); }
+.meter-community .meter-fill { background: var(--heart); }

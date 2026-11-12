@@ -37,6 +37,8 @@
     let text = texts(current)[key];
     if (text === undefined) text = texts(FALLBACK)[key];
     if (text === undefined) return key;   // missing text: show the code, so it is easy to spot
+    // A reading marked in a Japanese line ([源|げん]) shows only with furigana on (js/furigana.js)
+    if (text.indexOf('[') >= 0 && !root.HM_FURIGANA_ON) text = text.replace(/\[([^|\]]+)\|[^\]]+\]/g, '$1');
     if (!vars) return text;
     return text.replace(/\{(\w+)(?::(\+?)(\d))?\}/g, (whole, name, sign, decimals) =>
       name in vars ? formatValue(vars[name], sign, decimals) : whole);

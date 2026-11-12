@@ -36,6 +36,19 @@
       bottom: bar ? Math.max(0, box.bottom - bar.getBoundingClientRect().top) : 0
     };
   }
+  // In a scene in the community hall: the room, the top bar and the dialogue box (CSS pixels)
+  function sceneFit(g) {
+    if (!g.scene) return null;
+    const box = canvas.getBoundingClientRect(), hall = HM.MAP.hall;
+    const hud = document.querySelector('.hud'), dlg = document.getElementById('dialogue');
+    // (the last floor row may hide behind the dialogue box, so the room can be drawn larger)
+    return {
+      id: 'scene:' + g.scene.kind, w: hall.rows[0].length, h: hall.rows.length - 1, margin: 0,
+      // (below the top bar, room for the line with the room's warmth or the sticker legend)
+      top: (hud ? Math.max(0, hud.getBoundingClientRect().bottom - box.top) : 0) + (g.scene.kind === 'ending' ? 0 : 36),
+      bottom: dlg && !dlg.hidden ? Math.max(0, box.bottom - dlg.getBoundingClientRect().top) : 0
+    };
+  }
   // fit (in build mode): the plot's size and how much of the screen the top bar and the build bar
   // cover (in CSS pixels). Then the picture zooms out, in whole steps so the pixels stay crisp,
   // until the whole plot fits between the two bars.
@@ -48,7 +61,8 @@
     let scale = Math.max(1, Math.floor(Math.min(devW, devH) / (T * 11)));
     if (fit) {
       const seenH = devH - (fit.top + fit.bottom) * ratio;
-      scale = Math.max(1, Math.min(scale, Math.floor(seenH / ((fit.h + 1) * T)), Math.floor(devW / ((fit.w + 1) * T))));
+      const margin = fit.margin === undefined ? 1 : fit.margin;
+      scale = Math.max(1, Math.min(scale, Math.floor(seenH / ((fit.h + margin) * T)), Math.floor(devW / ((fit.w + margin) * T))));
     }
     view = { w: Math.ceil(devW / scale), h: Math.ceil(devH / scale), scale, ratio };
     canvas.width = view.w;
@@ -133,8 +147,9 @@
     const state = g.state;
     // The window or the screen zoom changed: fit again
     const box = canvas.parentElement;
-    const fit = buildFit(g);
+    const fit = g.scene ? sceneFit(g) : buildFit(g);
     if (fitKey(box, fit) !== fitted) resize(fit);
+    if (g.scene) { drawScene(g, time, fit); return; }
     const map = HM.MAP;
     const season = HM.rules.seasonOf(state.day);
     const anim = g.settings.motion ? Math.floor(time / 700) % 2 : 0;
@@ -158,13 +173,16 @@
 
     // The plots: vegetables, built tiles, and the plan of the plot you are planning
     const building = g.mode === 'build' ? HM.build.plotId() : null;
+    const snowy = HM.rules.weatherOf(state.day) === 'snow';
     map.plots.forEach(p => {
       const plot = state.plots[p.id];
-      const plan = p.id === building ? HM.build.plan() : null;
+      // The plan you are drawing, or a plan you kept for a town meeting (shown as a sketch)
+      const plan = p.id === building ? HM.build.plan() : plot.plan || null;
       for (let i = 0; i < plot.tiles.length; i++) {
         const fx = (p.x + i % p.w) * T, fy = (p.y + Math.floor(i / p.w)) * T;
-        // Cleared rubble becomes plain concrete
+        // Cleared rubble becomes plain concrete; the cleared forest slope becomes bare earth
         if (map.rows[p.y + Math.floor(i / p.w)][p.x + i % p.w] === 'r' && plot.rubbleCleared) sprite('tile.concrete', 0, fx, fy);
+        if (plot.cleared) sprite('tile.cleared', 0, fx, fy);
         const built = plot.tiles[i];
         const planned = plan ? plan[i] : built;
         const crop = plot.crops && plot.crops[i];
@@ -179,8 +197,13 @@
           ctx.setLineDash([]);
         }
         if (plot.loose.includes(i) && built && planned === built) sprite('ui.alert', 0, fx + 2, fy - 4);
+        // Snow on panels that haven't been swept today
+        if (snowy && built && HM.DATA.buildTiles[built].panel && !HM.rules.swept(state, p.id) && plot.owner !== 'quick') {
+          ctx.fillStyle = 'rgba(255, 253, 245, 0.85)';
+          ctx.fillRect(Math.round(fx - camera.x), Math.round(fy - camera.y), T, 6);
+        }
       }
-      if (plan) {
+      if (plan && p.id === building) {
         // The edge of the plot you are planning (on open water or grass you could not see it otherwise)
         const ox = Math.round(p.x * T - camera.x), oy = Math.round(p.y * T - camera.y);
         ctx.strokeStyle = 'rgba(255, 248, 225, 0.9)';
@@ -190,6 +213,23 @@
         drawView(p, plan, state);
       }
     });
+
+    // After the mudflow, the stream runs brown until the clean-up (or the end of summer)
+    const mud = state.flags.mudflow;
+    if (mud && !state.flags.cleanUp && season === 'summer') {
+      ctx.fillStyle = 'rgba(150, 100, 50, 0.75)';
+      for (let ty = Math.max(y0, 13); ty <= Math.min(y1, 31); ty++) {
+        for (let tx = Math.max(x0, 59); tx <= Math.min(x1, 72); tx++) {
+          if (map.rows[ty][tx] === '~') ctx.fillRect(tx * T - camera.x, ty * T - camera.y, T, T);
+        }
+      }
+    }
+
+    // Things with their own picture (the donation box), festival lanterns and the school-route lights
+    map.objects.forEach(o => { if (o.sprite) sprite(o.sprite, 0, o.x * T, o.y * T); });
+    // Panels on Hiro's shop roof, after his 3-heart event
+    if (state.flags.hiroRoof) SHOP_ROOF.forEach(([x, y]) => sprite('tile.roofPanel', 0, x * T, y * T));
+    const lights = drawVillageLights(state, anim);
 
     // Sparkles on things to pick or find
     map.objects.forEach(o => {
@@ -219,6 +259,8 @@
       ctx.fillStyle = `rgba(${wash[0] | 0}, ${wash[1] | 0}, ${wash[2] | 0}, ${wash[3]})`;
       ctx.fillRect(0, 0, view.w, view.h);
     }
+    // Lamps and lanterns glow through the dark
+    lights.forEach(([x, y, r]) => glow(x, y, r));
     const weather = HM.rules.weatherOf(state.day);
     if (weather === 'rain' || weather === 'typhoon' || weather === 'snow') drawWeather(weather, time, !g.settings.motion);
   }
@@ -259,6 +301,41 @@
           for (let k = 2; k < 14; k++) { ctx.fillRect(x + k, y + k, 1, 1); ctx.fillRect(x + 15 - k, y + k, 1, 1); }
         }
       });
+    } else if (view === 'water') {
+      // Rain runs downhill (south). Brown solid arrows: runoff nothing catches, off the plot into the stream.
+      // Blue dotted arrows: runoff a drainage ditch or pond catches. On flat plots, rain soaks in (blue rings).
+      const water = HM.community.runoff(p.id, plan);
+      const panel = t => t && HM.DATA.buildTiles[t].panel;
+      if (water.flat) {
+        ctx.fillStyle = 'rgba(50, 110, 200, 0.85)';
+        plan.forEach((t, i) => {
+          if (!panel(t)) return;
+          const { x, y } = at(i);
+          ctx.fillRect(x + 5, y + 12, 6, 1); ctx.fillRect(x + 4, y + 13, 1, 1); ctx.fillRect(x + 11, y + 13, 1, 1); ctx.fillRect(x + 5, y + 14, 6, 1);
+        });
+        return;
+      }
+      const arrow = (x, y, solid) => {
+        if (solid) ctx.fillRect(x + 7, y + 1, 2, 10);
+        else for (let k = 1; k < 11; k += 3) ctx.fillRect(x + 7, y + k, 2, 2);
+        ctx.fillRect(x + 4, y + 10, 8, 1); ctx.fillRect(x + 5, y + 11, 6, 1); ctx.fillRect(x + 6, y + 12, 4, 1); ctx.fillRect(x + 7, y + 13, 2, 1);
+      };
+      const column = (i, to, solid) => {
+        const col = i % p.w;
+        for (let row = Math.floor(i / p.w); row < to; row++) {
+          const { x, y } = at(row * p.w + col);
+          arrow(x, y, solid);
+        }
+      };
+      ctx.fillStyle = 'rgba(50, 110, 200, 0.95)';
+      water.caught.forEach(({ i, by }) => {
+        column(i, Math.floor(by / p.w), false);
+        const { x, y } = at(by);
+        ctx.strokeStyle = 'rgba(50, 110, 200, 0.95)';
+        ctx.strokeRect(x + 1.5, y + 1.5, T - 3, T - 3);
+      });
+      ctx.fillStyle = 'rgba(120, 70, 30, 0.95)';
+      water.loose.forEach(({ i }) => column(i, p.h + 1, true));
     } else if (view === 'light') {
       // Shade on the ground: dark under dense panels, dappled under spaced ones
       plan.forEach((t, i) => {
@@ -269,6 +346,148 @@
         if (shade >= 1) ctx.fillRect(x, y, T, T);
         else for (let yy = 0; yy < T; yy += 2) for (let xx = (yy / 2) % 2 * 2; xx < T; xx += 4) ctx.fillRect(x + xx, y + yy, 2, 2);
       });
+    }
+  }
+
+  // ----- Scenes in the community hall (js/scenes.js) -----
+  function drawScene(g, time, fit) {
+    const sc = g.scene, hall = HM.MAP.hall;
+    const css = view.h / Math.max(1, canvas.getBoundingClientRect().height);
+    const top = fit ? fit.top * css : 0, bottom = fit ? fit.bottom * css : 0;
+    const roomW = hall.rows[0].length * T, roomH = hall.rows.length * T;
+    camera.x = Math.round(roomW / 2 - view.w / 2);
+    // Centred between the top bar and the dialogue box, or just below the top bar if the room is taller
+    const seen = view.h - top - bottom;
+    camera.y = Math.round(roomH <= seen ? roomH / 2 - (top + seen / 2) : -top);
+    ctx.fillStyle = '#3A2F28';
+    ctx.fillRect(0, 0, view.w, view.h);
+    hall.rows.forEach((row, y) => [...row].forEach((ch, x) => sprite('tile.' + hall.legend[ch], 0, x * T, y * T)));
+    if (sc.warmth !== null) drawWarmth(sc.warmth);
+    if (sc.map) drawZoneMap(sc);
+
+    // People and tables, back to front. The person speaking stands up.
+    const speaker = HM.dialogue.speaker();
+    const things = [];
+    sc.people.forEach((p, n) => {
+      const standing = p.who === speaker;
+      const person = { who: p.who, dir: standing && p.seated ? 'down' : p.dir, moving: false, walkTime: 0, blinkOffset: n * 677 };
+      const y = p.y * T - (standing && p.seated ? 4 : 0);
+      things.push({ y: p.y * T + (standing ? 1 : 0), draw: () => sprite(personFrame(person, time), 0, p.x * T, y) });
+    });
+    sc.tables.forEach(([x0, x1, ty]) => things.push({ y: ty * T + 0.5, draw: () => {
+      for (let x = x0; x < x1; x++) sprite('tile.hallTable', 0, x * T, ty * T + 5);
+    } }));
+    things.sort((a, b) => a.y - b.y).forEach(t => t.draw());
+    // A blackout (the typhoon night without a battery): only candles light the room
+    if (sc.dark) {
+      ctx.fillStyle = 'rgba(20, 24, 60, 0.6)';
+      ctx.fillRect(0, 0, view.w, view.h);
+      // (candles stand on the tables, in the gaps between people)
+      sc.tables.forEach(([x0, , ty]) => [x0 + 2, x0 + 6].forEach(x => glow(x * T, ty * T + 13, 5)));
+    }
+  }
+
+  // A warm round glow (lanterns, lamps and candles at night)
+  function glow(x, y, r) {
+    const cx = Math.round(x - camera.x), cy = Math.round(y - camera.y);
+    ctx.fillStyle = 'rgba(246, 212, 106, 0.35)';
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255, 240, 180, 0.9)';
+    ctx.fillRect(cx - 1, cy - 1, 2, 2);
+  }
+
+  // Gifts to the village you can see: lanterns at festivals, solar lights on the school route (lit at night)
+  const LAMPS = [[52, 29], [56, 29], [50, 31], [60, 31]];
+  const SHOP_ROOF = [[34, 25], [35, 25], [36, 25]];
+  const LANTERNS = [[-3, -2], [3, -2], [-3, 2], [3, 2], [0, -3]];
+  // Returns the glows to draw at night, after the evening colour wash: [x, y, radius]
+  function drawVillageLights(state, anim) {
+    const gifts = state.flags.gifts || {}, h = state.minutes / 60, night = h >= 18 || h < 6;
+    const glows = [];
+    if (gifts.schoolLights) LAMPS.forEach(([x, y]) => { sprite('ui.lamp', 0, x * T, y * T - 8); if (night) glows.push([x * T + 8, y * T - 3, 6]); });
+    const fest = HM.festivals.activeFestival(state);
+    // (not at the firefly evening: fireflies need the dark)
+    if (gifts.lanterns && fest && fest !== 'hotaru') {
+      const [cx, cy] = HM.DATA.festivals[fest].place;
+      LANTERNS.forEach(([dx, dy]) => {
+        const x = (cx + dx) * T, y = (cy + dy) * T - 6;
+        sprite('ui.lantern', 0, x, y);
+        if (night) glows.push([x + 8, y + 8, 8 + anim]);
+      });
+    }
+    return glows;
+  }
+
+  // The room's warmth: a sun on the wall that grows with good answers (and a pale circle when it's cold)
+  function drawWarmth(warmth) {
+    const cx = Math.round(3.5 * T - camera.x), cy = Math.round(0.5 * T - camera.y) - 1;
+    const r = 2 + warmth;
+    if (warmth >= 3) {
+      ctx.fillStyle = '#E5A743';
+      for (let k = 0; k < 8; k++) {
+        const a = k * Math.PI / 4;
+        ctx.fillRect(Math.round(cx + Math.cos(a) * (r + 2)), Math.round(cy + Math.sin(a) * (r + 2)), 1, 1);
+      }
+    }
+    ctx.beginPath();
+    ctx.arc(cx + 0.5, cy + 0.5, r, 0, Math.PI * 2);
+    ctx.fillStyle = warmth ? '#F6D46A' : '#D6CFC4';
+    ctx.fill();
+    ctx.strokeStyle = warmth ? '#E5A743' : '#737B88';
+    ctx.stroke();
+  }
+
+  // The zoning workshop: a small map of the village on the table, with stickers on the plots.
+  // Shapes as well as colours: green circle = welcome, yellow triangle = careful, red cross = no.
+  let miniMap = null;
+  const MINI = {
+    grass: '#9FD171', meadow: '#CDEA92', weeds: '#CDEA92', path: '#E4C99A', bridge: '#A57F5C', soil: '#A57F5C',
+    tree: '#5E9A50', cherry: '#F4A6B8', bigTree: '#5E9A50', water: '#62A6CA', paddy: '#7CC4B8', concrete: '#ABB2BC',
+    rubble: '#ABB2BC', hedge: '#78B25E', berries: '#78B25E', roof: '#D96A55', eave: '#5E4434', eaveNest: '#5E4434',
+    stoneWall: '#D6CFC4', gravel: '#D6CFC4', steps: '#D6CFC4', fence: '#5E4434'
+  };
+  function zoneMapCanvas() {
+    if (miniMap) return miniMap;
+    const map = HM.MAP, c = document.createElement('canvas');
+    c.width = map.width; c.height = map.height;
+    const k = c.getContext('2d');
+    map.rows.forEach((row, y) => [...row].forEach((ch, x) => {
+      k.fillStyle = MINI[map.legend[ch].tile] || '#F6E8C6';
+      k.fillRect(x, y, 1, 1);
+    }));
+    miniMap = c;
+    return c;
+  }
+  function drawZoneMap(sc) {
+    const map = HM.MAP, mx = sc.map.x - camera.x, my = sc.map.y - camera.y;
+    ctx.fillStyle = '#5E4434';
+    ctx.fillRect(mx - 5, my - 5, map.width + 10, map.height + 10);
+    ctx.fillStyle = '#A57F5C';
+    ctx.fillRect(mx - 4, my - 4, map.width + 8, map.height + 8);
+    ctx.drawImage(zoneMapCanvas(), mx, my);
+    ctx.strokeStyle = 'rgba(58, 47, 40, 0.8)';
+    map.plots.forEach(p => { if (p.id !== 'home') ctx.strokeRect(mx + p.x + 0.5, my + p.y + 0.5, p.w - 1, p.h - 1); });
+    Object.entries(sc.votes || {}).forEach(([id, vote]) => {
+      const p = map.plots.find(q => q.id === id);
+      sticker(Math.round(mx + p.x + p.w / 2), Math.round(my + p.y + p.h / 2), vote);
+    });
+  }
+  function sticker(cx, cy, vote) {
+    ctx.fillStyle = '#FFFDF5';
+    ctx.fillRect(cx - 5, cy - 5, 11, 11);
+    ctx.strokeStyle = '#5B4636';
+    ctx.strokeRect(cx - 4.5, cy - 4.5, 10, 10);
+    if (vote === 'green') {
+      ctx.strokeStyle = '#3F7A35';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx + 0.5, cy + 0.5, 3, 0, Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 1;
+    } else if (vote === 'yellow') {
+      ctx.fillStyle = '#C98A1E';
+      for (let row = 0; row < 6; row++) ctx.fillRect(cx - Math.floor(row / 2), cy - 3 + row, row + 1, 1);
+    } else {
+      ctx.fillStyle = '#C24A36';
+      for (let k = -3; k <= 2; k++) { ctx.fillRect(cx + k, cy + k, 2, 2); ctx.fillRect(cx + k, cy - k - 1, 2, 2); }
     }
   }
 
@@ -288,7 +507,9 @@
     let pose = 'stand';
     if (p.moving) pose = ['stand', 'stepA', 'stand', 'stepB'][Math.floor(p.walkTime / 0.14) % 4];
     else if (p.dir !== 'up' && (time + p.blinkOffset) % 3800 < 140) pose = 'blink';
-    return `${p.who}.${p.dir}.${pose}`;
+    // (the player is drawn in the look chosen for this game)
+    const who = p.who === 'player' && HM.game && HM.game.state ? HM.rules.lookOf(HM.game.state) : p.who;
+    return `${who}.${p.dir}.${pose}`;
   }
 
   // Convert a point on the screen to a tile of the map
@@ -309,5 +530,11 @@
     c.drawImage(sheet, frames[0][0], frames[0][1], T, T, 0, 0, T, T);
   }
 
-  HM.render = { init, resize, draw, drawTo, screenToTile, TILE: T };
+  // Run fn once the picture sheet has loaded (for the title screen's looks)
+  function whenReady(fn) {
+    if (sheet && sheet.complete && sheet.naturalWidth) fn();
+    else if (sheet) sheet.addEventListener('load', fn, { once: true });
+  }
+
+  HM.render = { init, resize, draw, drawTo, whenReady, screenToTile, TILE: T };
 })(globalThis);

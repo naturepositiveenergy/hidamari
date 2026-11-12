@@ -3,19 +3,22 @@
 // Choose a tile type, then tap or click the plot (or drag to paint several tiles).
 // With the keyboard: arrow keys move the cursor, Space places, number keys choose the tile type,
 // Enter (on the Build button) builds, Esc cancels. Time stops while you plan.
-// The views (wind, wildlife, light) draw the rules on the plot (js/render.js).
+// The views (wind, wildlife, light, water) draw the rules on the plot (js/render.js).
 // Plans of more than 8 tiles need a work day with friends. The rules are in js/rules.js.
+// On plots that need a town meeting, your plan is kept (as a sketch) for the meeting, and the
+// Worries button shows whose worry the plan answers (js/community.js).
 
 (function (root) {
   'use strict';
   const HM = root.HM = root.HM || {};
   const el = id => document.getElementById(id);
   const R = () => HM.rules;
+  const C = () => HM.community;
 
   let game = null, open = false, plotId = 'home', plan = null, history = [], tool = 'meadow', cursor = { x: 0, y: 0 }, view = null;
   const geo = () => HM.MAP.plots.find(p => p.id === plotId);
   const tools = () => HM.DATA.plots[plotId].tools.concat(['remove']);
-  const VIEWS = ['wind', 'wildlife', 'light'];
+  const VIEWS = ['wind', 'wildlife', 'light', 'water'];
   const fmt = n => Math.round(n).toLocaleString('en');
 
   function button(cls, onClick) {
@@ -42,7 +45,13 @@
     repair.id = 'buildRepair';
     const rubble = button('btn btn-small', doRubble);
     rubble.id = 'buildRubble';
+    const sweep = button('btn btn-small', doSweep);
+    sweep.id = 'buildSweep';
+    actions.prepend(sweep);
+    const worries = button('btn btn-small', () => HM.ui.showWorries(plotId, plan));
+    worries.id = 'buildWorries';
     actions.prepend(rubble);
+    actions.prepend(worries);
     actions.prepend(repair);
     actions.prepend(views);
     el('buildUndo').addEventListener('click', undo);
@@ -89,7 +98,10 @@
   function openMode(id) {
     plotId = id || 'home';
     open = true;
-    plan = game.state.plots[plotId].tiles.slice();
+    // (the village notebook has notes about planning on farmland: js/notebook.js)
+    game.state.flags.planned = Object.assign({}, game.state.flags.planned, { [plotId]: true });
+    // A plan you kept for a town meeting, or what is built
+    plan = (game.state.plots[plotId].plan || game.state.plots[plotId].tiles).slice();
     history = [];
     cursor = { x: 0, y: 0 };
     view = null;
@@ -102,6 +114,11 @@
   }
 
   function close() {
+    // Keep the plan for a plot that needs a town meeting (the village talks about it)
+    if (plan && C().needsMeeting(game.state, plotId)) {
+      const plot = game.state.plots[plotId];
+      plot.plan = plan.some((t, i) => t !== plot.tiles[i]) ? plan.slice() : null;
+    }
     open = false;
     plan = null;
     view = null;
@@ -130,11 +147,8 @@
     refresh();
   }
 
-  // "Gen-san, Hiro and Kuma-san"
-  function names(list) {
-    const n = list.map(f => t('who.' + f));
-    return n.length < 2 ? n.join('') : n.slice(0, -1).join(t('summary.listJoin')) + t('summary.listLast') + n[n.length - 1];
-  }
+  // "Gen-san, Hiro and Kuma-san" (js/ui.js)
+  const names = list => HM.ui.names(list);
 
   function confirm() {
     const check = R().checkPlan(game.state, plotId, plan);
@@ -148,11 +162,12 @@
     }
     // A work day: friends come to help, and the work takes until the evening
     game.play([
-      { say: 'workday.start', who: 'narrator', vars: { names: names(check.helpers) } },
+      { say: 'workday.start', who: 'narrator', vars: { names: names(check.helpers) } }
+    ].concat(check.students ? [{ say: 'workday.students', who: 'narrator' }] : [], [
       { say: 'workday.lunch', who: 'narrator' },
       { run: g => { R().buildPlan(g.state, id, planned); } },
       { say: 'workday.end', who: 'narrator' }
-    ], () => game.afterBuild(check));
+    ]), () => game.afterBuild(check));
   }
 
   function doRepair() {
@@ -163,17 +178,26 @@
     refresh();
   }
 
+  // Snow days: sweep the snow off the panels (half power instead of a tenth)
+  function doSweep() {
+    const r = R().sweep(game.state, plotId);
+    if (!r) { el('buildProblem').textContent = t('build.p.sweep'); el('buildProblem').classList.add('problem'); return; }
+    HM.ui.say('build.swept', { n: r.n });
+    refresh();
+  }
+
   function doRubble() {
     const check = R().checkRubble(game.state);
     if (!check.ok) { el('buildProblem').textContent = t('build.p.' + check.problems[0]); el('buildProblem').classList.add('problem'); return; }
     const id = plotId;
     close();
     game.play([
-      { say: 'workday.rubble', who: 'narrator', vars: { names: names(check.helpers) } },
+      { say: 'workday.rubble', who: 'narrator', vars: { names: names(check.helpers) } }
+    ].concat(check.students ? [{ say: 'workday.students', who: 'narrator' }] : [], [
       { say: 'workday.lunch', who: 'narrator' },
       { run: g => { R().clearRubble(g.state, id); } },
       { say: 'workday.rubbleDone', who: 'narrator' }
-    ], () => { HM.world.settle(game.state); });
+    ]), () => { HM.world.settle(game.state); });
   }
 
   // Taps and drags on the canvas
@@ -227,7 +251,9 @@
     const parts = R().partsLeft(state);
     const lines = [
       t('build.planCost', { cost: fmt(check.cost - check.refund), money: fmt(state.money) }),
-      t('build.power', { power: stats.power }),
+      state.plots[plotId].owner === 'partner'
+        ? t('build.powerShare', { power: stats.power, share: Math.round(R().powerShare(state, plotId) * 100) })
+        : t('build.power', { power: stats.power }),
       t('build.nature', { nature: stats.nature })
     ];
     if (data.plots[plotId].agri) lines.push(t('build.shade', { shade: Math.round(stats.shade * 100) }));
@@ -239,18 +265,40 @@
     const problem = check.problems.find(p => p !== 'nothing');
     // Too much shade on a farmed plot does not stop you building, but the harvest will be poor
     const dark = data.plots[plotId].agri && stats.panels && stats.shade >= data.agriShadeLimit;
-    const hint = view ? t('view.' + view + '.hint') : t('build.toolInfo', { info: t(tool === 'remove' ? 'build.info.remove' : 'build.info.' + tool) });
-    el('buildProblem').textContent = problem ? t('build.p.' + problem) : dark ? t('build.shadeWarn') : hint;
+    const hint = view ? t('view.' + view + '.hint' + (view === 'water' && !data.plots[plotId].slope ? 'Flat' : ''))
+      : t('build.toolInfo', { info: t(tool === 'remove' ? 'build.info.remove' : 'build.info.' + tool) });
+    el('buildProblem').textContent = problem ? problemText(problem, check) : dark ? t('build.shadeWarn') : hint;
     el('buildProblem').classList.toggle('problem', !!(problem || dark));
     el('buildGo').disabled = !check.ok;
     el('buildGo').textContent = t(check.workDay ? 'build.goWorkDay' : 'build.go');
+    // Before the town meeting, closing keeps the plan; after it, the worries list shows your promises
+    const meeting = C().needsMeeting(state, plotId);
+    el('buildCancel').textContent = t(meeting ? 'build.keep' : 'build.cancel');
+    el('buildWorries').hidden = !(data.plots[plotId].meeting && (state.flags.nemawashi || (state.plots[plotId].conditions || []).length));
+    el('buildWorries').textContent = t('build.worries');
     el('buildUndo').disabled = !history.length;
     const loose = R().repairCost(state, plotId);
     el('buildRepair').hidden = !loose.n;
     el('buildRepair').textContent = t('build.repair', { n: loose.n, cost: fmt(loose.cost) });
+    const snow = R().sweepCost(state, plotId);
+    el('buildSweep').hidden = !snow.n;
+    el('buildSweep').textContent = t('build.sweep', { n: snow.n, minutes: snow.minutes });
     const rubble = data.plots[plotId].rubble && !state.plots[plotId].rubbleCleared;
     el('buildRubble').hidden = !rubble;
     el('buildRubble').textContent = t('build.rubble');
+  }
+
+  // A problem as a sentence (some need a name or a day)
+  function problemText(problem, check) {
+    if (problem === 'condition') {
+      const who = check.unmet[0];
+      return t('build.p.condition', { who: t('who.' + who), need: t('worry.' + who + '.need') });
+    }
+    if (problem === 'permit') {
+      return t('build.p.permit', { season: t('season.' + R().seasonOf(check.permitDay)), day: R().dayInSeason(check.permitDay) });
+    }
+    if (problem === 'meeting' && game.state.flags.nemawashi) return t('build.p.meeting') + ' ' + t('build.p.meetingWorries');
+    return t('build.p.' + problem);
   }
 
   HM.build = {
