@@ -788,6 +788,10 @@ section('6. Offline and installing');
     else ok(offlineFiles.has(f), `${f} is used by the game but missing from the list in sw.js (it would be missing offline)`);
   });
   ok(html.includes('js/offline.js'), 'index.html does not load js/offline.js, so the offline helper never starts');
+  // One version on every local stylesheet and script, so browsers never mix new and older files
+  const local = [...html.matchAll(/(?:href|src)="((?:css|fonts|js|lang)\/[^"]+)"/g)].map(m => m[1]);
+  const versions = new Set(local.map(f => (f.match(/\?v=([\w.-]+)$/) || [])[1]));
+  ok(versions.size === 1 && !versions.has(undefined), `every stylesheet and script in index.html needs the same ?v=... (found: ${[...versions].join(', ')})`);
   // The icon files are up to date with the drawing in tools/make-icons.js
   const icons = require(path.join(ROOT, 'tools/make-icons.js')).build();
   Object.entries(icons).forEach(([name, data]) => ok(fs.existsSync(path.join(ROOT, 'icons', name)) &&

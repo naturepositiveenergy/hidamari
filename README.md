@@ -41,6 +41,7 @@ Double-click `index.html`. It works without internet and without installing anyt
 - Added Japanese text with a new kanji word? Add its reading to `lang/ja-readings.js` (the checks say which).
 - Changed the app icon in `tools/make-icons.js`? Run `node tools/make-icons.js`.
 - Added a file the game loads? Add it to the list in `sw.js` (the checks say so if you forget).
+- Before putting a new version on the website, raise the version number `?v=…` in `index.html` everywhere at once (for example from 4.1.1 to 4.1.2), so browsers fetch the new files instead of mixing them with older ones they keep.
 - Then run `node tests/check.js`. It ends with "All checks passed" when everything is fine.
 
 ## Rules for this project

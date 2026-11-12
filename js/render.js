@@ -8,6 +8,9 @@
   'use strict';
   const HM = root.HM = root.HM || {};
   const T = 16;   // tile size in pixels
+  // The game's version (?v=... on this script in index.html), also used for the picture sheet,
+  // so the browser never mixes a new game with an older picture sheet
+  const VERSION = ((root.document && root.document.currentScript && root.document.currentScript.src) || '').split('?')[1] || '';
 
   let canvas, ctx, sheet, view = { w: 320, h: 180, scale: 1 };
   const camera = { x: 0, y: 0 };
@@ -17,7 +20,7 @@
     ctx = canvas.getContext('2d');
     sheet = new Image();
     sheet.onload = onReady;
-    sheet.src = 'img/sprites.png';
+    sheet.src = 'img/sprites.png' + (VERSION ? '?' + VERSION : '');
     resize();
   }
 
