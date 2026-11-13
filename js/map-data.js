@@ -289,9 +289,20 @@
     door: { x: 46, y: 27, dir: 'down' }     // where you stand in the village afterwards
   };
 
+  // ----- The places on the village map (js/minimap.js): numbered pins, at the buildings' doors and
+  // in the middle of the big places. Their names are map.place.<id> in the language files.
+  const PLACES = [
+    { id: 'home', x: 4, y: 45 }, { id: 'shop', x: 35, y: 27 }, { id: 'hall', x: 46, y: 26 },
+    { id: 'post', x: 28, y: 27 }, { id: 'office', x: 55, y: 27 }, { id: 'bus', x: 58, y: 29 },
+    { id: 'shrine', x: 39, y: 7 }, { id: 'gen', x: 24, y: 35 }, { id: 'fumiko', x: 15, y: 43 },
+    { id: 'mori', x: 49, y: 40 }, { id: 'oda', x: 43, y: 40 }, { id: 'midori', x: 48, y: 17 },
+    { id: 'kuma', x: 21, y: 8 }, { id: 'pond', x: 12, y: 8 }, { id: 'terraces', x: 11, y: 21 },
+    { id: 'factory', x: 60, y: 38 }, { id: 'slope', x: 58, y: 10 }
+  ];
+
   HM.MAP = {
     width: ROWS[0].length, height: ROWS.length, rows: ROWS, legend: LEGEND,
-    objects: OBJECTS, spots: SPOTS, plots: PLOTS, areas: AREAS, hall: HALL,
+    objects: OBJECTS, spots: SPOTS, plots: PLOTS, areas: AREAS, hall: HALL, places: PLACES,
     start: { x: 4, y: 46, dir: 'down' }         // in front of your door
   };
 })(globalThis);

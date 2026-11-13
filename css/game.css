@@ -168,6 +168,9 @@ canvas.px {
   font-size: 0.95rem;
 }
 .hud-time { font-variant-numeric: tabular-nums; font-weight: 700; }
+/* The buttons (Map, Menu) stay side by side; on phones the money moves next to the weather (js/ui.js) */
+.hud-right { flex-wrap: nowrap; flex-shrink: 0; }
+.hud > .hud-box:first-child { min-width: 0; }
 
 .hint {
   position: absolute;
@@ -333,7 +336,38 @@ canvas.px {
 .panel-box h2 { margin: 0 0 8px; font-size: 1.3rem; }
 .panel-body p { margin: 6px 0; }
 .panel-list { margin: 4px 0 8px; padding-left: 1.2em; }
-.panel-body a { overflow-wrap: anywhere; }   /* (long links, such as the project page, wrap on phones) */
+.panel-body a { overflow-wrap: anywhere; }
+/* The village map (js/minimap.js) */
+.minimap-box { position: relative; margin: 0 auto 6px; max-width: 480px; border: 2px solid var(--line); border-radius: 8px; overflow: hidden; }
+.minimap-box canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.minimap-pin, .minimap-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 1.35em; height: 1.35em; padding: 0 2px;
+  border-radius: 999px; background: var(--paper); color: var(--ink); border: 1px solid var(--line);
+  font-size: 0.7rem; line-height: 1;
+}
+.minimap-pin { position: absolute; transform: translate(-50%, -50%); pointer-events: none; }
+.minimap-pin.flash { animation: pin-flash 0.5s ease-in-out 4; background: var(--accent); color: #2E1C05; z-index: 1; }
+@keyframes pin-flash { 50% { transform: translate(-50%, -50%) scale(1.6); } }
+.minimap-you {
+  position: absolute; transform: translate(-50%, -110%); padding: 1px 6px; border-radius: 6px;
+  background: #D96A55; color: #FFFDF5; font-size: 0.75rem; line-height: 1.3; z-index: 2;
+  animation: you-blink 1.2s ease-in-out infinite;
+}
+.minimap-you::after {
+  content: ''; position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: #D96A55;
+}
+@keyframes you-blink { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .minimap-you, .minimap-pin.flash { animation: none; } }
+.minimap-here { margin: 4px 0; font-weight: bold; }
+.minimap-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px; }
+.minimap-place {
+  width: 100%; display: flex; align-items: center; gap: 6px; min-height: 36px; padding: 2px 6px;
+  font: inherit; font-size: 0.85rem; text-align: left; color: var(--ink);
+  background: transparent; border: 1px solid transparent; border-radius: 8px; cursor: pointer;
+}
+.minimap-place:hover, .minimap-place:focus-visible { border-color: var(--line); background: var(--paper-2); }   /* (long links, such as the project page, wrap on phones) */
 .keepsakes li { margin-bottom: 6px; }
 /* Furigana: small readings above the kanji (js/furigana.js); lines need a little more room */
 body.furigana { line-height: 2; }

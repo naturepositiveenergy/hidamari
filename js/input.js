@@ -1,7 +1,7 @@
 // Hidamari: keyboard, mouse and touch.
 //
 // Computer: arrow keys or W A S D to walk, Shift to walk faster, Space / Enter / E for the
-// action, Esc to go back, B build mode, N nature diary, I or Tab bag.
+// action, Esc to go back, B build mode, N nature diary, M village map, I or Tab bag.
 // Phone and tablet: tap the ground to walk there, tap a person or thing to go to it,
 // and the round action button.
 
@@ -39,6 +39,7 @@
       else if (key === 'Escape') used = handlers.back();
       else if (key === 'KeyB') used = handlers.build();
       else if (key === 'KeyN') used = handlers.diary();
+      else if (key === 'KeyM' && handlers.map) used = handlers.map();
       else if (key === 'KeyI' || key === 'Tab') used = handlers.bag();
       else if (/^Digit[1-9]$/.test(key)) used = handlers.number(Number(key.slice(5)));
       else if (handlers.arrow && Object.values(KEYS).some(list => list.includes(key))) used = handlers.arrow(key);

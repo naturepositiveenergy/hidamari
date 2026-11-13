@@ -539,5 +539,5 @@
     else if (sheet) sheet.addEventListener('load', fn, { once: true });
   }
 
-  HM.render = { init, resize, draw, drawTo, whenReady, screenToTile, TILE: T };
+  HM.render = { init, resize, draw, drawTo, whenReady, screenToTile, seasonal, tileSprite, TILE: T };
 })(globalThis);

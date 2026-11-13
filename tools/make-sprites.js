@@ -164,16 +164,22 @@ function build() {
   const height = Math.ceil(cells / COLUMNS) * SIZE;
   const pixels = Buffer.alloc(width * height * 4);
   const map = {};
+  const colours = {};   // the average colour of each tile, for the village map (js/minimap.js)
   let cell = 0;
   for (const f of frames) {
     map[f.name] = [];
     for (const grid of f.grids) {
       const ox = (cell % COLUMNS) * SIZE, oy = Math.floor(cell / COLUMNS) * SIZE;
+      const sum = [0, 0, 0, 0];
       render(grid, f.colours, f.soft, f.name).forEach((c, i) => {
         if (!c) return;
         const p = ((oy + Math.floor(i / SIZE)) * width + ox + (i % SIZE)) * 4;
         pixels[p] = c[0]; pixels[p + 1] = c[1]; pixels[p + 2] = c[2]; pixels[p + 3] = 255;
+        sum[0] += c[0]; sum[1] += c[1]; sum[2] += c[2]; sum[3]++;
       });
+      if (f.name.startsWith('tile.') && !colours[f.name] && sum[3]) {
+        colours[f.name] = '#' + sum.slice(0, 3).map(v => Math.round(v / sum[3]).toString(16).padStart(2, '0')).join('');
+      }
       map[f.name].push([ox, oy]);
       cell++;
     }
@@ -181,7 +187,7 @@ function build() {
   const sheetJs = '// Made by tools/make-sprites.js from js/sprites-data.js. Do not change by hand.\n' +
     '// Where each drawing is in img/sprites.png: name: [[x, y] for each animation frame]\n' +
     'globalThis.HM = globalThis.HM || {};\n' +
-    'HM.SHEET = ' + JSON.stringify({ size: SIZE, width, height, frames: map }, null, 0)
+    'HM.SHEET = ' + JSON.stringify({ size: SIZE, width, height, frames: map, colours }, null, 0)
       .replace(/\],"/g, '],\n  "').replace('"frames":{', '"frames":{\n  ') + ';\n';
   return { png: png(width, height, pixels), sheetJs, frames: Object.keys(map).length };
 }

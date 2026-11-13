@@ -50,6 +50,9 @@
 - *Credits: the game is made by Christian Doedt, as a personal project (not for an organisation).*
 - *Licence: all rights reserved (no open licence). The font keeps its own open licence (SIL Open Font License).*
 
+*Approved on 13 November 2026 (village map, section 14):*
+- *A village map opens from a "Map" button in the top bar, from the menu and with the M key. It shows the whole village in the current season, your gardens, 17 numbered places with a list, and where you are. The residents are not shown: finding people stays part of village life.*
+
 *v0.1 is the first draft, written in Phase 0. On 10 November 2026 you approved the concept, the residents, the names (as working names) and art style A, and decided: friendships only, a free pixel-style Japanese font, a furigana setting and a free year after the ending. All numbers are first guesses that will be balanced in Phase 2. Rules marked **(proposal)** still need your decision. Everything still open is listed in section 19.*
 
 ---
@@ -844,6 +847,7 @@ A short notebook of real facts: one or two sentences each, unlocked by situation
 | Esc | Back, close, pause menu |
 | B | Build mode (when standing on a plot) |
 | N | Nature diary |
+| M | Village map |
 | I or Tab | Bag |
 | 1–9 | Choose the item or tile in the bar |
 | Mouse click | Walk to a place, or use the build mode grid |
@@ -852,7 +856,8 @@ A short notebook of real facts: one or two sentences each, unlocked by situation
 
 - **Tap to walk:** tap the ground and you walk there (around obstacles). Tap a person or thing to walk to it and face it.
 - **Action button** (bottom right, large): talk, look closely, use. The same button confirms in conversations.
-- **Menu button** (top right): bag, diary, notebook, settings, save and quit.
+- **Menu button** (top right): bag, diary, map, notebook, settings, save and quit.
+- **Map button** (top right, next to the menu): the village map. It shows the whole village drawn small in the current season, your gardens outlined (yellow where you may build, dashed where not yet), numbered pins for 17 buildings and places with a list below (tap a name and its pin flashes), and a blinking "You" marker with the name of the area you are in. The clock stops while it is open. The residents are not shown.
 - **Build mode:** tap a tile to place the chosen item, drag to paint, and use the bar at the bottom to choose items and switch the four views. Big "Undo" and "Done" buttons.
 - Works in portrait and landscape. All touch targets are at least 44 × 44 pixels.
 

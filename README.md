@@ -8,8 +8,8 @@ A cozy village life-sim for the browser. You move to a small Japanese village an
 
 Double-click `index.html`. It works without internet and without installing anything. On the website, the game can also be installed as an app ("Install the game" on the title screen) and then plays offline.
 
-- **Computer:** arrow keys or W A S D to walk, Shift to walk faster, Space (or Enter or E) for the action, Esc for the menu, B to build on your field, N for the nature diary, I for your bag.
-- **Phone or tablet:** tap where you want to go, tap a person or thing to go to it, and use the round action button.
+- **Computer:** arrow keys or W A S D to walk, Shift to walk faster, Space (or Enter or E) for the action, Esc for the menu, B to build on your field, N for the nature diary, M for the village map, I for your bag.
+- **Phone or tablet:** tap where you want to go, tap a person or thing to go to it, and use the round action button. The Map button at the top shows the whole village and where you are.
 - The game saves every evening when you go to bed.
 - Settings (in the menu): language, text size, furigana, volume of music and sounds, relaxed clock, animations, standard font.
 

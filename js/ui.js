@@ -42,6 +42,7 @@
     game = g;
     keepFocusIn(el('panel'));
     keepFocusIn(el('titlePanel'));
+    placeMoney();
     el('newGameBtn').addEventListener('click', () => {
       el('nameForm').hidden = false;
       el('overwriteNote').hidden = !HM.save.read();
@@ -206,7 +207,8 @@
         closePanel(a.onClick);
       });
       actions.appendChild(b);
-      if (i === 0) setTimeout(() => b.focus(), 0);
+      // (the first button gets the keyboard focus, without scrolling a long window down to it)
+      if (i === 0) setTimeout(() => { b.focus({ preventScroll: true }); el('panel').querySelector('.panel-box').scrollTop = 0; }, 0);
     });
     panelOnClose = opts.onClose || null;
     // A window opened from build mode goes back to build mode
@@ -228,6 +230,20 @@
     if (then) then();
   }
   const panelOpen = () => !el('panel').hidden;
+
+  // ----- The top bar: on narrow screens the money sits next to the weather, so the Map and Menu
+  // buttons fit side by side -----
+  function placeMoney() {
+    const narrow = root.matchMedia('(max-width: 420px)');
+    const place = () => {
+      const money = el('hudMoney'), left = document.querySelector('.hud > .hud-box'), right = document.querySelector('.hud-right');
+      if (narrow.matches) { if (money.parentNode !== left) left.appendChild(money); }
+      else if (money.parentNode !== right) right.insertBefore(money, right.firstChild);
+    };
+    if (narrow.addEventListener) narrow.addEventListener('change', place);
+    root.addEventListener('resize', place);
+    place();
+  }
 
   // ----- Keyboard focus stays inside an open window (Tab and Shift+Tab go round) -----
   function keepFocusIn(box) {
@@ -328,11 +344,17 @@
         { key: 'menu.back', primary: true },
         { key: 'menu.bag', onClick: () => setTimeout(showBag) },
         { key: 'menu.diary', onClick: () => setTimeout(showDiary) },
+        { key: 'menu.map', onClick: () => setTimeout(showMap) },
         { key: 'menu.notebook', onClick: () => setTimeout(showNotebook) },
         { key: 'menu.settings', onClick: () => setTimeout(showSettings) },
         { key: 'menu.quit', onClick: () => game.toTitle() }
       ]
     });
+  }
+
+  // ----- The village map (js/minimap.js) -----
+  function showMap() {
+    openPanel({ title: 'map.title', body: HM.minimap.body(game.state) });
   }
 
   function showSettings() {
@@ -592,6 +614,6 @@
   HM.ui = {
     initTitle, refreshTitle, showScreen, updateHud, say, openPanel, closePanel, panelOpen,
     showBag, showDiary, showNewSpecies, showMenu, showSettings, showShop, showSummary, showEnd, onLanguage, clock,
-    showWorries, showNotebook, showFreeEnd, names
+    showWorries, showNotebook, showFreeEnd, showMap, names
   };
 })(globalThis);

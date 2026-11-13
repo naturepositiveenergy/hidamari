@@ -48,7 +48,7 @@ Object.keys(ja).forEach(k => { if (!(k in en)) fail(`"${k}" is missing in lang/e
 const codeFiles = fs.readdirSync(path.join(ROOT, 'js')).filter(f => f.endsWith('.js') && f !== 'sprite-sheet.js').map(f => 'js/' + f);
 const PREFIXES = 'title|ui|weather|hint|action|who|talk|got|item|bag|intro|letter|announce|obj|gen|midori|diary|look|species|place|menu|settings|summary|end|build|tile|game|app|name|art|style|lang|' +
   'plot|view|workday|farm|meeting|worry|worries|nema|fund|kuro|slope|zone|notebook|meter|ending|' +
-  'fest|party|shelter|gift|survey|free|ev|keep|nb|sound|about';
+  'fest|party|shelter|gift|survey|free|ev|keep|nb|sound|about|map';
 const used = new Set();
 codeFiles.forEach(f => {
   for (const m of read(f).matchAll(new RegExp(`['\`"]((?:${PREFIXES})\\.[A-Za-z0-9.]+[A-Za-z0-9])['\`"]`, 'g'))) used.add(m[1]);
@@ -147,6 +147,9 @@ Object.keys(HM.MUSIC).forEach(n => used.add('sound.tune.' + n));
 ['talk', 'choose', 'pickup', 'build', 'coin', 'species', 'heart', 'knock', 'chime'].forEach(n => used.add('sound.fx.' + n));
 // Morning news in the free year (Milestone 3.2)
 D.freeYearNews.forEach(day => used.add(`announce.news.${day}.y2`));
+// The village map (Milestone 4.2): a name for every place, and every area's "you are" text
+HM.MAP.places.forEach(p => used.add('map.place.' + p.id));
+HM.MAP.areas.forEach(a => used.add('place.' + a.id));
 // The About window (Milestone 4.2)
 ['made', 'art', 'font', 'facts', 'fiction', 'privacy'].forEach(k => used.add('about.' + k));
 // The village notebook (Milestone 3.2)
@@ -247,6 +250,9 @@ Object.entries(D.residents).forEach(([who, r]) => {
   [...r.loved, ...r.liked, ...r.disliked].forEach(item => ok(D.items[item], `${who} likes an unknown item "${item}"`));
 });
 D.shop.items.forEach(item => ok(D.items[item] && D.items[item].price, `the shop sells "${item}" without a price`));
+// The places on the village map (js/minimap.js): inside the map, each id once
+ok(new Set(map.places.map(p => p.id)).size === map.places.length, 'every place on the village map needs its own id');
+map.places.forEach(p => ok(p.x >= 0 && p.y >= 0 && p.x < map.width && p.y < map.height, `the place "${p.id}" on the village map is outside the map`));
 // The plots: inside the map, one for each plot in the game data, the home field is soil, and open plots have a sign
 D.plotOrder.forEach(id => ok(map.plots.some(p => p.id === id), `plot "${id}" is not on the map`));
 map.plots.forEach(p => ok(p.x >= 0 && p.y >= 0 && p.x + p.w <= map.width && p.y + p.h <= map.height, `plot "${p.id}" is outside the map`));

@@ -300,6 +300,7 @@
       back: () => game.back(),
       build: () => game.openBuild(),
       diary: () => { if (game.mode !== 'world') return false; HM.ui.showDiary(); return true; },
+      map: () => { if (game.mode !== 'world') return false; HM.ui.showMap(); return true; },
       bag: () => { if (game.mode !== 'world') return false; HM.ui.showBag(); return true; },
       number: n => (game.mode === 'dialogue' ? HM.dialogue.pick(n) : game.mode === 'build' ? HM.build.toolByNumber(n) : false),
       arrow: code => (game.mode === 'build' ? HM.build.moveCursor(code) : game.mode === 'world'),
@@ -307,6 +308,7 @@
       pointerDrag: tile => { if (game.mode === 'build') HM.build.drag(tile); }
     });
     el('menuBtn').addEventListener('click', () => { if (game.mode === 'world') HM.ui.showMenu(); });
+    el('mapBtn').addEventListener('click', () => { if (game.mode === 'world') HM.ui.showMap(); });
     root.addEventListener('resize', () => HM.render.resize());
     HM.render.init(el('world'), () => requestAnimationFrame(frame));
     HM.ui.showScreen('title');

@@ -25,7 +25,7 @@ const FILES = [
   'js/i18n.js', 'lang/en.js', 'lang/ja.js', 'lang/ja-readings.js', 'js/furigana.js', 'js/music.js', 'js/sound.js',
   'js/sprite-sheet.js', 'js/map-data.js', 'js/game-data.js', 'js/rules.js', 'js/community.js', 'js/festivals.js',
   'js/events.js', 'js/notebook.js', 'js/soundscape.js', 'js/save.js', 'js/offline.js', 'js/render.js', 'js/input.js',
-  'js/world.js', 'js/dialogue.js', 'js/talks.js', 'js/story.js', 'js/scenes.js', 'js/ui.js', 'js/build.js', 'js/main.js',
+  'js/world.js', 'js/dialogue.js', 'js/talks.js', 'js/story.js', 'js/scenes.js', 'js/minimap.js', 'js/ui.js', 'js/build.js', 'js/main.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'
 ];
 
